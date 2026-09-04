@@ -1,0 +1,2548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneDay / 一日</title>
+<style>
+/* ===== OneDay - Nothing × One 混搭风格 ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+/* 本地内嵌思源宋体 Noto Serif SC —— macOS 无内置中文衬线，离线可用不依赖 CDN */
+@font-face{font-family:'Noto Serif SC';src:url('assets/fonts/NotoSerifSC-500.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Noto Serif SC';src:url('assets/fonts/NotoSerifSC-700.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Noto Serif SC';src:url('assets/fonts/NotoSerifSC-900.woff2') format('woff2');font-weight:900;font-display:swap}
+:root {
+  --black: #000000;
+  --white: #ffffff;
+  --red: #ff3b30;
+  --red-50: rgba(255,59,48,0.5);
+  --red-20: rgba(255,59,48,0.2);
+  --gray-100: #f5f5f5;
+  --gray-200: #e8e8e8;
+  --gray-300: #cccccc;
+  --gray-500: #888888;
+  --gray-700: #555555;
+  --mono: "SF Mono", "Menlo", "Consolas", monospace;
+  --serif: "Noto Serif SC", "Songti SC", "STSong", serif;
+}
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--gray-100);
+  background-image:
+    linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--black);
+  font-size: 14px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+/* 扫描线效果 */
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.005) 2px, rgba(0,0,0,0.005) 4px);
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea, select { font-family: inherit; font-size: inherit; }
+
+/* ===== 布局 ===== */
+.app { display: flex; height: 100vh; }
+
+/* 侧边栏 - 黑色背景+红色右边框 */
+.sidebar {
+  width: 200px;
+  background: var(--black);
+  color: var(--white);
+  border-right: 3px solid var(--red);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+}
+.sidebar-logo {
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sidebar-logo h1 {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  font-family: var(--mono);
+}
+.sidebar-logo h1::after {
+  content: ''; display: inline-block; width: 6px; height: 6px; background: var(--red);
+  margin-left: 6px; vertical-align: middle;
+  box-shadow: 9px 0 0 rgba(255,59,48,0.5), 18px 0 0 rgba(255,59,48,0.25);
+}
+.sidebar-logo p {
+  font-size: 10px;
+  color: var(--gray-500);
+  margin-top: 4px;
+  letter-spacing: 2px;
+  font-family: var(--mono);
+}
+.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+.nav-group { padding: 8px 0; }
+.nav-group-title {
+  padding: 6px 24px;
+  font-size: 9px;
+  color: var(--gray-700);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 11px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  font-family: var(--mono);
+  letter-spacing: 0.5px;
+}
+.nav-item:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+.nav-item.active {
+  color: var(--white);
+  background: rgba(255,59,48,0.1);
+  border-left-color: var(--red);
+}
+.nav-item .dot {
+  width: 6px; height: 6px;
+  background: var(--red);
+  margin-left: auto;
+  display: none;
+}
+.nav-item.has-dot .dot { display: block; }
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 10px;
+  color: var(--gray-500);
+  font-family: var(--mono);
+}
+
+/* 主内容区 */
+.main { flex: 1; overflow-y: auto; position: relative; }
+.view { display: none; min-height: 100%; }
+.view.active { display: block; }
+
+/* 页面通用布局 */
+.page { padding: 32px 40px; }
+.page-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--black);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.page-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--red);
+  font-family: var(--mono);
+  margin-bottom: 6px;
+}
+.page-title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  font-family: var(--mono);
+}
+.page-desc {
+  font-size: 11px;
+  color: var(--gray-500);
+  margin-top: 4px;
+  font-family: var(--serif);
+  font-style: italic;
+}
+
+/* 通用按钮 - 2px粗边框 */
+.btn {
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: all 0.15s;
+  position: relative;
+}
+.btn:hover { background: var(--black); color: var(--white); }
+.btn-primary {
+  background: var(--black);
+  color: var(--white);
+}
+.btn-primary::after {
+  content: ''; position: absolute; top: 0; right: 0; width: 6px; height: 6px; background: var(--red);
+}
+.btn-primary:hover { background: var(--red); border-color: var(--red); }
+.btn-red {
+  background: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+}
+.btn-red:hover { background: var(--black); border-color: var(--black); }
+.btn-sm { padding: 5px 10px; font-size: 10px; }
+
+/* 通用卡片 */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-left: 4px solid var(--black);
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+  transition: all 0.2s;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.card::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 6px; height: 6px; background: var(--gray-300);
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--mono);
+  margin-bottom: 6px;
+}
+.card-meta {
+  font-size: 11px;
+  color: var(--gray-500);
+  font-family: var(--mono);
+}
+
+/* 通用标签 */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-family: var(--mono);
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+.tag-red { background: var(--red); color: var(--white); }
+.tag-done { background: var(--black); color: var(--white); }
+
+/* 表单 */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--black);
+  margin-bottom: 6px;
+  font-family: var(--mono);
+}
+.form-input, .form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--black);
+  font-size: 13px;
+  outline: none;
+  background: var(--white);
+  font-family: var(--mono);
+}
+.form-input:focus, .form-textarea:focus { border-color: var(--red); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: flex; gap: 16px; }
+.form-row .form-group { flex: 1; }
+
+/* 抽屉 */
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 1000; display: none;
+}
+.drawer-overlay.active { display: block; }
+.drawer {
+  position: fixed; top: 0; right: -400px; width: 400px; height: 100%;
+  background: var(--white); z-index: 1001;
+  transition: right 0.3s ease;
+  padding: 24px; overflow-y: auto;
+  border-left: 3px solid var(--red);
+}
+.drawer.active { right: 0; }
+.drawer-title {
+  font-size: 20px; font-weight: 900; font-family: var(--mono);
+  margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--black);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.drawer-close {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; color: var(--gray-500);
+  border: 2px solid var(--gray-300); transition: all 0.15s;
+}
+.drawer-close:hover { background: var(--red); color: var(--white); border-color: var(--red); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--black); color: var(--white); padding: 12px 24px;
+  font-size: 13px; font-family: var(--mono); z-index: 2000;
+  border-left: 4px solid var(--red); display: none;
+}
+.toast.show { display: block; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* 空状态 */
+.empty {
+  text-align: center; padding: 60px 20px; color: var(--gray-500);
+}
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.empty-text { font-size: 14px; font-family: var(--serif); font-style: italic; }
+
+/* 添加栏 */
+.add-bar {
+  display: flex; gap: 10px; margin-bottom: 20px;
+}
+.add-bar input {
+  flex: 1; padding: 10px 14px; border: 2px solid var(--black);
+  font-size: 13px; outline: none; font-family: var(--mono);
+}
+.add-bar input:focus { border-color: var(--red); }
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); }
+::-webkit-scrollbar-thumb:hover { background: var(--red); }
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar-logo h1, .sidebar-logo p, .nav-item span, .nav-group-title, .sidebar-footer { display: none; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .page { padding: 20px; }
+  .drawer { width: 100%; right: -100%; }
+}
+
+/* ===== 基础模块样式（设计师后续细化） ===== */
+
+/* ===== 开屏页（Nothing × One 主风格 · 放大版） ===== */
+.splash {
+  position: relative; width: 100%; height: 100vh; overflow: hidden;
+}
+.splash-bg {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  filter: saturate(0.85) contrast(1.05);
+}
+.splash-bg.has-image { }
+.splash-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 50%, rgba(0,0,0,0.62) 100%);
+}
+/* 电子网格叠层（主风格母题） */
+.splash-grid {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.splash-content {
+  position: relative; z-index: 2; height: 100%;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 48px 56px; color: var(--white);
+}
+.splash-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.splash-date {
+  font-size: 12px; font-weight: 700; letter-spacing: 3px;
+  font-family: var(--mono); display: flex; align-items: center; gap: 12px;
+}
+.splash-date .line { width: 40px; height: 2px; background: var(--red); }
+.splash-date .blink {
+  width: 8px; height: 8px; background: var(--red);
+  animation: splashBlink 1.2s infinite;
+}
+@keyframes splashBlink { 0%,100%{opacity:1} 50%{opacity:.25} }
+.splash-wallpaper-tag {
+  font-size: 9px; font-weight: 700; letter-spacing: 2px; padding: 6px 12px;
+  border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.35);
+  font-family: var(--mono); backdrop-filter: blur(10px);
+}
+.splash-wallpaper-tag .dot {
+  display: inline-block; width: 5px; height: 5px; background: var(--red);
+  margin-right: 6px; vertical-align: middle;
+}
+.splash-center { max-width: 640px; }
+/* 寄语：等宽 900 —— 已按 planner 要求放大 */
+.splash-greeting {
+  font-size: 56px; font-weight: 900; line-height: 1.15; letter-spacing: -1px;
+  margin-bottom: 20px; font-family: var(--mono);
+}
+.splash-greeting .red { color: var(--red); }
+/* 寄语副文：衬线 —— 已按 planner 要求放大 */
+.splash-quote {
+  font-size: 18px; line-height: 1.85; color: rgba(255,255,255,0.85);
+  font-family: var(--serif); font-weight: 500;
+  padding-left: 18px; border-left: 4px solid var(--red); max-width: 580px;
+}
+.splash-bottom {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
+}
+/* 统计区：已按 planner 要求放大 */
+.splash-stats {
+  display: flex; gap: 0;
+  border-top: 2px solid rgba(255,255,255,0.4);
+  border-bottom: 2px solid rgba(255,255,255,0.4);
+  background: rgba(0,0,0,0.28); backdrop-filter: blur(10px);
+}
+.splash-stat {
+  padding: 18px 36px; text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.2);
+}
+.splash-stat:last-child { border-right: none; }
+.splash-stat-num {
+  font-size: 44px; font-weight: 900; font-family: var(--mono); line-height: 1;
+}
+.splash-stat-num.red { color: var(--red); }
+.splash-stat-label {
+  font-size: 12px; color: rgba(255,255,255,0.6);
+  letter-spacing: 3px; margin-top: 8px; font-family: var(--mono);
+}
+/* CTA：已按 planner 要求放大 */
+.splash-cta {
+  padding: 18px 40px; background: var(--white); color: var(--black);
+  font-size: 16px; font-weight: 700; letter-spacing: 2px; cursor: pointer;
+  border: none; font-family: var(--mono); position: relative; overflow: hidden;
+  transition: all 0.2s; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.splash-cta:hover { background: var(--red); color: var(--white); }
+.splash-cta::after {
+  content: ''; position: absolute; top: 0; right: 0; width: 8px; height: 8px;
+  background: var(--red);
+}
+.splash-cta:hover::after { background: var(--white); }
+/* 壁纸切换器 */
+.wallpaper-switcher {
+  position: absolute; bottom: 24px; right: 56px; z-index: 3; display: flex; gap: 8px;
+}
+.wallpaper-thumb {
+  width: 52px; height: 30px; background-size: cover; background-position: center;
+  cursor: pointer; border: 2px solid transparent; opacity: 0.55;
+  transition: all 0.2s;
+}
+.wallpaper-thumb:hover { opacity: 1; }
+.wallpaper-thumb.active { border-color: var(--red); opacity: 1; }
+/* 开屏页四角像素角标 */
+.splash .px-corner { position: absolute; width: 16px; height: 16px; z-index: 3; }
+.splash .px-corner::before, .splash .px-corner::after {
+  content: ''; position: absolute; background: var(--white);
+}
+.splash .px-corner::before { left: 0; top: 0; width: 16px; height: 2px; }
+.splash .px-corner::after { left: 0; top: 0; width: 2px; height: 16px; }
+.splash .px-tl { top: 20px; left: 20px; }
+.splash .px-tr { top: 20px; right: 20px; transform: scaleX(-1); }
+.splash .px-bl { bottom: 20px; left: 20px; transform: scaleY(-1); }
+.splash .px-br { bottom: 20px; right: 20px; transform: scale(-1); }
+
+/* 对话页基础布局 */
+.chat-container {
+  display: flex; flex-direction: column; height: calc(100vh - 0px);
+}
+/* 对话区：电子网格背景（主风格母题） */
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 24px 40px;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.chat-msg {
+  display: flex; margin-bottom: 22px; gap: 12px;
+}
+/* 注意：数据里 AI 角色的 role 值是 'assistant'（不是 'ai'），两种都要覆盖 */
+.chat-msg.ai, .chat-msg.assistant { justify-content: flex-start; }
+.chat-msg.user { justify-content: flex-end; }
+/* 气泡列：气泡在上，时间戳在下 */
+.chat-col { display: flex; flex-direction: column; max-width: 70%; }
+.chat-msg.ai .chat-col, .chat-msg.assistant .chat-col { align-items: flex-start; }
+.chat-msg.user .chat-col { align-items: flex-end; }
+/* 气泡：黑白分明 + 像素角标 */
+.chat-bubble {
+  max-width: 100%; padding: 16px 20px;
+  font-size: 14px; line-height: 1.75; position: relative;
+}
+.chat-msg.ai .chat-bubble,
+.chat-msg.assistant .chat-bubble {
+  background: var(--white); color: var(--black);
+  border: 2px solid var(--black); border-left: 4px solid var(--black);
+}
+.chat-msg.user .chat-bubble {
+  background: var(--black); color: var(--white);
+  border: 2px solid var(--black); border-right: 4px solid var(--red);
+}
+/* 像素角标：AI 气泡左上、用户气泡右上 */
+.chat-bubble::before,
+.chat-bubble::after {
+  content: ''; position: absolute; width: 8px; height: 8px;
+}
+.chat-msg.ai .chat-bubble::before,
+.chat-msg.assistant .chat-bubble::before {
+  top: -2px; left: -2px; background: var(--red);
+}
+.chat-msg.user .chat-bubble::before {
+  top: -2px; right: -2px; background: var(--red);
+}
+.chat-time {
+  font-size: 10px; color: var(--gray-500); font-family: var(--mono);
+  letter-spacing: 1px; margin-top: 8px;
+}
+.chat-input-area {
+  padding: 20px 40px; border-top: 2px solid var(--black);
+  background: var(--white); position: relative;
+}
+/* 输入区顶部红色压边条 */
+.chat-input-area::before {
+  content: ''; position: absolute; top: -2px; left: 0;
+  width: 80px; height: 4px; background: var(--red);
+}
+.chat-input-wrap {
+  display: flex; gap: 12px; align-items: flex-end;
+}
+/* 扫描线输入框 */
+.chat-input {
+  flex: 1; padding: 14px 18px; border: 2px solid var(--black);
+  font-size: 14px; outline: none; resize: none; min-height: 50px;
+  font-family: var(--mono); background-color: var(--gray-100);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 3px,
+    rgba(0,0,0,0.025) 3px, rgba(0,0,0,0.025) 4px
+  );
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.chat-input:focus {
+  border-color: var(--red); background-color: var(--white);
+}
+.chat-input::placeholder { color: var(--gray-500); }
+/* 发送按钮：红色 + 像素角标 */
+.chat-send {
+  padding: 14px 28px; background: var(--red); color: var(--white);
+  border: 2px solid var(--red); font-size: 13px; font-weight: 700;
+  font-family: var(--mono); letter-spacing: 2px; cursor: pointer;
+  position: relative; transition: all 0.15s;
+}
+.chat-send::after {
+  content: ''; position: absolute; top: -2px; right: -2px;
+  width: 8px; height: 8px; background: var(--black);
+}
+.chat-send:hover { background: var(--black); border-color: var(--black); }
+.chat-send:hover::after { background: var(--red); }
+.chat-send:active { transform: translateY(1px); }
+.chat-hint {
+  text-align: center; margin-top: 12px; font-size: 11px;
+  color: var(--gray-500); font-family: var(--serif); font-weight: 500;
+  letter-spacing: 0.5px;
+}
+/* 对话空状态 */
+.chat-empty {
+  text-align: center; padding: 80px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.chat-empty-bar { width: 48px; height: 3px; background: var(--red); }
+.chat-empty-title {
+  font-family: var(--mono); font-size: 22px; font-weight: 700;
+  letter-spacing: 6px; color: var(--black);
+}
+.chat-empty-desc {
+  font-family: var(--serif); font-weight: 500; font-size: 14px;
+  line-height: 1.9; color: var(--gray-500); max-width: 420px;
+}
+
+/* 待办页基础布局 */
+.todo-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; background: var(--white);
+  border: 1px solid var(--gray-200); margin-bottom: 10px;
+  transition: all 0.15s;
+}
+.todo-item:hover { border-color: var(--black); transform: translateX(4px); }
+.todo-check {
+  width: 22px; height: 22px; border: 2px solid var(--black);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.todo-check.checked { background: var(--black); }
+.todo-check.checked::after { content: '✓'; color: var(--white); font-size: 14px; font-weight: 900; }
+.todo-content { flex: 1; }
+.todo-title { font-size: 14px; font-weight: 600; font-family: var(--mono); }
+.todo-item.done .todo-title { text-decoration: line-through; color: var(--gray-500); }
+.todo-meta { font-size: 11px; color: var(--gray-500); font-family: var(--mono); margin-top: 4px; display: flex; gap: 10px; }
+.todo-priority { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.todo-priority.high { background: var(--red); }
+.todo-priority.medium { background: var(--red-50); }
+.todo-priority.low { background: var(--red-20); }
+.todo-delete {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  color: var(--gray-500); cursor: pointer; border: 1px solid var(--gray-300);
+  font-size: 14px; transition: all 0.15s;
+}
+.todo-delete:hover { background: var(--red); color: var(--white); border-color: var(--red); }
+
+/* 项目页基础布局 */
+.project-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;
+}
+.project-card {
+  background: var(--white); border: 1px solid var(--gray-200);
+  border-left: 4px solid var(--black); padding: 20px;
+  position: relative; transition: all 0.2s; cursor: pointer;
+}
+.project-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.project-card::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: var(--red);
+}
+.project-card.priority-high { border-left-color: var(--red); }
+.project-card.priority-medium { border-left-color: var(--red-50); }
+.project-card.priority-low { border-left-color: var(--red-20); }
+.project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.project-name { font-size: 16px; font-weight: 700; font-family: var(--mono); }
+.project-status { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: var(--mono); padding: 3px 8px; background: var(--gray-200); color: var(--gray-700); }
+.project-desc { font-size: 12px; color: var(--gray-500); font-family: var(--serif); margin-bottom: 14px; line-height: 1.6; }
+.project-footer { display: flex; justify-content: space-between; align-items: center; }
+.project-amount { font-size: 18px; font-weight: 900; font-family: var(--mono); }
+.project-progress { display: flex; gap: 2px; }
+.progress-seg { width: 8px; height: 16px; background: var(--gray-200); }
+.progress-seg.filled { background: var(--black); }
+
+/* 朋友/关系图谱基础布局 */
+.friends-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid var(--black); }
+.friends-tab {
+  padding: 10px 20px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  font-family: var(--mono); cursor: pointer; color: var(--gray-500);
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+}
+.friends-tab.active { color: var(--black); border-bottom-color: var(--red); }
+.graph-container {
+  width: 100%; height: 500px; background: var(--white);
+  border: 1px solid var(--gray-200); position: relative; overflow: hidden;
+}
+.graph-legend {
+  position: absolute; bottom: 16px; left: 16px; background: rgba(255,255,255,0.9);
+  padding: 12px 16px; border: 1px solid var(--gray-200); font-size: 11px;
+  font-family: var(--mono);
+}
+.graph-legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.graph-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* 运动页基础布局 */
+.exercise-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.exercise-stat {
+  background: var(--white); border: 1px solid var(--gray-200);
+  border-left: 4px solid var(--red); padding: 20px; text-align: center;
+}
+.exercise-stat-num { font-size: 36px; font-weight: 900; font-family: var(--mono); }
+.exercise-stat-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--gray-500); font-family: var(--mono); margin-top: 6px; }
+.exercise-list { margin-top: 20px; }
+.exercise-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; background: var(--white); border: 1px solid var(--gray-200);
+  margin-bottom: 8px;
+}
+.exercise-date { font-size: 13px; font-weight: 600; font-family: var(--mono); }
+.exercise-status { font-size: 11px; font-weight: 700; font-family: var(--mono); padding: 3px 10px; }
+.exercise-status.done { background: var(--black); color: var(--white); }
+.exercise-status.pending { background: var(--gray-200); color: var(--gray-700); }
+
+/* 设置页基础布局 */
+.settings-section { margin-bottom: 32px; }
+.settings-section h3 {
+  font-size: 14px; font-weight: 700; letter-spacing: 2px;
+  font-family: var(--mono); margin-bottom: 16px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.settings-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0; border-bottom: 1px solid var(--gray-100);
+}
+.settings-label { font-size: 13px; font-weight: 600; font-family: var(--mono); }
+.settings-desc { font-size: 11px; color: var(--gray-500); font-family: var(--serif); margin-top: 2px; }
+.settings-control { display: flex; align-items: center; gap: 12px; }
+
+/* 灵感页基础布局 */
+.inspiration-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
+}
+.inspiration-card {
+  background: var(--white); border: 1px solid var(--gray-200);
+  padding: 20px; position: relative; transition: all 0.2s;
+  border-top: 3px solid var(--black);
+}
+.inspiration-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.inspiration-card::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 6px; height: 6px; background: var(--red);
+}
+.inspiration-title { font-size: 15px; font-weight: 700; font-family: var(--mono); margin-bottom: 8px; }
+.inspiration-content { font-size: 12px; color: var(--gray-700); font-family: var(--serif); line-height: 1.7; margin-bottom: 12px; }
+.inspiration-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--gray-500); font-family: var(--mono); }
+
+
+
+/* ===== 卡片集模块 ===== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.card-item {
+  background: var(--white);
+  border: 2px solid var(--black);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.card-item:hover {
+  transform: translateY(-6px) rotate(-1deg);
+  box-shadow: 8px 8px 0 var(--black);
+}
+.card-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--red);
+  z-index: 2;
+}
+.card-item-image {
+  width: 100%;
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  border-bottom: 2px solid var(--black);
+}
+.card-item-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.6) 100%);
+}
+.card-item-date {
+  position: absolute;
+  bottom: 10px;
+  left: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--white);
+  font-family: var(--mono);
+  z-index: 2;
+  letter-spacing: 1px;
+}
+.card-item-body {
+  padding: 16px;
+}
+.card-item-quote {
+  font-size: 12px;
+  color: var(--gray-700);
+  font-family: var(--serif);
+  font-style: italic;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-item-stats {
+  display: flex;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-200);
+}
+.card-item-stat {
+  text-align: center;
+  flex: 1;
+}
+.card-item-stat-num {
+  font-size: 18px;
+  font-weight: 900;
+  font-family: var(--mono);
+  color: var(--black);
+}
+.card-item-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gray-500);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+/* 卡片详情弹窗 */
+.card-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.card-detail-overlay.active {
+  display: flex;
+}
+.card-detail {
+  background: var(--white);
+  border: 3px solid var(--black);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 12px 12px 0 var(--red);
+}
+.card-detail-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  cursor: pointer;
+  background: var(--white);
+  border: 2px solid var(--black);
+  z-index: 10;
+  transition: all 0.15s;
+}
+.card-detail-close:hover {
+  background: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+}
+.card-detail-hero {
+  width: 100%;
+  height: 280px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  border-bottom: 3px solid var(--black);
+}
+.card-detail-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.7) 100%);
+}
+.card-detail-hero-content {
+  position: absolute;
+  bottom: 24px;
+  left: 28px;
+  right: 28px;
+  z-index: 2;
+}
+.card-detail-date {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--white);
+  font-family: var(--mono);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-detail-date::before {
+  content: '';
+  width: 30px;
+  height: 3px;
+  background: var(--red);
+}
+.card-detail-quote {
+  font-size: 20px;
+  color: var(--white);
+  font-family: var(--serif);
+  font-style: italic;
+  line-height: 1.5;
+}
+.card-detail-body {
+  padding: 28px;
+}
+.card-detail-section {
+  margin-bottom: 24px;
+}
+.card-detail-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--red);
+  font-family: var(--mono);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.card-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.card-detail-stat {
+  text-align: center;
+  padding: 16px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+}
+.card-detail-stat-num {
+  font-size: 28px;
+  font-weight: 900;
+  font-family: var(--mono);
+}
+.card-detail-stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gray-500);
+  font-family: var(--mono);
+  margin-top: 4px;
+}
+.card-detail-highlights {
+  list-style: none;
+}
+.card-detail-highlights li {
+  padding: 10px 14px;
+  background: var(--gray-100);
+  border-left: 3px solid var(--black);
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-family: var(--serif);
+}
+.card-detail-mood {
+  display: inline-block;
+  padding: 6px 14px;
+  background: var(--black);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+}
+
+
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>OneDay</h1>
+      <p>一 日</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-title">今日</div>
+        <div class="nav-item active" data-view="splash"><span>开屏</span><span class="dot"></span></div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">工作</div>
+        <div class="nav-item" data-view="todos"><span>待办</span><span class="dot"></span></div>
+        <div class="nav-item" data-view="projects"><span>重要事件</span><span class="dot"></span></div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">生活</div>
+        <div class="nav-item" data-view="inspirations"><span>灵感</span><span class="dot"></span></div>
+        <div class="nav-item" data-view="exercise"><span>运动</span><span class="dot"></span></div>
+        <div class="nav-item" data-view="friends"><span>朋友</span><span class="dot"></span></div>
+        <div class="nav-item" data-view="cards"><span>卡片集</span><span class="dot"></span></div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">对话</div>
+        <div class="nav-item" data-view="chat"><span>AI 对话</span><span class="dot"></span></div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">系统</div>
+        <div class="nav-item" data-view="settings"><span>设置</span></div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">v3.0 · 一日</div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main">
+    <!-- 开屏页 -->
+    <div class="view active" id="view-splash">
+      <div class="splash">
+        <div class="splash-bg" id="splash-bg"></div>
+        <div class="splash-overlay"></div>
+        <div class="splash-grid"></div>
+        <div class="px-corner px-tl"></div>
+        <div class="px-corner px-tr"></div>
+        <div class="px-corner px-bl"></div>
+        <div class="px-corner px-br"></div>
+        <div class="splash-content">
+          <div class="splash-top">
+            <div class="splash-date" id="splash-date"></div>
+            <div class="splash-wallpaper-tag" id="splash-wallpaper-tag"></div>
+          </div>
+          <div class="splash-center">
+            <div class="splash-greeting" id="splash-greeting"></div>
+            <div class="splash-quote" id="splash-quote"></div>
+          </div>
+          <div class="splash-bottom">
+            <div class="splash-stats" id="splash-stats"></div>
+            <button class="splash-cta" onclick="navigate('chat')">有什么想说的 →</button>
+          </div>
+        </div>
+        <div class="wallpaper-switcher" id="wallpaperSwitcher"></div>
+      </div>
+    </div>
+
+    <!-- 待办 -->
+    <div class="view" id="view-todos">
+      <div class="page">
+        <div class="page-header">
+          <div class="page-eyebrow">TO DO</div>
+          <h2 class="page-title">待办</h2>
+          <p class="page-desc">跟 AI 说"我要做什么"，它会自动帮你记下来。</p>
+        </div>
+        <div class="add-bar">
+          <input type="text" id="todo-input" placeholder="添加一个待办..." onkeydown="if(event.key==='Enter')addTodo()">
+          <button class="btn btn-sm btn-primary" onclick="addTodo()">添加</button>
+        </div>
+        <div id="todo-list"></div>
+      </div>
+    </div>
+
+    <!-- 重要事件 -->
+    <div class="view" id="view-projects">
+      <div class="page">
+        <div class="page-header">
+          <div class="page-eyebrow">PROJECTS</div>
+          <h2 class="page-title">重要事件</h2>
+          <p class="page-desc">正在跟进的项目、事件、目标。不限于工作，生活中的大事也可以记。</p>
+        </div>
+        <div style="margin-bottom:24px;">
+          <button class="btn btn-sm btn-primary" onclick="openProjectDrawer()">+ 新增事件</button>
+        </div>
+        <div id="project-list"></div>
+      </div>
+    </div>
+
+    <!-- 灵感 -->
+    <div class="view" id="view-inspirations">
+      <div class="page">
+        <div class="page-header">
+          <div class="page-eyebrow">INSPIRATIONS</div>
+          <h2 class="page-title">灵感</h2>
+          <p class="page-desc">想到什么随手记，跟 AI 说也行。灵感这东西，记下来就跑不掉。</p>
+        </div>
+        <div class="add-bar">
+          <input type="text" id="insp-input" placeholder="记录一个灵感..." onkeydown="if(event.key==='Enter')addInspiration()">
+          <button class="btn btn-sm btn-primary" onclick="addInspiration()">记录</button>
+        </div>
+        <div id="insp-list"></div>
+      </div>
+    </div>
+
+    <!-- 运动 -->
+    <div class="view" id="view-exercise">
+      <div class="page">
+        <div class="page-header">
+          <div class="page-eyebrow">EXERCISE</div>
+          <h2 class="page-title">运动</h2>
+          <p class="page-desc">每天动一动。没打卡的话，晚上 AI 会提醒你。</p>
+        </div>
+        <div class="exercise-today">
+          <div class="exercise-status" id="exercise-today-status">今天还没运动</div>
+          <div class="exercise-date" id="exercise-today-date"></div>
+          <div style="margin-top:16px;">
+            <button class="btn btn-sm btn-primary" onclick="checkInExercise()">打卡今天</button>
+          </div>
+        </div>
+        <div class="exercise-stats">
+          <div class="exercise-stat">
+            <div class="exercise-stat-num" id="stat-week">0</div>
+            <div class="exercise-stat-label">本周次数</div>
+          </div>
+          <div class="exercise-stat">
+            <div class="exercise-stat-num" id="stat-month">0</div>
+            <div class="exercise-stat-label">本月次数</div>
+          </div>
+          <div class="exercise-stat">
+            <div class="exercise-stat-num" id="stat-total">0</div>
+            <div class="exercise-stat-label">累计次数</div>
+          </div>
+        </div>
+        <h3 style="font-size:14px;font-weight:500;margin-bottom:16px;">最近记录</h3>
+        <div id="exercise-list" class="exercise-list"></div>
+      </div>
+    </div>
+
+    <!-- 朋友 -->
+    <div class="view" id="view-friends">
+      <div class="page">
+        <div class="page-header">
+          <div class="page-eyebrow">FRIENDS</div>
+          <h2 class="page-title">朋友</h2>
+          <p class="page-desc">AI 会从对话中草记人名，你来完善信息。关系图谱展示人与人的连接。</p>
+        </div>
+        <div class="friends-tabs">
+          <div class="friends-tab active" data-tab="list" onclick="switchFriendsTab('list')">人物列表</div>
+          <div class="friends-tab" data-tab="graph" onclick="switchFriendsTab('graph')">关系图谱</div>
+        </div>
+        <div id="friends-list-view">
+          <div style="margin-bottom:24px;">
+            <button class="btn btn-sm btn-primary" onclick="openFriendDrawer()">+ 添加朋友</button>
+          </div>
+          <div id="friend-list"></div>
+        </div>
+        <div id="friends-graph-view" style="display:none;">
+          <div class="graph-container" id="graph-container">
+            <canvas id="graph-canvas"></canvas>
+            <div class="graph-legend">
+              <div class="graph-legend-item"><span class="graph-legend-dot" style="background:var(--red);"></span> 高频提及</div>
+              <div class="graph-legend-item"><span class="graph-legend-dot" style="background:var(--red-50);"></span> 中频提及</div>
+              <div class="graph-legend-item"><span class="graph-legend-dot" style="background:var(--red-20);"></span> 低频提及</div>
+              <div style="margin-top:8px; color:var(--gray-500);">滚轮缩放 · 拖拽平移 · 悬停高亮 · 点击详情</div>
+            </div>
+            <div class="graph-tooltip" id="graph-tooltip"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 对话 -->
+    <div class="view" id="view-chat">
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-area">
+          <div class="chat-input-wrap">
+            <textarea class="chat-input" id="chat-input" placeholder="跟我说说今天吧..." onkeydown="handleChatKeydown(event)"></textarea>
+            <button class="chat-send" id="chat-send" onclick="sendChat()">发送</button>
+          </div>
+          <div class="chat-hint">说"我要做XX"自动记待办 · 说"想到XX"自动记灵感 · 提到人名自动草记到朋友</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 设置 -->
+    <div class="view" id="view-settings">
+      <div class="page">
+        <div class="page-header">
+          <div class="page-eyebrow">SETTINGS</div>
+          <h2 class="page-title">设置</h2>
+        </div>
+
+        <div class="settings-section">
+          <h3>个人</h3>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">你的名字</div>
+              <div class="settings-desc">AI 会用这个名字称呼你</div>
+            </div>
+            <div class="settings-control">
+              <input type="text" id="set-userName" placeholder="怎么称呼你？">
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>定时提醒</h3>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">早间问候</div>
+              <div class="settings-desc">每天这个时间 AI 跟你说早上好</div>
+            </div>
+            <div class="settings-control">
+              <input type="time" id="set-morningTime" value="07:30">
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">晚间总结</div>
+              <div class="settings-desc">每天这个时间提醒你聊聊今天</div>
+            </div>
+            <div class="settings-control">
+              <input type="time" id="set-eveningTime" value="22:00">
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">运动提醒</div>
+              <div class="settings-desc">没打卡的话这个时间提醒你</div>
+            </div>
+            <div class="settings-control">
+              <input type="time" id="set-exerciseReminderTime" value="20:00">
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">启用系统通知</div>
+              <div class="settings-desc">通过 macOS 系统通知提醒</div>
+            </div>
+            <div class="settings-control">
+              <select id="set-notificationsEnabled">
+                <option value="true">启用</option>
+                <option value="false">关闭</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>AI 配置</h3>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">AI 服务商</div>
+              <div class="settings-desc">选择大模型服务商</div>
+            </div>
+            <div class="settings-control">
+              <select id="set-apiProvider">
+                <option value="deepseek">DeepSeek</option>
+                <option value="doubao">豆包</option>
+                <option value="mock">模拟模式</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">API Key</div>
+              <div class="settings-desc">配置后启用真实 AI 对话</div>
+            </div>
+            <div class="settings-control">
+              <input type="password" id="set-apiKey" placeholder="sk-...">
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">AI 风格</div>
+              <div class="settings-desc">AI 回应的语气风格</div>
+            </div>
+            <div class="settings-control">
+              <select id="set-aiStyle">
+                <option value="encouraging">鼓励型</option>
+                <option value="calm">冷静型</option>
+                <option value="humorous">幽默型</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>数据</h3>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">测试通知</div>
+              <div class="settings-desc">发送一条测试系统通知</div>
+            </div>
+            <div class="settings-control">
+              <button class="btn btn-sm" onclick="testNotification()">测试</button>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">保存设置</div>
+              <div class="settings-desc">保存以上所有配置</div>
+            </div>
+            <div class="settings-control">
+              <button class="btn btn-sm btn-primary" onclick="saveSettings()">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 抽屉 -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <span class="drawer-close" onclick="closeDrawer()">×</span>
+  <div class="drawer-title" id="drawer-title">详情</div>
+  <div id="drawer-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== OneDay 前端核心 =====
+const API_BASE = 'http://localhost:8765/api';
+let _data = null;
+let _currentView = 'splash';
+let _friendsTab = 'list';
+
+// ===== 工具函数 =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ===== 数据管理 =====
+async function loadData() {
+  try {
+    const res = await fetch(API_BASE + '/work-data');
+    _data = await res.json();
+    return _data;
+  } catch (e) {
+    console.error('加载数据失败', e);
+    showToast('连接后端失败');
+    return null;
+  }
+}
+
+async function saveData() {
+  if (!_data) return;
+  try {
+    await fetch(API_BASE + '/work-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(_data)
+    });
+  } catch (e) {
+    console.error('保存失败', e);
+  }
+}
+
+async function apiPost(module, data) {
+  const res = await fetch(`${API_BASE}/${module}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+async function apiPut(module, id, data) {
+  const res = await fetch(`${API_BASE}/${module}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+async function apiDelete(module, id) {
+  await fetch(`${API_BASE}/${module}/${id}`, { method: 'DELETE' });
+}
+
+// ===== 路由 =====
+function navigate(view) {
+  _currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add('active');
+  renderView(view);
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => navigate(item.dataset.view));
+});
+
+function renderView(view) {
+  switch(view) {
+    case 'splash': renderSplash(); break;
+    case 'todos': renderTodos(); break;
+    case 'projects': renderProjects(); break;
+    case 'inspirations': renderInspirations(); break;
+    case 'exercise': renderExercise(); break;
+    case 'friends': renderFriends(); break;
+    case 'cards': loadCards(); break;
+    case 'chat': renderChat(); break;
+    case 'settings': renderSettings(); break;
+  }
+}
+
+// ===== 开屏页 =====
+// ===== 壁纸（4 张年轻风格） =====
+const WALLPAPERS = [
+  { id: 'street',  name: 'STREET · 街头涂鸦',  file: 'assets/wallpaper-street.jpg' },
+  { id: 'cyber',   name: 'CYBER · 赛博朋克',   file: 'assets/wallpaper-cyber.jpg' },
+  { id: 'concert', name: 'CONCERT · 音乐节',   file: 'assets/wallpaper-concert.jpg' },
+  { id: 'arcade',  name: 'ARCADE · 复古街机',  file: 'assets/wallpaper-arcade.jpg' }
+];
+let _currentWallpaper = 0;
+
+function applyWallpaper(index) {
+  _currentWallpaper = index;
+  const w = WALLPAPERS[index];
+  document.getElementById('splash-bg').style.backgroundImage = `url('${w.file}')`;
+  const tag = document.getElementById('splash-wallpaper-tag');
+  if (tag) tag.innerHTML = `<span class="dot"></span>${w.name}`;
+  // 切换器选中态
+  document.querySelectorAll('.wallpaper-thumb').forEach((el, i) => {
+    el.classList.toggle('active', i === index);
+  });
+}
+
+function initWallpaperSwitcher() {
+  const switcher = document.getElementById('wallpaperSwitcher');
+  if (!switcher) return;
+  switcher.innerHTML = WALLPAPERS.map((w, i) =>
+    `<div class="wallpaper-thumb ${i === _currentWallpaper ? 'active' : ''}"
+      style="background-image:url('${w.file}')"
+      onclick="applyWallpaper(${i})" title="${w.name}"></div>`
+  ).join('');
+}
+
+function renderSplash() {
+  if (!_data) return;
+  const wp = _data.wallpaper || {};
+  const settings = _data.settings || {};
+  const name = settings.userName || '';
+
+  // 壁纸 + 切换器
+  initWallpaperSwitcher();
+  applyWallpaper(_currentWallpaper);
+
+  // 日期（等宽 + 红色短线 + 呼吸红点）
+  const now = new Date();
+  const wd = ['SUN','MON','TUE','WED','THU','FRI','SAT'][now.getDay()];
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  document.getElementById('splash-date').innerHTML =
+    `<span class="line"></span>${now.getFullYear()}.${mm}.${dd} · ${wd} <span class="blink"></span>`;
+
+  // 问候（时段词红色重音）
+  const hour = now.getHours();
+  let period = '';
+  if (hour < 6) period = '夜深了';
+  else if (hour < 12) period = '早上好';
+  else if (hour < 14) period = '中午好';
+  else if (hour < 18) period = '下午好';
+  else period = '晚上好';
+  document.getElementById('splash-greeting').innerHTML =
+    `<span class="red">${period}</span>${name ? '，' + name : ''}。`;
+
+  // 每日一句（衬线，已放大）
+  document.getElementById('splash-quote').textContent =
+    wp.quote || '复杂世界里，一个就够了。';
+
+  // 统计（已放大，进行中红色）
+  const todos = _data.todos || [];
+  const pending = todos.filter(t => t.status !== 'done').length;
+  const projects = _data.projects || [];
+  const active = projects.filter(p => p.status !== 'done' && p.status !== 'cancelled').length;
+  const exercises = _data.exercises || [];
+  const todayEx = exercises.filter(e => (e.date || '').startsWith(todayStr()) && e.status === 'done').length;
+
+  document.getElementById('splash-stats').innerHTML = `
+    <div class="splash-stat">
+      <div class="splash-stat-num">${pending}</div>
+      <div class="splash-stat-label">TODOS</div>
+    </div>
+    <div class="splash-stat">
+      <div class="splash-stat-num red">${active}</div>
+      <div class="splash-stat-label">DOING</div>
+    </div>
+    <div class="splash-stat">
+      <div class="splash-stat-num">${todayEx > 0 ? '✓' : '—'}</div>
+      <div class="splash-stat-label">RUN</div>
+    </div>
+  `;
+}
+
+// ===== 待办 =====
+function renderTodos() {
+  const list = document.getElementById('todo-list');
+  const todos = (_data?.todos || []).slice().sort((a,b) => {
+    if (a.status === 'done' && b.status !== 'done') return 1;
+    if (a.status !== 'done' && b.status === 'done') return -1;
+    return 0;
+  });
+
+  if (todos.length === 0) {
+    list.innerHTML = '<div class="empty"><p>还没有待办。跟 AI 说"我要做XX"，或者上面添加。</p></div>';
+    return;
+  }
+
+  list.innerHTML = todos.map(t => `
+    <div class="todo-item">
+      <div class="todo-check ${t.status === 'done' ? 'checked' : ''}" onclick="toggleTodo('${t.id}')">${t.status === 'done' ? '✓' : ''}</div>
+      <div class="todo-content">
+        <div class="todo-title ${t.status === 'done' ? 'done' : ''}">${t.title || ''}</div>
+        <div class="todo-meta">
+          ${t.priority === 'high' ? '<span class="tag tag-red">高优先级</span>' : ''}
+          ${t.source === 'ai_extract' ? '<span>AI 提取</span>' : '<span>手动</span>'}
+          <span>${formatDate(t.date)}</span>
+        </div>
+      </div>
+      <span class="todo-delete" onclick="deleteTodo('${t.id}')">删除</span>
+    </div>
+  `).join('');
+}
+
+async function addTodo() {
+  const input = document.getElementById('todo-input');
+  const title = input.value.trim();
+  if (!title) return;
+  const item = await apiPost('todos', { title, priority: 'medium', status: 'pending', source: 'manual' });
+  _data.todos.unshift(item);
+  input.value = '';
+  renderTodos();
+  showToast('已添加');
+}
+
+async function toggleTodo(id) {
+  const t = _data.todos.find(x => x.id === id);
+  if (!t) return;
+  t.status = t.status === 'done' ? 'pending' : 'done';
+  await apiPut('todos', id, { status: t.status });
+  renderTodos();
+}
+
+async function deleteTodo(id) {
+  await apiDelete('todos', id);
+  _data.todos = _data.todos.filter(t => t.id !== id);
+  renderTodos();
+}
+
+// ===== 重要事件 =====
+const PROJECT_STAGES = ['规划中', '跟进中', '已成交', '已完成', '已搁置'];
+const PRIORITIES = [
+  { value: 'high', label: '高' },
+  { value: 'medium', label: '中' },
+  { value: 'low', label: '低' },
+];
+
+function renderProjects() {
+  const list = document.getElementById('project-list');
+  const projects = _data?.projects || [];
+
+  if (projects.length === 0) {
+    list.innerHTML = '<div class="empty"><p>还没有重要事件。点击上方添加，或者跟 AI 聊聊。</p></div>';
+    return;
+  }
+
+  list.innerHTML = projects.map(p => `
+    <div class="card" onclick="openProjectDrawer('${p.id}')">
+      <div class="card-title">${p.name || '未命名'}</div>
+      <div class="card-meta">
+        <span class="tag">${p.stage || '规划中'}</span>
+        ${p.priority === 'high' ? '<span class="tag tag-red">高优先级</span>' : ''}
+        ${p.customer ? `<span>${p.customer}</span>` : ''}
+        ${p.amount ? `<span>¥${p.amount}</span>` : ''}
+        ${p.deadline ? `<span>截止 ${formatDate(p.deadline)}</span>` : ''}
+      </div>
+      ${p.notes ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:8px;">${p.notes.substring(0,80)}${p.notes.length>80?'...':''}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function openProjectDrawer(id) {
+  const p = id ? _data.projects.find(x => x.id === id) : null;
+  document.getElementById('drawer-title').textContent = p ? '编辑事件' : '新增事件';
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="form-group">
+      <label class="form-label">名称</label>
+      <input class="form-input" id="pf-name" value="${p?.name || ''}" placeholder="事件名称">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">阶段</label>
+        <select class="form-select" id="pf-stage">
+          ${PROJECT_STAGES.map(s => `<option value="${s}" ${p?.stage===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">优先级</label>
+        <select class="form-select" id="pf-priority">
+          ${PRIORITIES.map(pr => `<option value="${pr.value}" ${p?.priority===pr.value?'selected':''}>${pr.label}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">关联方/客户</label>
+        <input class="form-input" id="pf-customer" value="${p?.customer || ''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">金额</label>
+        <input class="form-input" id="pf-amount" value="${p?.amount || ''}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">截止日期</label>
+      <input class="form-input" type="date" id="pf-deadline" value="${p?.deadline ? p.deadline.substring(0,10) : ''}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">下一步行动</label>
+      <input class="form-input" id="pf-nextAction" value="${p?.nextAction || ''}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-textarea" id="pf-notes">${p?.notes || ''}</textarea>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:24px;">
+      <button class="btn btn-primary" onclick="saveProject('${id || ''}')">保存</button>
+      ${p ? '<button class="btn btn-red" onclick="deleteProject(\'' + id + '\')">删除</button>' : ''}
+    </div>
+  `;
+  showDrawer();
+}
+
+async function saveProject(id) {
+  const data = {
+    name: document.getElementById('pf-name').value.trim(),
+    stage: document.getElementById('pf-stage').value,
+    priority: document.getElementById('pf-priority').value,
+    customer: document.getElementById('pf-customer').value.trim(),
+    amount: document.getElementById('pf-amount').value.trim(),
+    deadline: document.getElementById('pf-deadline').value,
+    nextAction: document.getElementById('pf-nextAction').value.trim(),
+    notes: document.getElementById('pf-notes').value.trim(),
+  };
+  if (!data.name) { showToast('请填写名称'); return; }
+
+  if (id) {
+    await apiPut('projects', id, data);
+    const idx = _data.projects.findIndex(p => p.id === id);
+    if (idx >= 0) _data.projects[idx] = {..._data.projects[idx], ...data};
+  } else {
+    const item = await apiPost('projects', data);
+    _data.projects.unshift(item);
+  }
+  closeDrawer();
+  renderProjects();
+  showToast('已保存');
+}
+
+async function deleteProject(id) {
+  if (!confirm('确定删除这个事件？')) return;
+  await apiDelete('projects', id);
+  _data.projects = _data.projects.filter(p => p.id !== id);
+  closeDrawer();
+  renderProjects();
+}
+
+// ===== 灵感 =====
+function renderInspirations() {
+  const list = document.getElementById('insp-list');
+  const insps = _data?.inspirations || [];
+
+  if (insps.length === 0) {
+    list.innerHTML = '<div class="empty"><p>还没有灵感。想到什么随手记，跟 AI 说也行。</p></div>';
+    return;
+  }
+
+  list.innerHTML = insps.map(i => `
+    <div class="card">
+      <div class="card-title" style="font-weight:400;">${i.content || ''}</div>
+      <div class="card-meta">
+        ${i.source === 'ai_extract' ? '<span>AI 提取</span>' : '<span>手动</span>'}
+        <span>${formatDateTime(i.date)}</span>
+        <span style="margin-left:auto;cursor:pointer;color:var(--red);" onclick="deleteInspiration('${i.id}')">删除</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addInspiration() {
+  const input = document.getElementById('insp-input');
+  const content = input.value.trim();
+  if (!content) return;
+  const item = await apiPost('inspirations', { content, source: 'manual' });
+  _data.inspirations.unshift(item);
+  input.value = '';
+  renderInspirations();
+  showToast('已记录');
+}
+
+async function deleteInspiration(id) {
+  await apiDelete('inspirations', id);
+  _data.inspirations = _data.inspirations.filter(i => i.id !== id);
+  renderInspirations();
+}
+
+// ===== 运动 =====
+function renderExercise() {
+  const exercises = _data?.exercises || [];
+  const today = todayStr();
+
+  // 今日状态
+  const todayEx = exercises.filter(e => (e.date || '').startsWith(today) && e.status === 'done');
+  document.getElementById('exercise-today-status').textContent =
+    todayEx.length > 0 ? `今天已运动 ✓（${todayEx.length}次）` : '今天还没运动';
+  document.getElementById('exercise-today-date').textContent = today;
+
+  // 统计
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  const weekStr = weekStart.toISOString().substring(0,10);
+  const monthStr = today.substring(0,7);
+
+  document.getElementById('stat-week').textContent =
+    exercises.filter(e => e.status === 'done' && (e.date || '') >= weekStr).length;
+  document.getElementById('stat-month').textContent =
+    exercises.filter(e => e.status === 'done' && (e.date || '').startsWith(monthStr)).length;
+  document.getElementById('stat-total').textContent =
+    exercises.filter(e => e.status === 'done').length;
+
+  // 最近记录
+  const list = document.getElementById('exercise-list');
+  const recent = exercises.slice(0, 10);
+  if (recent.length === 0) {
+    list.innerHTML = '<div class="empty"><p>还没有运动记录。点击上方打卡今天。</p></div>';
+  } else {
+    list.innerHTML = recent.map(e => `
+      <div class="card">
+        <div class="card-title">${e.detail || '运动打卡'}</div>
+        <div class="card-meta">
+          <span>${formatDate(e.date)}</span>
+          ${e.status === 'done' ? '<span class="tag">已完成</span>' : '<span class="tag">未完成</span>'}
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+async function checkInExercise() {
+  const item = await apiPost('exercises', { status: 'done', detail: '日常运动', date: new Date().toISOString() });
+  _data.exercises.unshift(item);
+  renderExercise();
+  showToast('打卡成功！');
+}
+
+// ===== 朋友 =====
+function switchFriendsTab(tab) {
+  _friendsTab = tab;
+  document.querySelectorAll('.friends-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.friends-tab[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById('friends-list-view').style.display = tab === 'list' ? 'block' : 'none';
+  document.getElementById('friends-graph-view').style.display = tab === 'graph' ? 'block' : 'none';
+  if (tab === 'graph') {
+    setTimeout(() => {
+      initGraphCanvas();
+      renderGraph();
+    }, 50);
+  }
+}
+
+function renderFriends() {
+  const list = document.getElementById('friend-list');
+  const friends = _data?.friends || [];
+
+  if (friends.length === 0) {
+    list.innerHTML = '<div class="empty"><p>还没有朋友记录。跟 AI 聊天时提到人名，会自动草记在这里。</p></div>';
+    return;
+  }
+
+  list.innerHTML = friends.map(f => `
+    <div class="card ${f.status === 'draft' ? 'friend-draft' : ''}" onclick="openFriendDrawer('${f.id}')">
+      <div class="card-title">${f.name || '未命名'}</div>
+      <div class="card-meta">
+        ${f.identity ? `<span>${f.identity}</span>` : ''}
+        ${f.relationship ? `<span>${f.relationship}</span>` : ''}
+        ${f.status === 'draft' ? '<span class="tag tag-red">待确认</span>' : ''}
+      </div>
+      ${f.notes ? `<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">${f.notes.substring(0,60)}${f.notes.length>60?'...':''}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function openFriendDrawer(id) {
+  const f = id ? _data.friends.find(x => x.id === id) : null;
+  document.getElementById('drawer-title').textContent = f ? '编辑朋友' : '添加朋友';
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="form-group">
+      <label class="form-label">姓名</label>
+      <input class="form-input" id="ff-name" value="${f?.name || ''}">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">身份/职业</label>
+        <input class="form-input" id="ff-identity" value="${f?.identity || ''}" placeholder="如：采购经理">
+      </div>
+      <div class="form-group">
+        <label class="form-label">关系</label>
+        <input class="form-input" id="ff-relationship" value="${f?.relationship || ''}" placeholder="如：客户、朋友、同事">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">联系方式</label>
+      <input class="form-input" id="ff-contact" value="${f?.contact || ''}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-textarea" id="ff-notes">${f?.notes || ''}</textarea>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:24px;">
+      <button class="btn btn-primary" onclick="saveFriend('${id || ''}')">保存</button>
+      ${f ? '<button class="btn btn-red" onclick="deleteFriend(\'' + id + '\')">删除</button>' : ''}
+    </div>
+  `;
+  showDrawer();
+}
+
+async function saveFriend(id) {
+  const data = {
+    name: document.getElementById('ff-name').value.trim(),
+    identity: document.getElementById('ff-identity').value.trim(),
+    relationship: document.getElementById('ff-relationship').value.trim(),
+    contact: document.getElementById('ff-contact').value.trim(),
+    notes: document.getElementById('ff-notes').value.trim(),
+    status: 'confirmed',
+  };
+  if (!data.name) { showToast('请填写姓名'); return; }
+
+  if (id) {
+    await apiPut('friends', id, data);
+    const idx = _data.friends.findIndex(f => f.id === id);
+    if (idx >= 0) _data.friends[idx] = {..._data.friends[idx], ...data};
+  } else {
+    const item = await apiPost('friends', {...data, status: 'confirmed', source: 'manual'});
+    _data.friends.unshift(item);
+  }
+  closeDrawer();
+  renderFriends();
+  showToast('已保存');
+}
+
+async function deleteFriend(id) {
+  if (!confirm('确定删除？')) return;
+  await apiDelete('friends', id);
+  _data.friends = _data.friends.filter(f => f.id !== id);
+  closeDrawer();
+  renderFriends();
+}
+
+// ===== 关系图谱（灵动版 - Canvas力导向） =====
+let graphState = {
+  nodes: [],
+  links: [],
+  canvas: null,
+  ctx: null,
+  W: 0, H: 0,
+  scale: 1,
+  offsetX: 0,
+  offsetY: 0,
+  isDragging: false,
+  dragNode: null,
+  panStartX: 0,
+  panStartY: 0,
+  hoverNode: null,
+  animFrame: null,
+  time: 0,
+};
+
+function initGraphCanvas() {
+  const canvas = document.getElementById('graph-canvas');
+  if (!canvas) return;
+  const container = document.getElementById('graph-container');
+  const dpr = window.devicePixelRatio || 1;
+  graphState.W = container.clientWidth;
+  graphState.H = container.clientHeight;
+  canvas.width = graphState.W * dpr;
+  canvas.height = graphState.H * dpr;
+  canvas.style.width = graphState.W + 'px';
+  canvas.style.height = graphState.H + 'px';
+  graphState.ctx = canvas.getContext('2d');
+  graphState.ctx.scale(dpr, dpr);
+  graphState.canvas = canvas;
+  
+  // 事件绑定
+  canvas.addEventListener('mousedown', onGraphMouseDown);
+  canvas.addEventListener('mousemove', onGraphMouseMove);
+  canvas.addEventListener('mouseup', onGraphMouseUp);
+  canvas.addEventListener('mouseleave', onGraphMouseLeave);
+  canvas.addEventListener('wheel', onGraphWheel, { passive: false });
+  canvas.addEventListener('click', onGraphClick);
+}
+
+function screenToWorld(sx, sy) {
+  return {
+    x: (sx - graphState.offsetX) / graphState.scale,
+    y: (sy - graphState.offsetY) / graphState.scale,
+  };
+}
+
+function findNodeAt(wx, wy) {
+  for (let i = graphState.nodes.length - 1; i >= 0; i--) {
+    const n = graphState.nodes[i];
+    const dx = wx - n.x;
+    const dy = wy - n.y;
+    if (dx*dx + dy*dy <= n.radius * n.radius) {
+      return n;
+    }
+  }
+  return null;
+}
+
+function onGraphMouseDown(e) {
+  const rect = graphState.canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left;
+  const sy = e.clientY - rect.top;
+  const wp = screenToWorld(sx, sy);
+  const node = findNodeAt(wp.x, wp.y);
+  
+  if (node) {
+    graphState.dragNode = node;
+    node.vx = 0;
+    node.vy = 0;
+  } else {
+    graphState.isDragging = true;
+    graphState.panStartX = sx - graphState.offsetX;
+    graphState.panStartY = sy - graphState.offsetY;
+  }
+}
+
+function onGraphMouseMove(e) {
+  const rect = graphState.canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left;
+  const sy = e.clientY - rect.top;
+  const wp = screenToWorld(sx, sy);
+  
+  if (graphState.dragNode) {
+    graphState.dragNode.x = wp.x;
+    graphState.dragNode.y = wp.y;
+    return;
+  }
+  
+  if (graphState.isDragging) {
+    graphState.offsetX = sx - graphState.panStartX;
+    graphState.offsetY = sy - graphState.panStartY;
+    return;
+  }
+  
+  // 悬停检测
+  const node = findNodeAt(wp.x, wp.y);
+  graphState.hoverNode = node;
+  
+  const tooltip = document.getElementById('graph-tooltip');
+  if (node) {
+    graphState.canvas.style.cursor = 'pointer';
+    tooltip.style.display = 'block';
+    tooltip.style.left = (sx + 15) + 'px';
+    tooltip.style.top = (sy - 10) + 'px';
+    tooltip.innerHTML = `
+      <div class="tooltip-name">${node.name}</div>
+      <div class="tooltip-meta">提及 ${node.mentionCount} 次 · ${node.relationship || '未分类'}</div>
+    `;
+  } else {
+    graphState.canvas.style.cursor = 'grab';
+    tooltip.style.display = 'none';
+  }
+}
+
+function onGraphMouseUp() {
+  graphState.dragNode = null;
+  graphState.isDragging = false;
+}
+
+function onGraphMouseLeave() {
+  graphState.dragNode = null;
+  graphState.isDragging = false;
+  graphState.hoverNode = null;
+  document.getElementById('graph-tooltip').style.display = 'none';
+}
+
+function onGraphWheel(e) {
+  e.preventDefault();
+  const rect = graphState.canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left;
+  const sy = e.clientY - rect.top;
+  const wp = screenToWorld(sx, sy);
+  
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  graphState.scale = Math.max(0.3, Math.min(3, graphState.scale * delta));
+  
+  graphState.offsetX = sx - wp.x * graphState.scale;
+  graphState.offsetY = sy - wp.y * graphState.scale;
+}
+
+function onGraphClick(e) {
+  if (graphState.hoverNode) {
+    openFriendDrawer(graphState.hoverNode.id);
+  }
+}
+
+function renderGraph() {
+  const friends = _data?.friends || [];
+  const canvas = document.getElementById('graph-canvas');
+  if (!canvas) {
+    initGraphCanvas();
+  }
+  
+  if (friends.length === 0) {
+    const ctx = graphState.ctx;
+    if (ctx) {
+      ctx.clearRect(0, 0, graphState.W, graphState.H);
+      ctx.fillStyle = '#999';
+      ctx.font = '13px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('还没有朋友数据，跟AI聊聊提到的人会自动记录', graphState.W/2, graphState.H/2);
+    }
+    return;
+  }
+  
+  // 初始化节点（节点大小=提及频率）
+  const maxMention = Math.max(...friends.map(f => f.mention_count || 1), 1);
+  graphState.nodes = friends.map((f, i) => {
+    const mentionCount = f.mention_count || 1;
+    const radius = 12 + (mentionCount / maxMention) * 30;
+    const angle = (i / friends.length) * Math.PI * 2;
+    return {
+      id: f.id,
+      name: f.name,
+      x: graphState.W/2 + Math.cos(angle) * 150,
+      y: graphState.H/2 + Math.sin(angle) * 150,
+      vx: 0, vy: 0,
+      radius: radius,
+      mentionCount: mentionCount,
+      relationship: f.relationship || '',
+      status: f.status || 'draft',
+      data: f,
+      pulsePhase: Math.random() * Math.PI * 2,
+    };
+  });
+  
+  // 边（基于关系类型连接）
+  graphState.links = [];
+  const relGroups = {};
+  graphState.nodes.forEach(n => {
+    const rel = n.relationship || '其他';
+    if (!relGroups[rel]) relGroups[rel] = [];
+    relGroups[rel].push(n);
+  });
+  Object.values(relGroups).forEach(group => {
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i+1; j < group.length; j++) {
+        graphState.links.push({ source: group[i], target: group[j] });
+      }
+    }
+  });
+  
+  // 重置视图
+  graphState.scale = 1;
+  graphState.offsetX = 0;
+  graphState.offsetY = 0;
+  graphState.time = 0;
+  
+  // 启动动画循环
+  if (graphState.animFrame) {
+    cancelAnimationFrame(graphState.animFrame);
+  }
+  graphLoop();
+}
+
+function graphLoop() {
+  graphState.time += 0.016;
+  updateGraphPhysics();
+  drawGraph();
+  graphState.animFrame = requestAnimationFrame(graphLoop);
+}
+
+function updateGraphPhysics() {
+  const nodes = graphState.nodes;
+  const links = graphState.links;
+  const W = graphState.W;
+  const H = graphState.H;
+  
+  // 斥力
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i+1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      const minDist = nodes[i].radius + nodes[j].radius + 20;
+      if (dist < minDist * 3) {
+        const force = 2000 / (dist * dist);
+        nodes[i].vx += (dx/dist) * force;
+        nodes[i].vy += (dy/dist) * force;
+        nodes[j].vx -= (dx/dist) * force;
+        nodes[j].vy -= (dy/dist) * force;
+      }
+    }
+  }
+  
+  // 引力（边）
+  links.forEach(l => {
+    const dx = l.target.x - l.source.x;
+    const dy = l.target.y - l.source.y;
+    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    const targetDist = 150;
+    const force = (dist - targetDist) * 0.008;
+    if (!l.source.dragging) {
+      l.source.vx += (dx/dist) * force;
+      l.source.vy += (dy/dist) * force;
+    }
+    if (!l.target.dragging) {
+      l.target.vx -= (dx/dist) * force;
+      l.target.vy -= (dy/dist) * force;
+    }
+  });
+  
+  // 中心引力 + 缓慢呼吸
+  nodes.forEach(n => {
+    if (n === graphState.dragNode) return;
+    n.vx += (W/2 - n.x) * 0.003;
+    n.vy += (H/2 - n.y) * 0.003;
+    // 缓慢漂浮
+    n.vx += Math.sin(graphState.time + n.pulsePhase) * 0.05;
+    n.vy += Math.cos(graphState.time * 0.8 + n.pulsePhase) * 0.05;
+    n.vx *= 0.92;
+    n.vy *= 0.92;
+    n.x += n.vx;
+    n.y += n.vy;
+  });
+}
+
+function drawGraph() {
+  const ctx = graphState.ctx;
+  if (!ctx) return;
+  
+  ctx.clearRect(0, 0, graphState.W, graphState.H);
+  
+  ctx.save();
+  ctx.translate(graphState.offsetX, graphState.offsetY);
+  ctx.scale(graphState.scale, graphState.scale);
+  
+  const hoverNode = graphState.hoverNode;
+  const hoverRelated = new Set();
+  if (hoverNode) {
+    hoverRelated.add(hoverNode.id);
+    graphState.links.forEach(l => {
+      if (l.source.id === hoverNode.id) hoverRelated.add(l.target.id);
+      if (l.target.id === hoverNode.id) hoverRelated.add(l.source.id);
+    });
+  }
+  
+  // 画连线
+  graphState.links.forEach(l => {
+    const isRelated = !hoverNode || hoverRelated.has(l.source.id) && hoverRelated.has(l.target.id);
+    ctx.beginPath();
+    ctx.moveTo(l.source.x, l.source.y);
+    ctx.lineTo(l.target.x, l.target.y);
+    ctx.strokeStyle = isRelated ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)';
+    ctx.lineWidth = isRelated ? 1.5 : 1;
+    ctx.stroke();
+    
+    // 流动光点
+    if (isRelated) {
+      const t = (graphState.time * 0.5 + l.source.pulsePhase) % 1;
+      const px = l.source.x + (l.target.x - l.source.x) * t;
+      const py = l.source.y + (l.target.y - l.source.y) * t;
+      ctx.beginPath();
+      ctx.arc(px, py, 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,59,48,0.6)';
+      ctx.fill();
+    }
+  });
+  
+  // 画节点
+  graphState.nodes.forEach(n => {
+    const isHover = n === hoverNode;
+    const isRelated = !hoverNode || hoverRelated.has(n.id);
+    const alpha = isRelated ? 1 : 0.3;
+    
+    // 节点光晕（高频提及）
+    if (n.mentionCount >= 5 && isRelated) {
+      const glowSize = n.radius + 8 + Math.sin(graphState.time * 2 + n.pulsePhase) * 3;
+      const gradient = ctx.createRadialGradient(n.x, n.y, n.radius, n.x, n.y, glowSize);
+      gradient.addColorStop(0, 'rgba(255,59,48,0.3)');
+      gradient.addColorStop(1, 'rgba(255,59,48,0)');
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, glowSize, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
+    
+    // 节点圆
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+    
+    // 颜色基于提及频率
+    const mentionRatio = n.mentionCount / Math.max(...graphState.nodes.map(x => x.mentionCount), 1);
+    if (mentionRatio > 0.66) {
+      ctx.fillStyle = isHover ? '#ff3b30' : `rgba(255,59,48,${alpha})`;
+    } else if (mentionRatio > 0.33) {
+      ctx.fillStyle = isHover ? 'rgba(255,59,48,0.7)' : `rgba(255,59,48,0.5)`;
+      ctx.globalAlpha = alpha;
+    } else {
+      ctx.fillStyle = isHover ? 'rgba(255,59,48,0.4)' : `rgba(255,59,48,0.2)`;
+      ctx.globalAlpha = alpha;
+    }
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    
+    // 边框
+    ctx.strokeStyle = isHover ? '#000' : `rgba(0,0,0,${alpha * 0.8})`;
+    ctx.lineWidth = isHover ? 3 : 2;
+    ctx.stroke();
+    
+    // 名字（2个字）
+    ctx.fillStyle = isHover ? '#fff' : `rgba(0,0,0,${alpha})`;
+    ctx.font = `bold ${Math.max(10, n.radius * 0.5)}px monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(n.name.substring(0, 2), n.x, n.y);
+    
+    // 全名（节点下方）
+    if (n.radius > 20) {
+      ctx.fillStyle = `rgba(0,0,0,${alpha * 0.7})`;
+      ctx.font = '10px monospace';
+      ctx.fillText(n.name, n.x, n.y + n.radius + 14);
+    }
+    
+    // 提及次数标签
+    if (n.mentionCount > 1) {
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText(n.mentionCount + '次', n.x, n.y - n.radius - 8);
+    }
+  });
+  
+  ctx.restore();
+}
+
+// ===== AI 对话 =====
+function renderChat() {
+  const container = document.getElementById('chat-messages');
+  const chats = (_data?.chats || []).slice().reverse();
+
+  if (chats.length === 0) {
+    // 空状态：主风格（等宽标题 + 红色短条 + 衬线描述）
+    container.innerHTML = `
+      <div class="chat-empty">
+        <div class="chat-empty-bar"></div>
+        <div class="chat-empty-title">SAY SOMETHING</div>
+        <div class="chat-empty-desc">说说今天做了什么，有什么想法，或者只是想找人说说话。<br>不用组织语言，聊着聊着我就懂了。</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = chats.map(c => `
+    <div class="chat-msg ${c.role}">
+      <div class="chat-col">
+        <div class="chat-bubble">${c.content || ''}</div>
+        <div class="chat-time">${formatDateTime(c.timestamp)}</div>
+      </div>
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function handleChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-send');
+  const message = input.value.trim();
+  if (!message) return;
+
+  input.value = '';
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  // 立即显示用户消息
+  _data.chats.unshift({
+    id: 'temp_' + Date.now(),
+    role: 'user',
+    content: message,
+    timestamp: new Date().toISOString(),
+  });
+  renderChat();
+
+  try {
+    const res = await fetch(API_BASE + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history: _data.chats.slice(0, 20) })
+    });
+    const result = await res.json();
+
+    // 重新加载数据（后端可能自动创建了待办/灵感/朋友）
+    await loadData();
+    renderChat();
+
+    if (result.extracted) {
+      const ex = result.extracted;
+      let hints = [];
+      if (ex.todos?.length) hints.push(`${ex.todos.length}个待办`);
+      if (ex.inspirations?.length) hints.push(`${ex.inspirations.length}个灵感`);
+      if (ex.friends?.length) hints.push(`${ex.friends.length}个人名`);
+      if (hints.length) showToast(`已自动记录：${hints.join('、')}`);
+    }
+  } catch (e) {
+    showToast('发送失败');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '发送';
+}
+
+// ===== 设置 =====
+function renderSettings() {
+  const s = _data?.settings || {};
+  document.getElementById('set-userName').value = s.userName || '';
+  document.getElementById('set-morningTime').value = s.morningTime || '07:30';
+  document.getElementById('set-eveningTime').value = s.eveningTime || '22:00';
+  document.getElementById('set-exerciseReminderTime').value = s.exerciseReminderTime || '20:00';
+  document.getElementById('set-notificationsEnabled').value = s.notificationsEnabled ? 'true' : 'false';
+  document.getElementById('set-apiProvider').value = s.apiProvider || 'deepseek';
+  document.getElementById('set-apiKey').value = s.apiKey || '';
+  document.getElementById('set-aiStyle').value = s.aiStyle || 'encouraging';
+}
+
+async function saveSettings() {
+  const settings = {
+    userName: document.getElementById('set-userName').value.trim(),
+    morningTime: document.getElementById('set-morningTime').value,
+    eveningTime: document.getElementById('set-eveningTime').value,
+    exerciseReminderTime: document.getElementById('set-exerciseReminderTime').value,
+    notificationsEnabled: document.getElementById('set-notificationsEnabled').value === 'true',
+    apiProvider: document.getElementById('set-apiProvider').value,
+    apiKey: document.getElementById('set-apiKey').value.trim(),
+    aiStyle: document.getElementById('set-aiStyle').value,
+  };
+  _data.settings = settings;
+  await fetch(API_BASE + '/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings)
+  });
+  showToast('设置已保存');
+}
+
+async function testNotification() {
+  await fetch(API_BASE + '/notify/test', { method: 'POST' });
+  showToast('已发送测试通知');
+}
+
+// ===== 抽屉 =====
+function showDrawer() {
+  document.getElementById('drawer-overlay').classList.add('show');
+  document.getElementById('drawer').classList.add('show');
+}
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('show');
+  document.getElementById('drawer').classList.remove('show');
+}
+
+// ===== 初始化 =====
+async function init() {
+  await loadData();
+  if (_data) {
+    // 处理 URL hash 路由
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById('view-' + hash)) {
+      navigate(hash);
+    } else {
+      renderSplash();
+    }
+    // 每 30 秒刷新数据
+    setInterval(async () => {
+      await loadData();
+      if (_currentView !== 'chat') renderView(_currentView);
+    }, 30000);
+  }
+}
+
+init();
+
+// ===== 卡片集模块 =====
+let cardsData = [];
+
+async function loadCards() {
+  try {
+    const res = await fetch('/api/cards');
+    cardsData = await res.json();
+    renderCardsGrid();
+    updateCardsStats();
+  } catch (e) {
+    console.error('加载卡片失败:', e);
+  }
+}
+
+async function updateCardsStats() {
+  try {
+    const res = await fetch('/api/cards/stats');
+    const stats = await res.json();
+    document.getElementById('cards-total').textContent = stats.total;
+    document.getElementById('cards-streak').textContent = stats.streak;
+  } catch (e) {
+    console.error('加载卡片统计失败:', e);
+  }
+}
+
+function renderCardsGrid() {
+  const grid = document.getElementById('cards-grid');
+  const empty = document.getElementById('cards-empty');
+  
+  if (!cardsData || cardsData.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  
+  empty.style.display = 'none';
+  
+  // 卡片背景色（模拟壁纸，后续可换成真实图片）
+  const cardColors = [
+    'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+    'linear-gradient(135deg, #2d1b3d 0%, #4a1942 50%, #1a1a2e 100%)',
+    'linear-gradient(135deg, #1a2e1a 0%, #2d4a2d 50%, #1a3a1a 100%)',
+    'linear-gradient(135deg, #3d2b1b 0%, #5a3a1a 50%, #2e1f0f 100%)',
+    'linear-gradient(135deg, #1b2b3d 0%, #2a4a5a 50%, #1a2a3a 100%)',
+  ];
+  
+  grid.innerHTML = cardsData.map((card, index) => {
+    const bg = cardColors[index % cardColors.length];
+    const moodText = {
+      'excited': '兴奋', 'happy': '开心', 'neutral': '平静',
+      'tired': '疲惫', 'sad': '低落', 'anxious': '焦虑'
+    }[card.mood] || card.mood || '—';
+    
+    return `
+      <div class="card-item" onclick="openCardDetail('${card.id}')">
+        <div class="card-item-image" style="background: ${bg};">
+          <div class="card-item-date">${card.date}</div>
+        </div>
+        <div class="card-item-body">
+          <div class="card-item-quote">"${card.quote || '把你的故事讲好，世界会听。'}"</div>
+          <div class="card-item-stats">
+            <div class="card-item-stat">
+              <div class="card-item-stat-num">${card.todos_completed || 0}/${card.todos_total || 0}</div>
+              <div class="card-item-stat-label">待办</div>
+            </div>
+            <div class="card-item-stat">
+              <div class="card-item-stat-num" style="color: ${card.exercise ? 'var(--red)' : 'var(--gray-300)'}">${card.exercise ? '✓' : '—'}</div>
+              <div class="card-item-stat-label">运动</div>
+            </div>
+            <div class="card-item-stat">
+              <div class="card-item-stat-num">${(card.highlights || []).length}</div>
+              <div class="card-item-stat-label">亮点</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function generateTodayCard() {
+  try {
+    const res = await fetch('/api/cards/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const card = await res.json();
+    showToast('今日卡片已生成！');
+    await loadCards();
+  } catch (e) {
+    showToast('生成卡片失败: ' + e.message);
+  }
+}
+
+function openCardDetail(cardId) {
+  const card = cardsData.find(c => c.id === cardId);
+  if (!card) return;
+  
+  const cardColors = [
+    'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+    'linear-gradient(135deg, #2d1b3d 0%, #4a1942 50%, #1a1a2e 100%)',
+    'linear-gradient(135deg, #1a2e1a 0%, #2d4a2d 50%, #1a3a1a 100%)',
+    'linear-gradient(135deg, #3d2b1b 0%, #5a3a1a 50%, #2e1f0f 100%)',
+    'linear-gradient(135deg, #1b2b3d 0%, #2a4a5a 50%, #1a2a3a 100%)',
+  ];
+  const index = cardsData.indexOf(card);
+  const bg = cardColors[index % cardColors.length];
+  
+  const moodText = {
+    'excited': '兴奋', 'happy': '开心', 'neutral': '平静',
+    'tired': '疲惫', 'sad': '低落', 'anxious': '焦虑'
+  }[card.mood] || card.mood || '平静';
+  
+  const highlightsHtml = (card.highlights && card.highlights.length > 0) 
+    ? card.highlights.map(h => `<li>${h}</li>`).join('')
+    : '<li style="color: var(--gray-500);">这一天没有特别记录的亮点</li>';
+  
+  document.getElementById('card-detail-content').innerHTML = `
+    <div class="card-detail-hero" style="background: ${bg};">
+      <div class="card-detail-hero-content">
+        <div class="card-detail-date">${card.date}</div>
+        <div class="card-detail-quote">"${card.quote || '把你的故事讲好，世界会听。'}"</div>
+      </div>
+    </div>
+    <div class="card-detail-body">
+      <div class="card-detail-section">
+        <div class="card-detail-section-title">今日数据</div>
+        <div class="card-detail-stats">
+          <div class="card-detail-stat">
+            <div class="card-detail-stat-num">${card.todos_completed || 0}/${card.todos_total || 0}</div>
+            <div class="card-detail-stat-label">完成待办</div>
+          </div>
+          <div class="card-detail-stat">
+            <div class="card-detail-stat-num" style="color: ${card.exercise ? 'var(--red)' : 'var(--gray-300)'}">${card.exercise ? '✓' : '—'}</div>
+            <div class="card-detail-stat-label">运动打卡</div>
+          </div>
+          <div class="card-detail-stat">
+            <div class="card-detail-stat-num">${(card.highlights || []).length}</div>
+            <div class="card-detail-stat-label">记录亮点</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-detail-section">
+        <div class="card-detail-section-title">今日心情</div>
+        <span class="card-detail-mood">${moodText}</span>
+      </div>
+      <div class="card-detail-section">
+        <div class="card-detail-section-title">今日亮点</div>
+        <ul class="card-detail-highlights">${highlightsHtml}</ul>
+      </div>
+      ${card.exercise ? `
+      <div class="card-detail-section">
+        <div class="card-detail-section-title">运动记录</div>
+        <div style="font-size: 14px; font-family: var(--serif); padding: 10px 14px; background: var(--gray-100); border-left: 3px solid var(--red);">${card.exercise}</div>
+      </div>
+      ` : ''}
+    </div>
+  `;
+  
+  document.getElementById('card-detail-overlay').classList.add('active');
+}
+
+function closeCardDetail() {
+  document.getElementById('card-detail-overlay').classList.remove('active');
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneDay 主海报 - 饱满版</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    width: 1200px;
+    height: 1600px;
+    background: #FAFAFA;
+    font-family: 'Space Mono', 'SF Mono', monospace;
+    color: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* 电子网格背景 */
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+  
+  /* 顶部红色条 */
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 200px; height: 6px;
+    background: #FF3B30;
+  }
+  
+  /* 角落装饰 */
+  .corner {
+    position: absolute;
+    width: 24px; height: 24px;
+    border: 2px solid #000;
+  }
+  .corner-tl { top: 40px; left: 60px; border-right: none; border-bottom: none; }
+  .corner-tr { top: 40px; right: 60px; border-left: none; border-bottom: none; }
+  .corner-bl { bottom: 40px; left: 60px; border-right: none; border-top: none; }
+  .corner-br { bottom: 40px; right: 60px; border-left: none; border-top: none; }
+  
+  .container {
+    padding: 80px 100px;
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* 头部 */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 60px;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  
+  .logo-cn {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: 8px;
+  }
+  
+  .logo-en {
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: #666;
+  }
+  
+  .logo-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #FF3B30;
+    margin-left: 4px;
+    animation: blink 1.2s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+  
+  .tag {
+    border: 2px solid #000;
+    padding: 8px 16px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: #FF3B30;
+  }
+  
+  /* 副标题 */
+  .subtitle {
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: #FF3B30;
+    margin-bottom: 30px;
+    font-weight: 700;
+  }
+  
+  /* 主标题 */
+  .main-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 96px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+  }
+  
+  .main-title .red {
+    color: #FF3B30;
+    position: relative;
+  }
+  
+  .main-title .red::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: #FF3B30;
+    opacity: 0.3;
+  }
+  
+  /* 描述 */
+  .desc {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #444;
+    max-width: 700px;
+    margin-bottom: 50px;
+    font-family: 'Noto Serif SC', serif;
+  }
+  
+  .desc strong {
+    color: #000;
+    font-weight: 700;
+  }
+  
+  /* 截图展示区 */
+  .screenshots {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 20px;
+    flex: 1;
+    margin-bottom: 50px;
+  }
+  
+  .shot-main {
+    grid-row: 1 / 3;
+    border: 3px solid #000;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 8px 8px 0 rgba(0,0,0,0.1);
+  }
+  
+  .shot-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .shot-small {
+    border: 2px solid #000;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+  }
+  
+  .shot-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .shot-label {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 4px 10px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    z-index: 2;
+  }
+  
+  .shot-label .dot {
+    display: inline-block;
+    width: 4px; height: 4px;
+    background: #FF3B30;
+    margin-right: 6px;
+  }
+  
+  /* 底部特性 */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 40px;
+    padding-top: 40px;
+    border-top: 2px solid #000;
+  }
+  
+  .feature {
+    position: relative;
+  }
+  
+  .feature-icon {
+    width: 32px; height: 32px;
+    border: 2px solid #000;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  
+  .feature-icon.red {
+    background: #FF3B30;
+    border-color: #FF3B30;
+    color: #fff;
+  }
+  
+  .feature-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  
+  .feature-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #666;
+  }
+  
+  /* 底部 */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+  }
+  
+  .footer-left {
+    font-size: 12px;
+    color: #999;
+    letter-spacing: 2px;
+    font-style: italic;
+    font-family: 'Noto Serif SC', serif;
+  }
+  
+  .footer-right {
+    font-size: 11px;
+    color: #999;
+    letter-spacing: 3px;
+  }
+  
+  /* 电路线条装饰 */
+  .circuit {
+    position: absolute;
+    bottom: 200px;
+    left: 100px;
+    right: 100px;
+    height: 40px;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+  
+  .circuit-line {
+    position: absolute;
+    background: #000;
+  }
+  
+  .circuit-dot {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: #FF3B30;
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <span class="logo-cn">一日</span>
+        <span class="logo-en">ONE DAY<span class="logo-dot"></span></span>
+      </div>
+      <div class="tag">AI 生活伙伴</div>
+    </div>
+    
+    <div class="subtitle">YOUR DAILY COMPANION</div>
+    
+    <div class="main-title">
+      不用打字，<br>只要<span class="red">闲聊</span>。
+    </div>
+    
+    <div class="desc">
+      和 OneDay 闲聊你的一天，它会帮你记录<strong>待办、项目、灵感、朋友、运动</strong>，并在每一个清晨，为你生成一张<strong>专属于你的开屏页</strong>。
+    </div>
+    
+    <div class="screenshots">
+      <div class="shot-main">
+        <div class="shot-label"><span class="dot"></span>STREET · 街头涂鸦</div>
+        <img src="../../正式版/assets/wallpaper-street.jpg" alt="开屏页主图">
+      </div>
+      <div class="shot-small">
+        <div class="shot-label"><span class="dot"></span>CYBER · 赛博朋克</div>
+        <img src="../../正式版/assets/wallpaper-cyber.jpg" alt="开屏页2">
+      </div>
+      <div class="shot-small">
+        <div class="shot-label"><span class="dot"></span>CONCERT · 音乐节</div>
+        <img src="../../正式版/assets/wallpaper-concert.jpg" alt="开屏页3">
+      </div>
+    </div>
+    
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">01</div>
+        <div class="feature-title">零输入，全靠聊</div>
+        <div class="feature-desc">不用手动录入任何数据，和 AI 聊聊你的一天，它自动帮你记录待办、项目、灵感、朋友、运动。</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon red">02</div>
+        <div class="feature-title">每日专属开屏页</div>
+        <div class="feature-desc">结合你的状态、待办、节气、天气，每天生成一张独一无二的开屏页，用你自己的方式开启每一天。</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">03</div>
+        <div class="feature-title">生活小伙伴</div>
+        <div class="feature-desc">不只是工具，更是陪伴。晨间问候、晚间总结、运动提醒，鼓励型风格，陪你过好每一个 OneDay。</div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="footer-left">「每个人有独一无二的当日一张图」</div>
+      <div class="footer-right">ONE DAY / 一日</div>
+    </div>
+  </div>
+</body>
+</html>

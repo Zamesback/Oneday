@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneDay 主海报 - 饱满版 v3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    width: 1200px;
+    height: 1600px;
+    background: #FAFAFA;
+    font-family: 'Space Mono', 'SF Mono', monospace;
+    color: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+  
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 200px; height: 6px;
+    background: #FF3B30;
+  }
+  
+  .corner {
+    position: absolute;
+    width: 24px; height: 24px;
+    border: 2px solid #000;
+  }
+  .corner-tl { top: 40px; left: 60px; border-right: none; border-bottom: none; }
+  .corner-tr { top: 40px; right: 60px; border-left: none; border-bottom: none; }
+  .corner-bl { bottom: 40px; left: 60px; border-right: none; border-top: none; }
+  .corner-br { bottom: 40px; right: 60px; border-left: none; border-top: none; }
+  
+  .container {
+    padding: 80px 100px;
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 50px;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  
+  .logo-cn {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: 8px;
+  }
+  
+  .logo-en {
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: #666;
+  }
+  
+  .logo-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #FF3B30;
+    margin-left: 4px;
+    animation: blink 1.2s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+  
+  .tag {
+    border: 2px solid #000;
+    padding: 8px 16px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: #FF3B30;
+  }
+  
+  .subtitle {
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: #FF3B30;
+    margin-bottom: 25px;
+    font-weight: 700;
+  }
+  
+  .main-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 88px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+  }
+  
+  .main-title .red {
+    color: #FF3B30;
+    position: relative;
+  }
+  
+  .main-title .red::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: #FF3B30;
+    opacity: 0.3;
+  }
+  
+  .desc {
+    font-size: 17px;
+    line-height: 1.8;
+    color: #444;
+    max-width: 700px;
+    margin-bottom: 40px;
+    font-family: 'Noto Serif SC', serif;
+  }
+  
+  .desc strong {
+    color: #000;
+    font-weight: 700;
+  }
+  
+  /* 截图展示区 */
+  .screenshots {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 20px;
+    flex: 1;
+    margin-bottom: 40px;
+  }
+  
+  .shot {
+    border: 3px solid #000;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 8px 8px 0 rgba(0,0,0,0.1);
+  }
+  
+  .shot-main {
+    grid-row: 1 / 3;
+  }
+  
+  /* 模拟开屏页界面 */
+  .splash-mock {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .splash-mock::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.6) 80%, rgba(0,0,0,0.7) 100%);
+  }
+  
+  .splash-mock::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
+  }
+  
+  .splash-mock::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  .splash-content {
+    position: relative;
+    z-index: 2;
+    padding: 24px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+  }
+  
+  .splash-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .splash-date {
+    font-size: 11px;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  
+  .splash-date .line {
+    width: 30px;
+    height: 2px;
+    background: #FF3B30;
+  }
+  
+  .splash-date .blink {
+    width: 6px;
+    height: 6px;
+    background: #FF3B30;
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  
+  .splash-tag {
+    font-size: 9px;
+    letter-spacing: 1px;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .splash-tag .dot {
+    width: 4px;
+    height: 4px;
+    background: #FF3B30;
+  }
+  
+  .splash-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .splash-greeting {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    text-shadow: 
+      0 2px 4px rgba(0,0,0,0.8),
+      0 4px 12px rgba(0,0,0,0.6),
+      0 0 20px rgba(0,0,0,0.4);
+  }
+  
+  .splash-greeting .red {
+    color: #FF3B30;
+  }
+  
+  .splash-quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    line-height: 1.6;
+    opacity: 0.95;
+    max-width: 85%;
+    border-left: 2px solid #FF3B30;
+    padding-left: 10px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+    padding: 8px 12px;
+  }
+  
+  .splash-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  
+  .splash-stats {
+    display: flex;
+    gap: 2px;
+  }
+  
+  .splash-stat {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(15px);
+    padding: 10px 16px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  
+  .splash-stat-num {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  
+  .splash-stat-num.red {
+    color: #FF3B30;
+  }
+  
+  .splash-stat-label {
+    font-size: 8px;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+  
+  .splash-cta {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 12px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  
+  .splash-cta::after {
+    content: '→';
+    color: #FF3B30;
+  }
+  
+  /* 小图的样式调整 */
+  .shot-small .splash-greeting {
+    font-size: 22px;
+  }
+  
+  .shot-small .splash-quote {
+    font-size: 11px;
+  }
+  
+  .shot-small .splash-stat {
+    padding: 6px 10px;
+  }
+  
+  .shot-small .splash-stat-num {
+    font-size: 16px;
+  }
+  
+  .shot-small .splash-cta {
+    padding: 8px 14px;
+    font-size: 9px;
+  }
+  
+  .shot-small .splash-content {
+    padding: 16px;
+  }
+  
+  /* 底部特性 */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 40px;
+    padding-top: 35px;
+    border-top: 2px solid #000;
+  }
+  
+  .feature {
+    position: relative;
+  }
+  
+  .feature-icon {
+    width: 32px; height: 32px;
+    border: 2px solid #000;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  
+  .feature-icon.red {
+    background: #FF3B30;
+    border-color: #FF3B30;
+    color: #fff;
+  }
+  
+  .feature-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  
+  .feature-desc {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #666;
+  }
+  
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+  }
+  
+  .footer-left {
+    font-size: 12px;
+    color: #999;
+    letter-spacing: 2px;
+    font-style: italic;
+    font-family: 'Noto Serif SC', serif;
+  }
+  
+  .footer-right {
+    font-size: 11px;
+    color: #999;
+    letter-spacing: 3px;
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <span class="logo-cn">一日</span>
+        <span class="logo-en">ONE DAY<span class="logo-dot"></span></span>
+      </div>
+      <div class="tag">AI 生活伙伴</div>
+    </div>
+    
+    <div class="subtitle">YOUR DAILY COMPANION</div>
+    
+    <div class="main-title">
+      不用打字，<br>只要<span class="red">闲聊</span>。
+    </div>
+    
+    <div class="desc">
+      和 OneDay 闲聊你的一天，它会帮你记录<strong>待办、项目、灵感、朋友、运动</strong>，并在每一个清晨，为你生成一张<strong>专属于你的开屏页</strong>。
+    </div>
+    
+    <div class="screenshots">
+      <!-- 主图：阿杰 - 街头涂鸦 -->
+      <div class="shot shot-main">
+        <div class="splash-mock" style="background-image: url('../../正式版/assets/wallpaper-street.jpg')">
+          <div class="splash-content">
+            <div class="splash-top">
+              <div class="splash-date">
+                <span class="line"></span>
+                2026.09.01 · TUE
+                <span class="blink"></span>
+              </div>
+              <div class="splash-tag"><span class="dot"></span>STREET · 街头涂鸦</div>
+            </div>
+            <div class="splash-center">
+              <div class="splash-greeting">
+                <span class="red">早上好</span>，阿杰。<br>
+                今天去路演，<span class="red">把故事讲好</span>。
+              </div>
+              <div class="splash-quote">
+                投资人会看到你的光芒，白板上的每一个 idea，都是改变世界的种子。
+              </div>
+            </div>
+            <div class="splash-bottom">
+              <div class="splash-stats">
+                <div class="splash-stat">
+                  <div class="splash-stat-num">5</div>
+                  <div class="splash-stat-label">TODOS</div>
+                </div>
+                <div class="splash-stat">
+                  <div class="splash-stat-num red">4</div>
+                  <div class="splash-stat-label">DOING</div>
+                </div>
+                <div class="splash-stat">
+                  <div class="splash-stat-num">✓</div>
+                  <div class="splash-stat-label">RUN</div>
+                </div>
+              </div>
+              <button class="splash-cta">有什么想说的</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 小图1：小宇 - 赛博朋克 -->
+      <div class="shot shot-small">
+        <div class="splash-mock" style="background-image: url('../../正式版/assets/wallpaper-cyber.jpg')">
+          <div class="splash-content">
+            <div class="splash-top">
+              <div class="splash-date">
+                <span class="line"></span>
+                2026.09.01 · TUE
+                <span class="blink"></span>
+              </div>
+            </div>
+            <div class="splash-center">
+              <div class="splash-greeting">
+                <span class="red">早上好</span>，小宇。<br>
+                今天期末考，<span class="red">放平心态</span>。
+              </div>
+              <div class="splash-quote">
+                你已经准备得很充分了，相信自己，正常发挥就好。
+              </div>
+            </div>
+            <div class="splash-bottom">
+              <div class="splash-stats">
+                <div class="splash-stat">
+                  <div class="splash-stat-num">6</div>
+                  <div class="splash-stat-label">TODOS</div>
+                </div>
+                <div class="splash-stat">
+                  <div class="splash-stat-num red">2</div>
+                  <div class="splash-stat-label">DOING</div>
+                </div>
+              </div>
+              <button class="splash-cta">有什么想说的</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 小图2：小林 - 音乐节 -->
+      <div class="shot shot-small">
+        <div class="splash-mock" style="background-image: url('../../正式版/assets/wallpaper-concert.jpg')">
+          <div class="splash-content">
+            <div class="splash-top">
+              <div class="splash-date">
+                <span class="line"></span>
+                2026.09.01 · TUE
+                <span class="blink"></span>
+              </div>
+            </div>
+            <div class="splash-center">
+              <div class="splash-greeting">
+                <span class="red">下午好</span>，小林。<br>
+                设计稿还差一版，<span class="red">慢慢来</span>。
+              </div>
+              <div class="splash-quote">
+                好的作品需要时间，你已经做得很棒了。
+              </div>
+            </div>
+            <div class="splash-bottom">
+              <div class="splash-stats">
+                <div class="splash-stat">
+                  <div class="splash-stat-num">3</div>
+                  <div class="splash-stat-label">TODOS</div>
+                </div>
+                <div class="splash-stat">
+                  <div class="splash-stat-num red">1</div>
+                  <div class="splash-stat-label">DOING</div>
+                </div>
+              </div>
+              <button class="splash-cta">有什么想说的</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">01</div>
+        <div class="feature-title">零输入，全靠聊</div>
+        <div class="feature-desc">不用手动录入任何数据，和 AI 聊聊你的一天，它自动帮你记录待办、项目、灵感、朋友、运动。</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon red">02</div>
+        <div class="feature-title">每日专属开屏页</div>
+        <div class="feature-desc">结合你的状态、待办、节气、天气，每天生成一张独一无二的开屏页，用你自己的方式开启每一天。</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">03</div>
+        <div class="feature-title">生活小伙伴</div>
+        <div class="feature-desc">不只是工具，更是陪伴。晨间问候、晚间总结、运动提醒，鼓励型风格，陪你过好每一个 OneDay。</div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="footer-left">「每个人有独一无二的当日一张图」</div>
+      <div class="footer-right">ONE DAY / 一日</div>
+    </div>
+  </div>
+</body>
+</html>

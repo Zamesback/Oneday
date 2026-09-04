@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Oneday · 主海报饱满版</title>
+<style>
+  /* 本地内嵌思源宋体 Noto Serif SC —— 离线可用，不依赖 CDN */
+  @font-face{font-family:'Noto Serif SC';src:url('../fonts/NotoSerifSC-500.woff2') format('woff2');font-weight:500;font-display:block}
+  @font-face{font-family:'Noto Serif SC';src:url('../fonts/NotoSerifSC-700.woff2') format('woff2');font-weight:700;font-display:block}
+  @font-face{font-family:'Noto Serif SC';src:url('../fonts/NotoSerifSC-900.woff2') format('woff2');font-weight:900;font-display:block}
+  :root{
+    --bg:#000;
+    --ink:#fff;
+    --ink-dim:rgba(255,255,255,.55);
+    --ink-faint:rgba(255,255,255,.22);
+    --red:#ff3b30;
+    --red-50:rgba(255,59,48,.5);
+    --red-20:rgba(255,59,48,.2);
+    --line:rgba(255,255,255,.18);
+    --grid:rgba(255,255,255,.045);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;-webkit-font-smoothing:antialiased}
+  .page{
+    width:800px;height:1066px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(60% 50% at 80% 0%, rgba(255,59,48,.10) 0%, rgba(255,59,48,0) 60%),
+      radial-gradient(80% 60% at 0% 100%, rgba(255,59,48,.08) 0%, rgba(255,59,48,0) 60%),
+      var(--bg);
+  }
+  /* 20px 电子网格 */
+  .grid{
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:20px 20px;
+    pointer-events:none;
+  }
+  /* 扫描线 */
+  .scanline{
+    position:absolute;left:0;right:0;height:1px;background:rgba(255,59,48,.35);
+    top:36%;
+    pointer-events:none;
+  }
+  .scanline::after{content:'';position:absolute;left:0;right:0;top:-2px;height:5px;background:linear-gradient(90deg,transparent,rgba(255,59,48,.06),transparent);}
+
+  /* 顶部 1px 红条 + 2px 边框 */
+  .frame{
+    position:absolute;inset:20px;
+    border:2px solid var(--ink);
+    pointer-events:none;
+  }
+  .frame::before,.frame::after{content:'';position:absolute;background:var(--red);}
+  .frame::before{left:-2px;top:-2px;width:60px;height:4px;}
+  .frame::after{right:-2px;bottom:-2px;width:60px;height:4px;}
+
+  /* 像素角标 */
+  .px-corner{position:absolute;width:14px;height:14px;}
+  .px-corner::before,.px-corner::after{content:'';position:absolute;background:var(--ink);}
+  .px-corner::before{left:0;top:0;width:14px;height:2px;}
+  .px-corner::after{left:0;top:0;width:2px;height:14px;}
+  .px-tl{top:6px;left:6px}
+  .px-tr{top:6px;right:6px;transform:scaleX(-1)}
+  .px-bl{bottom:6px;left:6px;transform:scaleY(-1)}
+  .px-br{bottom:6px;right:6px;transform:scale(-1)}
+
+  /* 顶部 header */
+  .header{
+    position:absolute;top:46px;left:50px;right:50px;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  }
+  .logo{display:flex;align-items:baseline;gap:8px}
+  .logo .mark{font-weight:700;font-size:16px;letter-spacing:.04em}
+  .logo .mark::after{content:'.';color:var(--red)}
+  .logo .sub{color:var(--ink-dim);font-size:10px}
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 9px;border:1px solid var(--line);color:var(--ink-dim);
+    font-size:10px;letter-spacing:.14em;
+  }
+  .badge .dot{width:6px;height:6px;background:var(--red);border-radius:50%;box-shadow:0 0 8px var(--red-50)}
+
+  /* 日期/分类条 */
+  .meta-row{
+    position:absolute;top:96px;left:50px;right:50px;
+    display:flex;align-items:center;gap:14px;
+    color:var(--ink-dim);font-size:11px;letter-spacing:.18em;
+  }
+  .meta-row .bar{width:48px;height:2px;background:var(--red)}
+  .meta-row .seg{display:flex;gap:6px;align-items:center}
+  .meta-row .seg .pulse{width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+
+  /* 寄语大字 */
+  .greet{
+    position:absolute;left:50px;right:50px;top:178px;
+  }
+  .greet .line1, .greet .line2{
+    font-family:'Noto Serif SC','Songti SC','STSong','serif';
+    font-weight:900;line-height:1.18;color:var(--ink);
+    font-size:62px;letter-spacing:.01em;
+  }
+  .greet .line2{margin-top:6px}
+  .greet .line2 .accent{color:var(--red);position:relative}
+  .greet .line2 .accent::after{
+    content:'';position:absolute;left:-2px;right:-2px;bottom:-2px;height:2px;background:var(--red);
+  }
+  .greet .sub{
+    margin-top:22px;
+    color:var(--ink-dim);
+    font-family:'Noto Serif SC','Songti SC','serif';
+    font-weight:500;
+    font-size:16px;line-height:1.85;letter-spacing:.04em;
+    max-width:560px;
+    padding-left:14px;
+    border-left:2px solid var(--red);
+  }
+
+  /* 数字三联卡 */
+  .stats{
+    position:absolute;left:50px;top:520px;
+    display:flex;gap:0;
+  }
+  .stat{
+    width:120px;height:96px;padding:14px 16px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.025);
+    display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .stat + .stat{border-left:none}
+  .stat .num{font-size:42px;line-height:1;font-weight:500;letter-spacing:-.02em}
+  .stat .label{font-size:10px;letter-spacing:.22em;color:var(--ink-dim);text-transform:uppercase}
+  .stat .num.red{color:var(--red)}
+  .stat .num.check{color:var(--ink)}
+
+  /* CTA 按钮 */
+  .cta{
+    position:absolute;left:50px;top:642px;
+    display:inline-flex;align-items:center;gap:10px;
+    padding:12px 18px;background:var(--ink);color:#000;
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    border:2px solid var(--ink);
+  }
+  .cta .arr{font-family:monospace}
+
+  /* 右侧模块清单（电路线节点） */
+  .modules{
+    position:absolute;right:50px;top:178px;width:230px;
+    color:var(--ink-dim);font-size:11px;letter-spacing:.14em;
+  }
+  .modules .head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
+    color:var(--ink-faint);font-size:9.5px;letter-spacing:.24em;
+  }
+  .modules .head .line{flex:1;height:1px;background:var(--line);margin-left:10px}
+  .mod-list{position:relative;padding-left:18px}
+  .mod-list::before{
+    content:'';position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line);
+  }
+  .mod{display:flex;align-items:center;gap:10px;padding:7px 0}
+  .mod .node{width:8px;height:8px;border:1px solid var(--ink-dim);position:relative;flex-shrink:0}
+  .mod .node::after{content:'';position:absolute;inset:1px;background:var(--ink)}
+  .mod.hot .node{background:var(--red);border-color:var(--red);box-shadow:0 0 8px var(--red-50)}
+  .mod.hot .node::after{display:none}
+  .mod .name{color:var(--ink);font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+  .mod .name.zh{color:var(--ink-dim);font-size:10px;letter-spacing:.12em;text-transform:none;letter-spacing:.04em}
+  .mod .idx{color:var(--ink-faint);font-size:9px;width:14px}
+
+  /* 底部 footer */
+  .footer{
+    position:absolute;left:50px;right:50px;bottom:50px;
+    display:flex;justify-content:space-between;align-items:flex-end;
+  }
+  .foot-l{display:flex;align-items:center;gap:10px;color:var(--ink-dim);font-size:11px;letter-spacing:.16em}
+  .foot-l .avt{width:24px;height:24px;background:var(--red);display:grid;place-items:center;color:#000;font-weight:700;font-size:11px;letter-spacing:0}
+  .foot-l .who{display:flex;flex-direction:column;line-height:1.2}
+  .foot-l .who .nm{color:var(--ink);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+  .foot-l .who .st{color:var(--ink-faint);font-size:9px;letter-spacing:.22em}
+  .foot-l .dot{width:6px;height:6px;background:var(--red);border-radius:50%;box-shadow:0 0 8px var(--red-50);margin-left:6px}
+
+  .foot-r{text-align:right;color:var(--ink-faint);font-size:9.5px;letter-spacing:.22em;line-height:1.7}
+  .foot-r .red{color:var(--red);font-weight:600}
+  .foot-r .line{height:1px;background:var(--line);margin:6px 0 6px auto;width:90px}
+
+  /* 三个卖点标签条 */
+  .trio{
+    position:absolute;left:50px;right:50px;top:760px;
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  }
+  .trio .t{padding:16px 14px;border-right:1px solid var(--line)}
+  .trio .t:last-child{border-right:none}
+  .trio .t .tag{font-size:9.5px;color:var(--red);letter-spacing:.24em;margin-bottom:6px}
+  .trio .t .ttl{font-size:15px;color:var(--ink);letter-spacing:.04em;font-family:'Noto Serif SC','Songti SC',serif;font-weight:700}
+  .trio .t .desc{font-size:10.5px;color:var(--ink-dim);letter-spacing:.06em;margin-top:4px;line-height:1.5}
+
+  /* 装饰电路 */
+  .circuit{
+    position:absolute;left:50px;right:50px;bottom:160px;height:80px;
+    pointer-events:none;opacity:.55;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="grid"></div>
+  <div class="scanline"></div>
+  <div class="frame"></div>
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+
+  <!-- 顶部 -->
+  <div class="header">
+    <div class="logo">
+      <span class="mark">ONEDAY</span>
+      <span class="sub">/ 一日 · MIX</span>
+    </div>
+    <div class="badge"><span class="dot"></span>EXPERIMENTAL · v3</div>
+  </div>
+
+  <!-- 日期条 -->
+  <div class="meta-row">
+    <span class="bar"></span>
+    <div class="seg">2026.09.01 · TUE</div>
+    <span style="opacity:.4">/</span>
+    <div class="seg"><span class="pulse"></span>STREET · 街头涂鸦</div>
+  </div>
+
+  <!-- 寄语 -->
+  <div class="greet">
+    <div class="line1">早上好,</div>
+    <div class="line2">阿杰。<span class="accent">今天去路演。</span></div>
+    <div class="sub">
+      把你的故事讲好,投资人会看到你的光芒。<br>
+      白板上的每一个 idea,都是改变世界的种子。
+    </div>
+  </div>
+
+  <!-- 右侧模块清单 -->
+  <div class="modules">
+    <div class="head"><span>// MODULES</span><span class="line"></span></div>
+    <div class="mod-list">
+      <div class="mod hot">
+        <span class="node"></span><span class="idx">01</span>
+        <span class="name">SPLASH</span><span class="name zh">开屏</span>
+      </div>
+      <div class="mod">
+        <span class="node"></span><span class="idx">02</span>
+        <span class="name">CHAT</span><span class="name zh">对话</span>
+      </div>
+      <div class="mod">
+        <span class="node"></span><span class="idx">03</span>
+        <span class="name">TODO</span><span class="name zh">待办</span>
+      </div>
+      <div class="mod">
+        <span class="node"></span><span class="idx">04</span>
+        <span class="name">PROJ</span><span class="name zh">项目</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 数字三联 -->
+  <div class="stats">
+    <div class="stat"><div class="num">5</div><div class="label">TODOS</div></div>
+    <div class="stat"><div class="num red">4</div><div class="label">DOING</div></div>
+    <div class="stat"><div class="num check">✓</div><div class="label">RUN</div></div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">有什么想说的 <span class="arr">→</span></div>
+
+  <!-- 三个卖点 -->
+  <div class="trio">
+    <div class="t">
+      <div class="tag">// FEATURE · 01</div>
+      <div class="ttl">不用打字</div>
+      <div class="desc">只管闲聊,剩下的交给一日。</div>
+    </div>
+    <div class="t">
+      <div class="tag">// FEATURE · 02</div>
+      <div class="ttl">每日开屏</div>
+      <div class="desc">每天第一眼,只属于你的一天。</div>
+    </div>
+    <div class="t">
+      <div class="tag">// FEATURE · 03</div>
+      <div class="ttl">OneDay 卡片</div>
+      <div class="desc">把今天收藏,像明信片那样。</div>
+    </div>
+  </div>
+
+  <!-- 装饰电路 SVG -->
+  <svg class="circuit" viewBox="0 0 700 80" preserveAspectRatio="none" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1">
+    <path d="M0,40 L120,40 L140,20 L260,20 L280,40 L420,40 L440,60 L560,60 L580,40 L700,40"/>
+    <circle cx="120" cy="40" r="3" fill="rgba(255,59,48,.9)" stroke="none"/>
+    <circle cx="420" cy="40" r="3" fill="rgba(255,59,48,.9)" stroke="none"/>
+    <circle cx="700" cy="40" r="3" fill="rgba(255,59,48,.9)" stroke="none"/>
+    <rect x="260" y="14" width="20" height="12" fill="rgba(255,255,255,.55)" stroke="none"/>
+  </svg>
+
+  <!-- 底部 -->
+  <div class="footer">
+    <div class="foot-l">
+      <div class="avt">何</div>
+      <div class="who">
+        <span class="nm">何 杰</span>
+        <span class="st">ONLINE</span>
+      </div>
+      <span class="dot"></span>
+    </div>
+    <div class="foot-r">
+      <div class="red">// 2026 · ONEDAY</div>
+      <div class="line"></div>
+      <div>EXPERIENCE EVERY DAY</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

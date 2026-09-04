@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OneDay 模块介绍 - 每日卡片</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 1600px;
+    background: #f5f5f0;
+    font-family: 'Noto Serif SC', serif;
+    color: #000;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 6px;
+    background: #FF3B30;
+  }
+
+  .container {
+    padding: 50px 70px 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* 背景卡片集 - 虚化 */
+  .bg-cards {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1;
+    overflow: hidden;
+  }
+  .bg-cards img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(8px) brightness(0.85);
+    opacity: 0.4;
+  }
+  .bg-cards::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, rgba(245,245,240,0.3), rgba(245,245,240,0.6));
+  }
+
+  /* 头部 */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 35px;
+  }
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .logo-cn {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+  .logo-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #666;
+  }
+  .logo-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background: #FF3B30;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .module-num {
+    text-align: right;
+  }
+  .module-num .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: #FF3B30;
+  }
+  .module-num .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #999;
+  }
+
+  /* 人物信息 */
+  .persona {
+    margin-bottom: 25px;
+  }
+  .persona-name {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 12px;
+  }
+  .persona-name .name {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+  .persona-name .role {
+    font-size: 20px;
+    color: #666;
+    letter-spacing: 1px;
+  }
+  .persona-quote {
+    font-size: 32px;
+    font-weight: 700;
+    color: #FF3B30;
+    letter-spacing: 2px;
+  }
+
+  /* 卡片展示区 */
+  .showcase {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+  }
+
+  /* 主卡片 */
+  .main-card {
+    width: 440px;
+    height: 782px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+    position: relative;
+    z-index: 3;
+    transform: rotate(-2deg);
+  }
+  .main-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* 浮动小卡片 */
+  .float-card {
+    position: absolute;
+    width: 160px;
+    height: 284px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    z-index: 2;
+  }
+  .float-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .float-card.left {
+    left: 80px;
+    top: 60px;
+    transform: rotate(-8deg);
+    opacity: 0.85;
+  }
+  .float-card.right {
+    right: 80px;
+    bottom: 60px;
+    transform: rotate(6deg);
+    opacity: 0.85;
+  }
+
+  /* 底部分隔 */
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(0,0,0,0.15);
+    margin: 25px 0 20px;
+  }
+
+  /* 模块介绍 */
+  .module-intro {
+    display: flex;
+    gap: 50px;
+    margin-bottom: 25px;
+  }
+  .intro-title {
+    flex-shrink: 0;
+  }
+  .intro-title h2 {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .intro-title .en {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: #FF3B30;
+    letter-spacing: 2px;
+  }
+  .intro-desc {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.9;
+    color: #444;
+  }
+  .intro-desc strong {
+    color: #000;
+    font-weight: 700;
+  }
+
+  /* 三个特性 */
+  .features {
+    display: flex;
+    gap: 30px;
+  }
+  .feature {
+    flex: 1;
+    padding-left: 16px;
+    border-left: 3px solid #FF3B30;
+  }
+  .feature h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .feature p {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.7;
+  }
+
+  /* 页脚 */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+  }
+  .footer-quote {
+    font-size: 15px;
+    color: #999;
+    font-style: italic;
+  }
+  .footer-brand {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="bg-cards">
+    <img src="../模块截图/卡片集页面.png" alt="卡片集背景">
+  </div>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <span class="logo-cn">一日</span>
+        <span class="logo-en">ONE DAY<span class="logo-dot"></span></span>
+      </div>
+      <div class="module-num">
+        <div class="num">02</div>
+        <div class="label">MODULE</div>
+      </div>
+    </div>
+
+    <div class="persona">
+      <div class="persona-name">
+        <span class="name">小林</span>
+        <span class="role">设计师 · 音乐节</span>
+      </div>
+      <div class="persona-quote">「每一天，都是一张专属卡片。」</div>
+    </div>
+
+    <div class="showcase">
+      <div class="float-card left">
+        <img src="../每日卡片设计/每日卡片-9x16-2-小宇-程序员-深夜写代码.png" alt="卡片">
+      </div>
+      <div class="main-card">
+        <img src="../每日卡片设计/每日卡片-9x16-3-小林-设计师-音乐节.png" alt="每日卡片">
+      </div>
+      <div class="float-card right">
+        <img src="../每日卡片设计/每日卡片-9x16-4-老张-白领-下班放松.png" alt="卡片">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="module-intro">
+      <div class="intro-title">
+        <h2>每日卡片</h2>
+        <div class="en">DAILY CARD</div>
+      </div>
+      <div class="intro-desc">
+        结合你的<strong>状态、待办、节气、天气</strong>，每天生成一张独一无二的专属卡片。一年 365 张，收集属于你的独一无二的时光。<strong>用你自己的方式，开启每一天</strong>。
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <h4>AI 专属生成</h4>
+        <p>结合状态、天气、节气，每天一张独一无二</p>
+      </div>
+      <div class="feature">
+        <h4>日历式卡片集</h4>
+        <p>按日期排布，一年 365 张，随时回看</p>
+      </div>
+      <div class="feature">
+        <h4>记录当日高光</h4>
+        <p>完成的待办、重要的瞬间，都沉淀在卡片里</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-quote">「每个人有独一无二的当日一张图」</div>
+      <div class="footer-brand">ONE DAY / 一日</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1640px; font-family: 'Space Mono', monospace; display: flex; background: #0a0a0a; padding: 24px; gap: 20px; }
+  
+  .card {
+    width: 390px;
+    height: 844px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 
+      0 20px 60px rgba(0,0,0,0.6),
+      0 4px 16px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  
+  /* 背景遮罩：让文字更清晰 */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, 
+      rgba(0,0,0,0.55) 0%, 
+      rgba(0,0,0,0.25) 20%, 
+      rgba(0,0,0,0.35) 50%, 
+      rgba(0,0,0,0.65) 75%, 
+      rgba(0,0,0,0.85) 100%);
+  }
+  
+  /* 电子网格 */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  /* 像素角标 */
+  .px-corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    z-index: 5;
+  }
+  .px-tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+  .px-tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+  .px-bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+  .px-br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+  
+  .content {
+    position: relative;
+    z-index: 10;
+    padding: 36px 28px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+  }
+  
+  /* 顶部：日期+天气（醒目） */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  
+  .date-block {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  
+  .date-big {
+    font-family: 'Space Mono', monospace;
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  }
+  
+  .date-big .dot { color: #FF3B30; }
+  
+  .date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .weekday {
+    font-size: 12px;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+  
+  .year {
+    font-size: 10px;
+    opacity: 0.5;
+    letter-spacing: 1px;
+  }
+  
+  .weather-block {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  
+  .weather-icon {
+    font-size: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+  
+  .weather-text {
+    font-size: 13px;
+    letter-spacing: 1px;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    padding: 4px 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  
+  /* 分隔线 */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, #FF3B30 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+    margin: 8px 0 20px;
+  }
+  
+  /* 中间：超大字寄语（核心） */
+  .big-text-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  
+  .big-text {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: 2px;
+    text-shadow: 
+      0 4px 8px rgba(0,0,0,0.7),
+      0 8px 24px rgba(0,0,0,0.5),
+      0 0 40px rgba(0,0,0,0.3);
+  }
+  
+  .big-text .red { color: #FF3B30; }
+  
+  .sub-text {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    line-height: 1.6;
+    opacity: 0.85;
+    margin-top: 16px;
+    max-width: 280px;
+    border-left: 2px solid #FF3B30;
+    padding-left: 12px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+  
+  /* 底部：角落小记录区 */
+  .footer {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .record-section {
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 10px 12px;
+  }
+  
+  .record-title {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #FF3B30;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .record-title::before {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: #FF3B30;
+  }
+  
+  .record-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .record-item {
+    font-size: 11px;
+    line-height: 1.4;
+    opacity: 0.85;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  
+  .record-item .check {
+    color: #4CAF50;
+    font-size: 10px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  
+  .record-item .star {
+    color: #FF3B30;
+    font-size: 10px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  
+  /* 卡片编号 */
+  .card-number {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    opacity: 0.4;
+    z-index: 10;
+  }
+  
+  /* OneDay logo */
+  .card-logo {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    opacity: 0.5;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="card" style="background-image: url('../../正式版/assets/wallpaper-street.jpg')">
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+  <div class="card-logo">ONE DAY</div>
+  <div class="content">
+    <div class="header">
+      <div class="date-block">
+        <div class="date-big">09<span class="dot">.</span>01</div>
+        <div class="date-info">
+          <div class="weekday">TUE</div>
+          <div class="year">2026</div>
+        </div>
+      </div>
+      <div class="weather-block">
+        <div class="weather-icon">☀</div>
+        <div class="weather-text">晴 28°</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="big-text-area">
+      <div class="big-text">
+        把故事<br>
+        <span class="red">讲好</span>。
+      </div>
+      <div class="sub-text">路演日，投资人看到了你的光芒。</div>
+    </div>
+    <div class="footer">
+      <div class="record-section">
+        <div class="record-title">今日完成 · COMPLETED</div>
+        <ul class="record-list"><li class="record-item"><span class="check">✓</span>完成路演PPT最终版</li><li class="record-item"><span class="check">✓</span>和投资人喝咖啡聊了30分钟</li><li class="record-item"><span class="check">✓</span>团队复盘会议</li></ul>
+      </div>
+      <div class="record-section">
+        <div class="record-title">今日高光 · HIGHLIGHTS</div>
+        <ul class="record-list"><li class="record-item"><span class="star">★</span>投资人说"你们的故事很有感染力"</li><li class="record-item"><span class="star">★</span>白板上写了27个idea</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-number">NO.001 / 365</div>
+</div>
+
+<div class="card" style="background-image: url('../../正式版/assets/wallpaper-cyber.jpg')">
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+  <div class="card-logo">ONE DAY</div>
+  <div class="content">
+    <div class="header">
+      <div class="date-block">
+        <div class="date-big">09<span class="dot">.</span>01</div>
+        <div class="date-info">
+          <div class="weekday">TUE</div>
+          <div class="year">2026</div>
+        </div>
+      </div>
+      <div class="weather-block">
+        <div class="weather-icon">🌙</div>
+        <div class="weather-text">夜 22°</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="big-text-area">
+      <div class="big-text">
+        代码写到<br>
+        <span class="red">三点</span>。
+      </div>
+      <div class="sub-text">产品跑通了，明天给团队演示。</div>
+    </div>
+    <div class="footer">
+      <div class="record-section">
+        <div class="record-title">今日完成 · COMPLETED</div>
+        <ul class="record-list"><li class="record-item"><span class="check">✓</span>修复登录模块bug</li><li class="record-item"><span class="check">✓</span>完成API接口联调</li><li class="record-item"><span class="check">✓</span>写了单元测试</li></ul>
+      </div>
+      <div class="record-section">
+        <div class="record-title">今日高光 · HIGHLIGHTS</div>
+        <ul class="record-list"><li class="record-item"><span class="star">★</span>凌晨2点突然想通了架构问题</li><li class="record-item"><span class="star">★</span>代码提交了47次</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-number">NO.002 / 365</div>
+</div>
+
+<div class="card" style="background-image: url('../../正式版/assets/wallpaper-concert.jpg')">
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+  <div class="card-logo">ONE DAY</div>
+  <div class="content">
+    <div class="header">
+      <div class="date-block">
+        <div class="date-big">09<span class="dot">.</span>01</div>
+        <div class="date-info">
+          <div class="weekday">TUE</div>
+          <div class="year">2026</div>
+        </div>
+      </div>
+      <div class="weather-block">
+        <div class="weather-icon">⛅</div>
+        <div class="weather-text">多云 25°</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="big-text-area">
+      <div class="big-text">
+        慢慢来，<br>
+        <span class="red"></span>比较快。
+      </div>
+      <div class="sub-text">设计稿还差一版，晚上去音乐节放松。</div>
+    </div>
+    <div class="footer">
+      <div class="record-section">
+        <div class="record-title">今日完成 · COMPLETED</div>
+        <ul class="record-list"><li class="record-item"><span class="check">✓</span>完成首页设计稿v2</li><li class="record-item"><span class="check">✓</span>和客户确认了配色方案</li><li class="record-item"><span class="check">✓</span>整理了设计素材库</li></ul>
+      </div>
+      <div class="record-section">
+        <div class="record-title">今日高光 · HIGHLIGHTS</div>
+        <ul class="record-list"><li class="record-item"><span class="star">★</span>在音乐节上听到了一首很灵感的歌</li><li class="record-item"><span class="star">★</span>客户说"这个方向对了"</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-number">NO.003 / 365</div>
+</div>
+
+<div class="card" style="background-image: url('../../正式版/assets/wallpaper-arcade.jpg')">
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+  <div class="card-logo">ONE DAY</div>
+  <div class="content">
+    <div class="header">
+      <div class="date-block">
+        <div class="date-big">09<span class="dot">.</span>01</div>
+        <div class="date-info">
+          <div class="weekday">TUE</div>
+          <div class="year">2026</div>
+        </div>
+      </div>
+      <div class="weather-block">
+        <div class="weather-icon">🌆</div>
+        <div class="weather-text">晚 24°</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="big-text-area">
+      <div class="big-text">
+        再坚持<br>
+        <span class="red">一下</span>。
+      </div>
+      <div class="sub-text">客户会议很顺利，周五约了老同事打球。</div>
+    </div>
+    <div class="footer">
+      <div class="record-section">
+        <div class="record-title">今日完成 · COMPLETED</div>
+        <ul class="record-list"><li class="record-item"><span class="check">✓</span>完成客户季度汇报</li><li class="record-item"><span class="check">✓</span>签了一个新合同</li><li class="record-item"><span class="check">✓</span>回复了23封邮件</li></ul>
+      </div>
+      <div class="record-section">
+        <div class="record-title">今日高光 · HIGHLIGHTS</div>
+        <ul class="record-list"><li class="record-item"><span class="star">★</span>客户主动说"下次合作继续找你"</li><li class="record-item"><span class="star">★</span>下班路上看到了很漂亮的晚霞</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-number">NO.004 / 365</div>
+</div>
+</body></html>

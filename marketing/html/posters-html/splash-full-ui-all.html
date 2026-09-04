@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1440px; font-family: 'Space Mono', monospace; }
+  
+  .app {
+    width: 1440px;
+    height: 900px;
+    display: flex;
+    background: #000;
+  }
+  
+  .sidebar {
+    width: 200px;
+    background: #0a0a0a;
+    border-right: 2px solid #FF3B30;
+    padding: 28px 0;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  
+  .sidebar-logo {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 16px;
+  }
+  
+  .sidebar-logo-cn {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 4px;
+  }
+  
+  .sidebar-logo-en {
+    font-size: 10px;
+    color: #666;
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+  
+  .sidebar-logo-dot {
+    display: inline-block;
+    width: 5px; height: 5px;
+    background: #FF3B30;
+    margin-left: 2px;
+  }
+  
+  .sidebar-section {
+    padding: 8px 24px;
+    font-size: 9px;
+    color: #555;
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+  
+  .sidebar-nav { flex: 1; }
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    color: #888;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-left: 2px solid transparent;
+  }
+  
+  .nav-item.active {
+    color: #fff;
+    background: rgba(255,59,48,0.15);
+    border-left-color: #FF3B30;
+  }
+  
+  .nav-item .icon { width: 16px; text-align: center; font-size: 12px; }
+  .nav-item.active .icon { color: #FF3B30; }
+  
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .sidebar-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #FF3B30;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  
+  .sidebar-user { flex: 1; }
+  .sidebar-user-name { font-size: 11px; color: #fff; }
+  .sidebar-user-status { font-size: 9px; color: #FF3B30; }
+  
+  .main { flex: 1; position: relative; overflow: hidden; }
+  
+  .splash {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .splash::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.25) 25%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.6) 80%, rgba(0,0,0,0.75) 100%);
+  }
+  
+  .splash::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%);
+  }
+  
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .px-corner {
+    position: absolute;
+    width: 24px; height: 24px;
+    border: 2px solid rgba(255,255,255,0.35);
+    z-index: 5;
+  }
+  .px-tl { top: 24px; left: 32px; border-right: none; border-bottom: none; }
+  .px-tr { top: 24px; right: 32px; border-left: none; border-bottom: none; }
+  .px-bl { bottom: 24px; left: 32px; border-right: none; border-top: none; }
+  .px-br { bottom: 24px; right: 32px; border-left: none; border-top: none; }
+  
+  .content {
+    position: relative;
+    z-index: 10;
+    padding: 48px 56px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+  }
+  
+  .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  
+  .date {
+    font-size: 13px;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+  
+  .date .line { width: 36px; height: 2px; background: #FF3B30; }
+  
+  .date .blink {
+    width: 7px; height: 7px;
+    background: #FF3B30;
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  
+  .wp-tag {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  
+  .wp-tag .dot { width: 5px; height: 5px; background: #FF3B30; }
+  
+  .center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 620px;
+  }
+  
+  .greeting {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1.25;
+    margin-bottom: 18px;
+    text-shadow: 
+      0 2px 4px rgba(0,0,0,0.8),
+      0 4px 16px rgba(0,0,0,0.6),
+      0 0 30px rgba(0,0,0,0.4);
+  }
+  
+  .greeting .red { color: #FF3B30; }
+  
+  .quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    line-height: 1.7;
+    opacity: 0.95;
+    border-left: 3px solid #FF3B30;
+    padding: 10px 14px;
+    background: linear-gradient(90deg, rgba(0,0,0,0.35) 0%, transparent 100%);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    max-width: 90%;
+  }
+  
+  .bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  
+  .stats { display: flex; gap: 2px; }
+  
+  .stat {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(15px);
+    padding: 14px 24px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  
+  .stat-num { font-size: 32px; font-weight: 700; }
+  .stat-num.red { color: #FF3B30; }
+  .stat-label { font-size: 9px; letter-spacing: 2px; opacity: 0.7; margin-top: 3px; }
+  
+  .cta {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 16px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+    font-family: 'Space Mono', monospace;
+  }
+  
+  .cta::after { content: '→'; color: #FF3B30; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-cn">一日</div>
+      <div class="sidebar-logo-en">ONE DAY<span class="sidebar-logo-dot"></span></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">今日</div>
+      <div class="nav-item active"><span class="icon">◈</span>开屏</div>
+      <div class="nav-item"><span class="icon">✓</span>待办</div>
+      <div class="nav-item"><span class="icon">▣</span>重要事件</div>
+      <div class="sidebar-section">生活</div>
+      <div class="nav-item"><span class="icon">✦</span>灵感</div>
+      <div class="nav-item"><span class="icon">⚡</span>运动</div>
+      <div class="nav-item"><span class="icon">◎</span>朋友</div>
+      <div class="nav-item"><span class="icon">▤</span>卡片集</div>
+      <div class="sidebar-section">对话</div>
+      <div class="nav-item"><span class="icon">◉</span>AI 对话</div>
+      <div class="sidebar-section">系统</div>
+      <div class="nav-item"><span class="icon">⚙</span>设置</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">阿</div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name">阿杰</div>
+        <div class="sidebar-user-status">● 在线</div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="splash" style="background-image: url('../../正式版/assets/wallpaper-street.jpg')">
+      <div class="grid-overlay"></div>
+      <div class="px-corner px-tl"></div>
+      <div class="px-corner px-tr"></div>
+      <div class="px-corner px-bl"></div>
+      <div class="px-corner px-br"></div>
+      <div class="content">
+        <div class="top">
+          <div class="date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+          <div class="wp-tag"><span class="dot"></span>STREET · 街头涂鸦 · 晴 28°</div>
+        </div>
+        <div class="center">
+          <div class="greeting"><span class="red">早上好</span>，阿杰。<br>今天去路演，<span class="red">把故事讲好</span>。</div>
+          <div class="quote">投资人会看到你的光芒，白板上的每一个 idea，都是改变世界的种子。今天状态不错，加油！</div>
+        </div>
+        <div class="bottom">
+          <div class="stats">
+            <div class="stat"><div class="stat-num">5</div><div class="stat-label">TODOS</div></div>
+            <div class="stat"><div class="stat-num red">4</div><div class="stat-label">DOING</div></div>
+            <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+          </div>
+          <button class="cta">有什么想说的</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-cn">一日</div>
+      <div class="sidebar-logo-en">ONE DAY<span class="sidebar-logo-dot"></span></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">今日</div>
+      <div class="nav-item active"><span class="icon">◈</span>开屏</div>
+      <div class="nav-item"><span class="icon">✓</span>待办</div>
+      <div class="nav-item"><span class="icon">▣</span>重要事件</div>
+      <div class="sidebar-section">生活</div>
+      <div class="nav-item"><span class="icon">✦</span>灵感</div>
+      <div class="nav-item"><span class="icon">⚡</span>运动</div>
+      <div class="nav-item"><span class="icon">◎</span>朋友</div>
+      <div class="nav-item"><span class="icon">▤</span>卡片集</div>
+      <div class="sidebar-section">对话</div>
+      <div class="nav-item"><span class="icon">◉</span>AI 对话</div>
+      <div class="sidebar-section">系统</div>
+      <div class="nav-item"><span class="icon">⚙</span>设置</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">宇</div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name">小宇</div>
+        <div class="sidebar-user-status">● 在线</div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="splash" style="background-image: url('../../正式版/assets/wallpaper-cyber.jpg')">
+      <div class="grid-overlay"></div>
+      <div class="px-corner px-tl"></div>
+      <div class="px-corner px-tr"></div>
+      <div class="px-corner px-bl"></div>
+      <div class="px-corner px-br"></div>
+      <div class="content">
+        <div class="top">
+          <div class="date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+          <div class="wp-tag"><span class="dot"></span>CYBER · 赛博朋克 · 夜 22°</div>
+        </div>
+        <div class="center">
+          <div class="greeting"><span class="red">凌晨好</span>，小宇。<br>代码写到三点，<span class="red">注意休息</span>。</div>
+          <div class="quote">产品已经跑通了，明天给团队演示。深夜的城市很安静，正是创造的好时候，但也要注意身体。</div>
+        </div>
+        <div class="bottom">
+          <div class="stats">
+            <div class="stat"><div class="stat-num">8</div><div class="stat-label">TODOS</div></div>
+            <div class="stat"><div class="stat-num red">2</div><div class="stat-label">DOING</div></div>
+            <div class="stat"><div class="stat-num">—</div><div class="stat-label">RUN</div></div>
+          </div>
+          <button class="cta">有什么想说的</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-cn">一日</div>
+      <div class="sidebar-logo-en">ONE DAY<span class="sidebar-logo-dot"></span></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">今日</div>
+      <div class="nav-item active"><span class="icon">◈</span>开屏</div>
+      <div class="nav-item"><span class="icon">✓</span>待办</div>
+      <div class="nav-item"><span class="icon">▣</span>重要事件</div>
+      <div class="sidebar-section">生活</div>
+      <div class="nav-item"><span class="icon">✦</span>灵感</div>
+      <div class="nav-item"><span class="icon">⚡</span>运动</div>
+      <div class="nav-item"><span class="icon">◎</span>朋友</div>
+      <div class="nav-item"><span class="icon">▤</span>卡片集</div>
+      <div class="sidebar-section">对话</div>
+      <div class="nav-item"><span class="icon">◉</span>AI 对话</div>
+      <div class="sidebar-section">系统</div>
+      <div class="nav-item"><span class="icon">⚙</span>设置</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">林</div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name">小林</div>
+        <div class="sidebar-user-status">● 在线</div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="splash" style="background-image: url('../../正式版/assets/wallpaper-concert.jpg')">
+      <div class="grid-overlay"></div>
+      <div class="px-corner px-tl"></div>
+      <div class="px-corner px-tr"></div>
+      <div class="px-corner px-bl"></div>
+      <div class="px-corner px-br"></div>
+      <div class="content">
+        <div class="top">
+          <div class="date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+          <div class="wp-tag"><span class="dot"></span>CONCERT · 音乐节 · 多云 25°</div>
+        </div>
+        <div class="center">
+          <div class="greeting"><span class="red">下午好</span>，小林。<br>设计稿还差一版，<span class="red">慢慢来</span>。</div>
+          <div class="quote">好的作品需要时间，你已经做得很棒了。晚上有音乐节，忙完去放松一下，灵感往往在放松时到来。</div>
+        </div>
+        <div class="bottom">
+          <div class="stats">
+            <div class="stat"><div class="stat-num">3</div><div class="stat-label">TODOS</div></div>
+            <div class="stat"><div class="stat-num red">1</div><div class="stat-label">DOING</div></div>
+            <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+          </div>
+          <button class="cta">有什么想说的</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-cn">一日</div>
+      <div class="sidebar-logo-en">ONE DAY<span class="sidebar-logo-dot"></span></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">今日</div>
+      <div class="nav-item active"><span class="icon">◈</span>开屏</div>
+      <div class="nav-item"><span class="icon">✓</span>待办</div>
+      <div class="nav-item"><span class="icon">▣</span>重要事件</div>
+      <div class="sidebar-section">生活</div>
+      <div class="nav-item"><span class="icon">✦</span>灵感</div>
+      <div class="nav-item"><span class="icon">⚡</span>运动</div>
+      <div class="nav-item"><span class="icon">◎</span>朋友</div>
+      <div class="nav-item"><span class="icon">▤</span>卡片集</div>
+      <div class="sidebar-section">对话</div>
+      <div class="nav-item"><span class="icon">◉</span>AI 对话</div>
+      <div class="sidebar-section">系统</div>
+      <div class="nav-item"><span class="icon">⚙</span>设置</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">张</div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name">老张</div>
+        <div class="sidebar-user-status">● 在线</div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="splash" style="background-image: url('../../正式版/assets/wallpaper-arcade.jpg')">
+      <div class="grid-overlay"></div>
+      <div class="px-corner px-tl"></div>
+      <div class="px-corner px-tr"></div>
+      <div class="px-corner px-bl"></div>
+      <div class="px-corner px-br"></div>
+      <div class="content">
+        <div class="top">
+          <div class="date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+          <div class="wp-tag"><span class="dot"></span>ARCADE · 复古街机 · 晚 24°</div>
+        </div>
+        <div class="center">
+          <div class="greeting"><span class="red">晚上好</span>，老张。<br>客户会议很顺利，<span class="red">再坚持一下</span>。</div>
+          <div class="quote">这周辛苦了，周五晚上约了老同事打球。生活不只有工作，偶尔也要像小时候一样，去游戏厅放松一下。</div>
+        </div>
+        <div class="bottom">
+          <div class="stats">
+            <div class="stat"><div class="stat-num">8</div><div class="stat-label">TODOS</div></div>
+            <div class="stat"><div class="stat-num red">3</div><div class="stat-label">DOING</div></div>
+            <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+          </div>
+          <button class="cta">有什么想说的</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

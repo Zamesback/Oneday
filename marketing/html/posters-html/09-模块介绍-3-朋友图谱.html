@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OneDay 模块介绍 - 朋友图谱</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 1600px;
+    background: #f5f5f0;
+    font-family: 'Noto Serif SC', serif;
+    color: #000;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 6px;
+    background: #FF3B30;
+  }
+
+  .container {
+    padding: 50px 70px 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 35px;
+  }
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .logo-cn {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+  .logo-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #666;
+  }
+  .logo-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background: #FF3B30;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .module-num {
+    text-align: right;
+  }
+  .module-num .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: #FF3B30;
+  }
+  .module-num .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #999;
+  }
+
+  .persona {
+    margin-bottom: 25px;
+  }
+  .persona-name {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 12px;
+  }
+  .persona-name .name {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+  .persona-name .role {
+    font-size: 20px;
+    color: #666;
+    letter-spacing: 1px;
+  }
+  .persona-quote {
+    font-size: 32px;
+    font-weight: 700;
+    color: #FF3B30;
+    letter-spacing: 2px;
+  }
+
+  .showcase {
+    flex: 1;
+    position: relative;
+    margin: 10px 0;
+    display: flex;
+    gap: 20px;
+  }
+
+  .graph-main {
+    flex: 1;
+    border: 2px solid #ddd;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+    background: #fafafa;
+  }
+  .graph-main svg {
+    width: 100%;
+    height: 100%;
+  }
+  .graph-label {
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: #999;
+    letter-spacing: 2px;
+    z-index: 2;
+  }
+  .graph-legend {
+    position: absolute;
+    bottom: 15px;
+    left: 20px;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px 14px;
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .graph-legend .title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: #FF3B30;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .graph-legend .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  .graph-legend .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .person-detail {
+    width: 260px;
+    background: #fff;
+    border: 2px solid #eee;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    align-self: center;
+    position: relative;
+    z-index: 3;
+  }
+  .person-detail .avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF3B30, #ff6b60);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 12px;
+  }
+  .person-detail .p-name {
+    font-size: 22px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .person-detail .p-role {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #FF3B30;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .person-detail .p-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+  }
+  .person-detail .stat {
+    text-align: center;
+  }
+  .person-detail .stat .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: #000;
+  }
+  .person-detail .stat .label {
+    font-size: 11px;
+    color: #999;
+  }
+  .person-detail .p-note {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.7;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(0,0,0,0.15);
+    margin: 25px 0 20px;
+  }
+
+  .module-intro {
+    display: flex;
+    gap: 50px;
+    margin-bottom: 25px;
+  }
+  .intro-title {
+    flex-shrink: 0;
+  }
+  .intro-title h2 {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .intro-title .en {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: #FF3B30;
+    letter-spacing: 2px;
+  }
+  .intro-desc {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.9;
+    color: #444;
+  }
+  .intro-desc strong {
+    color: #000;
+    font-weight: 700;
+  }
+
+  .features {
+    display: flex;
+    gap: 30px;
+  }
+  .feature {
+    flex: 1;
+    padding-left: 16px;
+    border-left: 3px solid #FF3B30;
+  }
+  .feature h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .feature p {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.7;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+  }
+  .footer-quote {
+    font-size: 15px;
+    color: #999;
+    font-style: italic;
+  }
+  .footer-brand {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <span class="logo-cn">一日</span>
+        <span class="logo-en">ONE DAY<span class="logo-dot"></span></span>
+      </div>
+      <div class="module-num">
+        <div class="num">03</div>
+        <div class="label">MODULE</div>
+      </div>
+    </div>
+
+    <div class="persona">
+      <div class="persona-name">
+        <span class="name">老张</span>
+        <span class="role">白领 · 下班放松</span>
+      </div>
+      <div class="persona-quote">「谁在你生活里出现最多？」</div>
+    </div>
+
+    <div class="showcase">
+      <div class="graph-main">
+        <div class="graph-label">FRIENDS GRAPH · 32 PEOPLE · 拖拽节点 · 滚轮缩放</div>
+        <svg viewBox="0 0 700 500" preserveAspectRatio="xMidYMid meet">
+          <!-- 主要连线 -->
+          <line x1="350" y1="250" x2="180" y2="120" stroke="#ddd" stroke-width="1.5"/>
+          <line x1="350" y1="250" x2="520" y2="100" stroke="#ddd" stroke-width="1.5"/>
+          <line x1="350" y1="250" x2="560" y2="300" stroke="#e0e0e0" stroke-width="2"/>
+          <line x1="350" y1="250" x2="160" y2="350" stroke="#ddd" stroke-width="1.5"/>
+          <line x1="350" y1="250" x2="350" y2="80" stroke="#e5e5e5" stroke-width="1"/>
+          <line x1="350" y1="250" x2="350" y2="430" stroke="#e5e5e5" stroke-width="1"/>
+          <line x1="180" y1="120" x2="80" y2="200" stroke="#e8e8e8" stroke-width="1"/>
+          <line x1="520" y1="100" x2="630" y2="180" stroke="#e8e8e8" stroke-width="1"/>
+          <line x1="560" y1="300" x2="620" y2="400" stroke="#e8e8e8" stroke-width="1"/>
+          <line x1="160" y1="350" x2="100" y2="440" stroke="#e8e8e8" stroke-width="1"/>
+          <!-- 次要连线 -->
+          <line x1="180" y1="120" x2="520" y2="100" stroke="#eee" stroke-width="0.8"/>
+          <line x1="80" y1="200" x2="160" y2="350" stroke="#eee" stroke-width="0.8"/>
+          <line x1="630" y1="180" x2="560" y2="300" stroke="#eee" stroke-width="0.8"/>
+          <line x1="350" y1="80" x2="520" y2="100" stroke="#eee" stroke-width="0.8"/>
+          <line x1="350" y1="430" x2="160" y2="350" stroke="#eee" stroke-width="0.8"/>
+          <line x1="250" y1="200" x2="350" y2="250" stroke="#eee" stroke-width="0.8"/>
+          <line x1="450" y1="200" x2="350" y2="250" stroke="#eee" stroke-width="0.8"/>
+          <line x1="250" y1="320" x2="350" y2="250" stroke="#eee" stroke-width="0.8"/>
+          <line x1="450" y1="320" x2="350" y2="250" stroke="#eee" stroke-width="0.8"/>
+          <!-- 外围密集连线 -->
+          <line x1="120" y1="80" x2="250" y2="60" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="250" y1="60" x2="350" y2="80" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="450" y1="60" x2="520" y2="100" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="580" y1="80" x2="630" y2="180" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="660" y1="280" x2="620" y2="400" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="580" y1="450" x2="480" y2="430" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="400" y1="470" x2="350" y2="430" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="280" y1="470" x2="200" y2="440" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="150" y1="460" x2="100" y2="440" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="50" y1="350" x2="80" y2="200" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="120" y1="80" x2="180" y2="120" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="250" y1="60" x2="250" y2="200" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="450" y1="60" x2="450" y2="200" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="580" y1="80" x2="560" y2="300" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="660" y1="280" x2="560" y2="300" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="580" y1="450" x2="560" y2="300" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="400" y1="470" x2="450" y2="320" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="280" y1="470" x2="250" y2="320" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="150" y1="460" x2="160" y2="350" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="50" y1="350" x2="160" y2="350" stroke="#f0f0f0" stroke-width="0.6"/>
+          <line x1="200" y1="250" x2="250" y2="200" stroke="#f0f0f0" stroke-width="0.5"/>
+          <line x1="500" y1="250" x2="450" y2="200" stroke="#f0f0f0" stroke-width="0.5"/>
+          <line x1="300" y1="150" x2="350" y2="80" stroke="#f0f0f0" stroke-width="0.5"/>
+          <line x1="400" y1="150" x2="350" y2="80" stroke="#f0f0f0" stroke-width="0.5"/>
+          <line x1="300" y1="380" x2="350" y2="430" stroke="#f0f0f0" stroke-width="0.5"/>
+          <line x1="400" y1="380" x2="350" y2="430" stroke="#f0f0f0" stroke-width="0.5"/>
+
+          <!-- 中心人物 -->
+          <circle cx="350" cy="250" r="38" fill="#FF3B30" opacity="0.9"/>
+          <circle cx="350" cy="250" r="38" fill="none" stroke="#ff6b60" stroke-width="2" opacity="0.4"/>
+          <text x="350" y="255" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold" font-family="sans-serif">老张</text>
+
+          <!-- 高频人物 -->
+          <circle cx="560" cy="300" r="26" fill="#FF3B30" opacity="0.7"/>
+          <text x="560" y="305" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold" font-family="sans-serif">王经理</text>
+          <circle cx="180" cy="120" r="20" fill="#FF3B30" opacity="0.55"/>
+          <text x="180" y="125" text-anchor="middle" fill="#fff" font-size="9" font-family="sans-serif">李姐</text>
+
+          <!-- 中频人物 -->
+          <circle cx="520" cy="100" r="18" fill="#888" opacity="0.8"/>
+          <text x="520" y="105" text-anchor="middle" fill="#fff" font-size="8" font-family="sans-serif">赵总</text>
+          <circle cx="160" cy="350" r="17" fill="#888" opacity="0.75"/>
+          <text x="160" y="355" text-anchor="middle" fill="#fff" font-size="8" font-family="sans-serif">小陈</text>
+          <circle cx="350" cy="80" r="15" fill="#999" opacity="0.7"/>
+          <text x="350" y="85" text-anchor="middle" fill="#fff" font-size="7" font-family="sans-serif">刘哥</text>
+          <circle cx="350" cy="430" r="14" fill="#999" opacity="0.65"/>
+          <text x="350" y="435" text-anchor="middle" fill="#fff" font-size="7" font-family="sans-serif">周姐</text>
+          <circle cx="250" cy="200" r="13" fill="#999" opacity="0.6"/>
+          <text x="250" y="204" text-anchor="middle" fill="#fff" font-size="7" font-family="sans-serif">钱姐</text>
+          <circle cx="450" cy="200" r="12" fill="#999" opacity="0.55"/>
+          <text x="450" y="204" text-anchor="middle" fill="#fff" font-size="7" font-family="sans-serif">冯哥</text>
+          <circle cx="250" cy="320" r="11" fill="#aaa" opacity="0.55"/>
+          <text x="250" y="324" text-anchor="middle" fill="#fff" font-size="6" font-family="sans-serif">陈姐</text>
+          <circle cx="450" cy="320" r="10" fill="#aaa" opacity="0.5"/>
+          <text x="450" y="324" text-anchor="middle" fill="#fff" font-size="6" font-family="sans-serif">褚哥</text>
+
+          <!-- 低频人物 -->
+          <circle cx="80" cy="200" r="13" fill="#bbb" opacity="0.7"/>
+          <text x="80" y="204" text-anchor="middle" fill="#fff" font-size="7" font-family="sans-serif">张哥</text>
+          <circle cx="630" cy="180" r="12" fill="#bbb" opacity="0.65"/>
+          <text x="630" y="184" text-anchor="middle" fill="#fff" font-size="6" font-family="sans-serif">孙姐</text>
+          <circle cx="620" cy="400" r="11" fill="#ccc" opacity="0.6"/>
+          <text x="620" y="404" text-anchor="middle" fill="#888" font-size="6" font-family="sans-serif">吴总</text>
+          <circle cx="100" cy="440" r="10" fill="#ccc" opacity="0.55"/>
+          <text x="100" y="444" text-anchor="middle" fill="#888" font-size="6" font-family="sans-serif">郑哥</text>
+
+          <!-- 外围小节点 -->
+          <circle cx="120" cy="80" r="9" fill="#ccc" opacity="0.5"/>
+          <circle cx="250" cy="60" r="8" fill="#ccc" opacity="0.45"/>
+          <circle cx="450" cy="60" r="8" fill="#ccc" opacity="0.45"/>
+          <circle cx="580" cy="80" r="7" fill="#ccc" opacity="0.4"/>
+          <circle cx="660" cy="280" r="9" fill="#ccc" opacity="0.5"/>
+          <circle cx="580" cy="450" r="8" fill="#ccc" opacity="0.45"/>
+          <circle cx="400" cy="470" r="7" fill="#ccc" opacity="0.4"/>
+          <circle cx="280" cy="470" r="7" fill="#ccc" opacity="0.4"/>
+          <circle cx="150" cy="460" r="6" fill="#ccc" opacity="0.35"/>
+          <circle cx="50" cy="350" r="8" fill="#ccc" opacity="0.45"/>
+          <circle cx="200" cy="440" r="6" fill="#ccc" opacity="0.35"/>
+          <circle cx="480" cy="430" r="7" fill="#ccc" opacity="0.4"/>
+          <circle cx="200" cy="250" r="6" fill="#ddd" opacity="0.4"/>
+          <circle cx="500" cy="250" r="6" fill="#ddd" opacity="0.4"/>
+          <circle cx="300" cy="150" r="5" fill="#ddd" opacity="0.35"/>
+          <circle cx="400" cy="150" r="5" fill="#ddd" opacity="0.35"/>
+          <circle cx="300" cy="380" r="5" fill="#ddd" opacity="0.35"/>
+          <circle cx="400" cy="380" r="5" fill="#ddd" opacity="0.35"/>
+          <circle cx="150" cy="180" r="5" fill="#ddd" opacity="0.3"/>
+          <circle cx="550" cy="180" r="5" fill="#ddd" opacity="0.3"/>
+          <circle cx="550" cy="380" r="5" fill="#ddd" opacity="0.3"/>
+          <circle cx="150" cy="380" r="5" fill="#ddd" opacity="0.3"/>
+        </svg>
+        <div class="graph-legend">
+          <div class="title">LEGEND</div>
+          <div class="item"><span class="dot" style="background:#FF3B30"></span>高频提及 · 重要人物</div>
+          <div class="item"><span class="dot" style="background:#888"></span>中频提及</div>
+          <div class="item"><span class="dot" style="background:#bbb"></span>低频提及</div>
+          <div class="item" style="margin-top:6px;color:#666;font-size:10px;">节点大小 = 提及次数</div>
+        </div>
+      </div>
+      <div class="person-detail">
+        <div class="avatar">王</div>
+        <div class="p-name">王经理</div>
+        <div class="p-role">客户 · 关键决策人</div>
+        <div class="p-stats">
+          <div class="stat">
+            <div class="num">23</div>
+            <div class="label">提及次数</div>
+          </div>
+          <div class="stat">
+            <div class="num">5</div>
+            <div class="label">共同项目</div>
+          </div>
+          <div class="stat">
+            <div class="num">3天</div>
+            <div class="label">最近联系</div>
+          </div>
+        </div>
+        <div class="p-note">上周一起吃了饭，聊到孩子升学的事。下次拜访可以带点小礼物。</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="module-intro">
+      <div class="intro-title">
+        <h2>朋友图谱</h2>
+        <div class="en">FRIENDS GRAPH</div>
+      </div>
+      <div class="intro-desc">
+        AI 在闲聊中<strong>自动捕捉你提到的人</strong>，记录身份、关系和互动。被提及越多的人，在图谱里的节点越大——让你直观看到<strong>谁在你生活里最重要</strong>。点开节点，查看完整的人物档案和互动记录。
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <h4>AI 自动识别</h4>
+        <p>闲聊中捕捉人名，自动建立人物档案</p>
+      </div>
+      <div class="feature">
+        <h4>节点大小=重要度</h4>
+        <p>提及次数越多，节点越大，直观呈现关系</p>
+      </div>
+      <div class="feature">
+        <h4>互动记录沉淀</h4>
+        <p>每次聊天的互动都记录在人物档案里</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-quote">「你身边的人，构成了你的生活。」</div>
+      <div class="footer-brand">ONE DAY / 一日</div>
+    </div>
+  </div>
+</body>
+</html>

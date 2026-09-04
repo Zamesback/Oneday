@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Oneday · 主海报封面版</title>
+<style>
+  /* 本地内嵌思源宋体 Noto Serif SC —— 离线可用，不依赖 CDN */
+  @font-face{font-family:'Noto Serif SC';src:url('../fonts/NotoSerifSC-500.woff2') format('woff2');font-weight:500;font-display:block}
+  @font-face{font-family:'Noto Serif SC';src:url('../fonts/NotoSerifSC-700.woff2') format('woff2');font-weight:700;font-display:block}
+  @font-face{font-family:'Noto Serif SC';src:url('../fonts/NotoSerifSC-900.woff2') format('woff2');font-weight:900;font-display:block}
+  :root{
+    --bg:#000;--ink:#fff;--ink-dim:rgba(255,255,255,.55);--ink-faint:rgba(255,255,255,.2);
+    --red:#ff3b30;--red-50:rgba(255,59,48,.5);--red-20:rgba(255,59,48,.18);
+    --line:rgba(255,255,255,.16);--grid:rgba(255,255,255,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;-webkit-font-smoothing:antialiased}
+  .page{
+    width:800px;height:1066px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(70% 45% at 50% 6%, rgba(255,59,48,.13) 0%, rgba(255,59,48,0) 62%),
+      radial-gradient(60% 40% at 50% 100%, rgba(255,59,48,.08) 0%, rgba(255,59,48,0) 60%),
+      var(--bg);
+  }
+  .grid{position:absolute;inset:0;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:20px 20px;pointer-events:none}
+
+  .frame{position:absolute;inset:20px;border:2px solid var(--ink);pointer-events:none}
+  .frame::before{content:'';position:absolute;left:-2px;top:-2px;width:100px;height:4px;background:var(--red)}
+  .frame::after{content:'';position:absolute;right:-2px;bottom:-2px;width:100px;height:4px;background:var(--red)}
+
+  .px-corner{position:absolute;width:16px;height:16px}
+  .px-corner::before,.px-corner::after{content:'';position:absolute;background:var(--ink)}
+  .px-corner::before{left:0;top:0;width:16px;height:2px}
+  .px-corner::after{left:0;top:0;width:2px;height:16px}
+  .px-tl{top:6px;left:6px}
+  .px-tr{top:6px;right:6px;transform:scaleX(-1)}
+  .px-bl{bottom:6px;left:6px;transform:scaleY(-1)}
+  .px-br{bottom:6px;right:6px;transform:scale(-1)}
+
+  /* 顶部 */
+  .top{
+    position:absolute;top:52px;left:50px;right:50px;
+    display:flex;justify-content:space-between;align-items:baseline;
+  }
+  .top .l{display:flex;align-items:baseline;gap:10px}
+  .top .mark{font-weight:700;font-size:17px;letter-spacing:.06em}
+  .top .mark .dot{color:var(--red)}
+  .top .tag{color:var(--ink-faint);font-size:10px;letter-spacing:.28em}
+  .top .r{color:var(--ink-faint);font-size:10px;letter-spacing:.24em}
+
+  .divider{position:absolute;top:88px;left:50px;right:50px;height:1px;background:var(--line)}
+
+  /* 主字 */
+  .hero{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:4px;pointer-events:none;
+  }
+  .hero .code{
+    font-size:11px;letter-spacing:.5em;color:var(--ink-faint);margin-bottom:34px;text-transform:uppercase;
+  }
+  .hero .ch{
+    font-family:'Noto Serif SC','Songti SC','STSong','serif';
+    font-weight:900;font-size:300px;line-height:1;letter-spacing:.06em;
+    color:var(--ink);
+  }
+  .hero .ch .first{color:var(--red);position:relative;display:inline-block}
+  .hero .ch .first::after{
+    content:'';position:absolute;left:6%;right:6%;bottom:-14px;height:5px;background:var(--red);
+  }
+  .hero .latin{
+    margin-top:24px;font-size:18px;letter-spacing:.6em;color:var(--ink);
+  }
+  .hero .latin .r{color:var(--red);font-weight:700}
+  .hero .slogan{
+    margin-top:44px;
+    font-family:'Songti SC','Noto Serif SC',serif;
+    font-size:16px;letter-spacing:.22em;color:var(--ink-dim);
+  }
+
+  /* 中央电路装饰 */
+  .mid-deco{
+    position:absolute;left:50%;transform:translateX(-50%);top:596px;
+    width:560px;height:60px;opacity:.6;pointer-events:none;
+  }
+
+  /* 底部 */
+  .bottom{
+    position:absolute;left:50px;right:50px;bottom:56px;
+  }
+  .bottom .row1{
+    display:flex;justify-content:space-between;align-items:center;
+    padding-bottom:14px;border-bottom:1px solid var(--line);
+  }
+  .bottom .feat{display:flex;gap:26px;font-size:10px;letter-spacing:.22em;color:var(--ink-dim)}
+  .bottom .feat span::before{content:'· ';color:var(--red)}
+  .bottom .ver{font-size:10px;letter-spacing:.24em;color:var(--ink-faint)}
+  .bottom .ver b{color:var(--red);font-weight:600}
+  .bottom .row2{
+    display:flex;justify-content:space-between;align-items:center;margin-top:14px;
+    font-size:9.5px;letter-spacing:.24em;color:var(--ink-faint);
+  }
+  .bottom .row2 .bar{display:flex;align-items:center;gap:6px}
+  .bottom .row2 .bar i{display:block;width:14px;height:2px;background:var(--red)}
+
+  /* 侧边竖排小字 */
+  .side-l,.side-r{
+    position:absolute;top:50%;font-size:9.5px;letter-spacing:.34em;color:var(--ink-faint);
+  }
+  .side-l{left:34px;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl}
+  .side-r{right:34px;transform:translateY(-50%);writing-mode:vertical-rl}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="grid"></div>
+  <div class="frame"></div>
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+
+  <div class="top">
+    <div class="l">
+      <span class="mark">ONEDAY<span class="dot">.</span></span>
+      <span class="tag">/ 一日</span>
+    </div>
+    <div class="r">NOT A CALENDAR · AN INTERFACE FOR YOUR LIFE</div>
+  </div>
+  <div class="divider"></div>
+
+  <div class="side-l">// 2026 · SHANGHAI</div>
+  <div class="side-r">// EVERY DAY · ONE CARD</div>
+
+  <div class="hero">
+    <div class="code">// 00 · IDENTITY</div>
+    <div class="one ch"><span class="first">一</span>日</div>
+    <div class="latin">O<span class="r">n</span>eDay</div>
+    <div class="slogan">把每一天,活成一张卡片</div>
+  </div>
+
+  <!-- 中央电路 -->
+  <svg class="mid-deco" viewBox="0 0 560 60" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1">
+    <path d="M0,30 L150,30 L170,12 L270,12 L290,30 L390,30 L410,48 L510,48 L530,30 L560,30"/>
+    <circle cx="150" cy="30" r="3" fill="rgba(255,59,48,.9)" stroke="none"/>
+    <circle cx="390" cy="30" r="3" fill="rgba(255,59,48,.9)" stroke="none"/>
+    <rect x="270" y="6" width="16" height="12" fill="rgba(255,255,255,.6)" stroke="none"/>
+  </svg>
+
+  <div class="bottom">
+    <div class="row1">
+      <div class="feat">
+        <span>闲聊输入</span>
+        <span>每日开屏</span>
+        <span>OneDay 卡片</span>
+        <span>生活伙伴</span>
+      </div>
+      <div class="ver"><b>EXPERIMENTAL</b> · v3</div>
+    </div>
+    <div class="row2">
+      <div>© 2026 ONEDAY · ALL RIGHTS RESERVED</div>
+      <div class="bar"><i></i><i></i><i></i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OneDay 模块介绍 - Plog灵感</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 1600px;
+    background: #f5f5f0;
+    font-family: 'Noto Serif SC', serif;
+    color: #000;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 6px;
+    background: #FF3B30;
+  }
+
+  .container {
+    padding: 50px 70px 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 头部 */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 35px;
+  }
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .logo-cn {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+  .logo-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #666;
+  }
+  .logo-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background: #FF3B30;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .module-num {
+    text-align: right;
+  }
+  .module-num .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: #FF3B30;
+  }
+  .module-num .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #999;
+  }
+
+  /* 人物信息 */
+  .persona {
+    margin-bottom: 30px;
+  }
+  .persona-name {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 12px;
+  }
+  .persona-name .name {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+  .persona-name .role {
+    font-size: 20px;
+    color: #666;
+    letter-spacing: 1px;
+  }
+  .persona-quote {
+    font-size: 32px;
+    font-weight: 700;
+    color: #FF3B30;
+    letter-spacing: 2px;
+  }
+
+  /* 模块展示区 */
+  .showcase {
+    flex: 1;
+    position: relative;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Plog录制页面 - 主展示 */
+  .plog-record-screen {
+    width: 920px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+    position: relative;
+    z-index: 2;
+  }
+  .plog-record-screen img {
+    width: 100%;
+    display: block;
+  }
+
+  /* 底部分隔 */
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(0,0,0,0.15);
+    margin: 25px 0 20px;
+  }
+
+  /* 模块介绍 */
+  .module-intro {
+    display: flex;
+    gap: 50px;
+    margin-bottom: 25px;
+  }
+  .intro-title {
+    flex-shrink: 0;
+  }
+  .intro-title h2 {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .intro-title .en {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: #FF3B30;
+    letter-spacing: 2px;
+  }
+  .intro-desc {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.9;
+    color: #444;
+  }
+  .intro-desc strong {
+    color: #000;
+    font-weight: 700;
+  }
+
+  /* 三个特性 */
+  .features {
+    display: flex;
+    gap: 30px;
+  }
+  .feature {
+    flex: 1;
+    padding-left: 16px;
+    border-left: 3px solid #FF3B30;
+  }
+  .feature h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .feature p {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.7;
+  }
+
+  /* 页脚 */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+  }
+  .footer-quote {
+    font-size: 15px;
+    color: #999;
+    font-style: italic;
+  }
+  .footer-brand {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <span class="logo-cn">一日</span>
+        <span class="logo-en">ONE DAY<span class="logo-dot"></span></span>
+      </div>
+      <div class="module-num">
+        <div class="num">01</div>
+        <div class="label">MODULE</div>
+      </div>
+    </div>
+
+    <div class="persona">
+      <div class="persona-name">
+        <span class="name">阿杰</span>
+        <span class="role">创业者 · 路演日</span>
+      </div>
+      <div class="persona-quote">「把灵感录成你的故事。」</div>
+    </div>
+
+    <div class="showcase">
+      <div class="plog-record-screen">
+        <img src="../模块截图/plog-录制横版页面.png" alt="Plog录制页面">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="module-intro">
+      <div class="intro-title">
+        <h2>Plog 灵感</h2>
+        <div class="en">PLOG INSPIRATION</div>
+      </div>
+      <div class="intro-desc">
+        每一次闲聊，AI 都会帮你<strong>收集灵感碎片</strong>，自动整理成可录制的 plog 主题。从灵感到大纲，一键生成节目框架，对着大纲就能录出你的一期播客。<strong>不用打字，只要闲聊</strong>，生活自然变成故事。
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <h4>AI 自动收集</h4>
+        <p>闲聊中捕捉灵感，自动整理成主题池</p>
+      </div>
+      <div class="feature">
+        <h4>一键生成大纲</h4>
+        <p>从主题到节目框架，AI 帮你搭好结构</p>
+      </div>
+      <div class="feature">
+        <h4>对着大纲录制</h4>
+        <p>内置录制器，看着大纲就能录出一期播客</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-quote">「不用打字，只要闲聊。」</div>
+      <div class="footer-brand">ONE DAY / 一日</div>
+    </div>
+  </div>
+</body>
+</html>

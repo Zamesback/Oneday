@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1560px; font-family: 'Space Mono', monospace; display: flex; }
+  
+  .splash {
+    width: 390px;
+    height: 844px;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  
+  .splash::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.25) 25%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.6) 80%, rgba(0,0,0,0.75) 100%);
+  }
+  
+  .splash::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%);
+  }
+  
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+  
+  /* 状态栏 */
+  .status-bar {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 28px 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  
+  .status-bar .right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .status-bar .battery {
+    width: 24px; height: 12px;
+    border: 1.5px solid #fff;
+    border-radius: 3px;
+    position: relative;
+  }
+  
+  .status-bar .battery::after {
+    content: '';
+    position: absolute;
+    right: -4px; top: 3px;
+    width: 2px; height: 6px;
+    background: #fff;
+    border-radius: 0 1px 1px 0;
+  }
+  
+  .status-bar .battery-fill {
+    position: absolute;
+    left: 1px; top: 1px; bottom: 1px;
+    width: 70%;
+    background: #fff;
+    border-radius: 1px;
+  }
+  
+  .content {
+    position: relative;
+    z-index: 10;
+    padding: 20px 28px 40px;
+    height: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+  }
+  
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  
+  .date {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  
+  .date .line { width: 28px; height: 2px; background: #FF3B30; }
+  
+  .date .blink {
+    width: 6px; height: 6px;
+    background: #FF3B30;
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  
+  .wp-tag {
+    font-size: 9px;
+    letter-spacing: 1px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    padding: 5px 9px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  
+  .wp-tag .dot { width: 4px; height: 4px; background: #FF3B30; }
+  
+  .center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .greeting {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1.3;
+    margin-bottom: 14px;
+    text-shadow: 
+      0 2px 4px rgba(0,0,0,0.8),
+      0 4px 12px rgba(0,0,0,0.6),
+      0 0 20px rgba(0,0,0,0.4);
+  }
+  
+  .greeting .red { color: #FF3B30; }
+  
+  .quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    line-height: 1.6;
+    opacity: 0.95;
+    border-left: 2px solid #FF3B30;
+    padding: 8px 12px;
+    background: linear-gradient(90deg, rgba(0,0,0,0.35) 0%, transparent 100%);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  
+  .bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .stats {
+    display: flex;
+    gap: 2px;
+  }
+  
+  .stat {
+    flex: 1;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(12px);
+    padding: 12px 8px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  
+  .stat-num {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  
+  .stat-num.red { color: #FF3B30; }
+  
+  .stat-label {
+    font-size: 8px;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+  
+  .cta {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 16px 24px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    font-family: 'Space Mono', monospace;
+  }
+  
+  .cta::after {
+    content: '→';
+    color: #FF3B30;
+    font-size: 16px;
+  }
+  
+  /* Home indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 3px;
+    z-index: 20;
+  }
+</style>
+</head>
+<body>
+
+<!-- 案例1：阿杰 - 街头涂鸦 -->
+<div class="splash" style="background-image: url('../../正式版/assets/wallpaper-street.jpg')">
+  <div class="grid-overlay"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="right">
+      <span>●●●</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="top">
+      <div class="date"><span class="line"></span>09.01 · TUE<span class="blink"></span></div>
+      <div class="wp-tag"><span class="dot"></span>STREET</div>
+    </div>
+    <div class="center">
+      <div class="greeting"><span class="red">早上好</span>，阿杰。<br>今天去路演，<span class="red">把故事讲好</span>。</div>
+      <div class="quote">投资人会看到你的光芒，白板上的每一个 idea，都是改变世界的种子。</div>
+    </div>
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="stat-num">5</div><div class="stat-label">TODOS</div></div>
+        <div class="stat"><div class="stat-num red">4</div><div class="stat-label">DOING</div></div>
+        <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+      </div>
+      <button class="cta">有什么想说的</button>
+    </div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+
+<!-- 案例2：小宇 - 赛博朋克 -->
+<div class="splash" style="background-image: url('../../正式版/assets/wallpaper-cyber.jpg')">
+  <div class="grid-overlay"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="right">
+      <span>●●●</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="top">
+      <div class="date"><span class="line"></span>09.01 · TUE<span class="blink"></span></div>
+      <div class="wp-tag"><span class="dot"></span>CYBER</div>
+    </div>
+    <div class="center">
+      <div class="greeting"><span class="red">早上好</span>，小宇。<br>今天期末考，<span class="red">放平心态</span>。</div>
+      <div class="quote">你已经准备得很充分了，相信自己，正常发挥就好。考完一起去吃火锅。</div>
+    </div>
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="stat-num">6</div><div class="stat-label">TODOS</div></div>
+        <div class="stat"><div class="stat-num red">2</div><div class="stat-label">DOING</div></div>
+        <div class="stat"><div class="stat-num">—</div><div class="stat-label">RUN</div></div>
+      </div>
+      <button class="cta">有什么想说的</button>
+    </div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+
+<!-- 案例3：小林 - 音乐节 -->
+<div class="splash" style="background-image: url('../../正式版/assets/wallpaper-concert.jpg')">
+  <div class="grid-overlay"></div>
+  <div class="status-bar">
+    <span>14:30</span>
+    <div class="right">
+      <span>●●●</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="top">
+      <div class="date"><span class="line"></span>09.01 · TUE<span class="blink"></span></div>
+      <div class="wp-tag"><span class="dot"></span>CONCERT</div>
+    </div>
+    <div class="center">
+      <div class="greeting"><span class="red">下午好</span>，小林。<br>设计稿还差一版，<span class="red">慢慢来</span>。</div>
+      <div class="quote">好的作品需要时间，你已经做得很棒了。晚上有音乐节，忙完去放松一下。</div>
+    </div>
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="stat-num">3</div><div class="stat-label">TODOS</div></div>
+        <div class="stat"><div class="stat-num red">1</div><div class="stat-label">DOING</div></div>
+        <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+      </div>
+      <button class="cta">有什么想说的</button>
+    </div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+
+<!-- 案例4：老张 - 复古街机 -->
+<div class="splash" style="background-image: url('../../正式版/assets/wallpaper-arcade.jpg')">
+  <div class="grid-overlay"></div>
+  <div class="status-bar">
+    <span>20:15</span>
+    <div class="right">
+      <span>●●●</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="top">
+      <div class="date"><span class="line"></span>09.01 · TUE<span class="blink"></span></div>
+      <div class="wp-tag"><span class="dot"></span>ARCADE</div>
+    </div>
+    <div class="center">
+      <div class="greeting"><span class="red">晚上好</span>，老张。<br>客户会议很顺利，<span class="red">再坚持一下</span>。</div>
+      <div class="quote">这周辛苦了，周五晚上约了老同事打球，好好放松一下。生活不只有工作。</div>
+    </div>
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="stat-num">8</div><div class="stat-label">TODOS</div></div>
+        <div class="stat"><div class="stat-num red">3</div><div class="stat-label">DOING</div></div>
+        <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+      </div>
+      <button class="cta">有什么想说的</button>
+    </div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+
+</body>
+</html>

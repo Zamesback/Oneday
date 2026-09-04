@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    width: 1600px; 
+    background: #1a1a1a;
+    font-family: 'Space Mono', monospace;
+    display: flex;
+    gap: 40px;
+    padding: 60px;
+    align-items: flex-start;
+  }
+  
+  .card-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .card-label {
+    color: #888;
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+  
+  .card-label .red { color: #FF3B30; }
+  
+  /* ===== 卡片通用 ===== */
+  .card {
+    width: 360px;
+    height: 640px;
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 30%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.7) 100%);
+  }
+  
+  .card-content {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 28px;
+    color: #fff;
+  }
+  
+  /* ===== 风格1：极简寄语卡 ===== */
+  .style1 .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .style1 .card-date {
+    font-size: 12px;
+    letter-spacing: 2px;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .style1 .card-date .line {
+    width: 24px;
+    height: 2px;
+    background: #FF3B30;
+  }
+  
+  .style1 .card-logo {
+    font-size: 10px;
+    letter-spacing: 2px;
+    opacity: 0.6;
+  }
+  
+  .style1 .card-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .style1 .card-quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    max-width: 280px;
+  }
+  
+  .style1 .card-quote .red { color: #FF3B30; }
+  
+  .style1 .card-divider {
+    width: 40px;
+    height: 2px;
+    background: #FF3B30;
+    margin: 24px 0;
+  }
+  
+  .style1 .card-sub {
+    font-size: 11px;
+    letter-spacing: 1px;
+    opacity: 0.6;
+  }
+  
+  .style1 .card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  
+  .style1 .card-mood {
+    font-size: 10px;
+    letter-spacing: 1px;
+    opacity: 0.5;
+  }
+  
+  .style1 .card-number {
+    font-size: 48px;
+    font-weight: 900;
+    opacity: 0.15;
+    line-height: 1;
+  }
+  
+  /* ===== 风格2：拍立得卡 ===== */
+  .style2 {
+    background: #fff;
+    padding: 16px 16px 60px;
+    border-radius: 4px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+    transform: rotate(-2deg);
+  }
+  
+  .style2 .card-photo {
+    width: 100%;
+    height: 420px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .style2 .card-photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, transparent 40%, rgba(0,0,0,0.5) 100%);
+  }
+  
+  .style2 .card-photo-date {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    color: #fff;
+    font-size: 11px;
+    letter-spacing: 2px;
+    z-index: 5;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  
+  .style2 .card-photo-quote {
+    position: absolute;
+    bottom: 20px;
+    left: 16px;
+    right: 16px;
+    color: #fff;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    z-index: 5;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  }
+  
+  .style2 .card-photo-quote .red { color: #FF3B30; }
+  
+  .style2 .card-caption {
+    padding: 20px 8px 0;
+    text-align: center;
+    font-family: 'Noto Serif SC', serif;
+    color: #333;
+  }
+  
+  .style2 .card-caption-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  
+  .style2 .card-caption-sub {
+    font-size: 10px;
+    color: #999;
+    letter-spacing: 1px;
+  }
+  
+  .style2 .card-tape {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(1deg);
+    width: 100px;
+    height: 24px;
+    background: rgba(255,200,50,0.6);
+    z-index: 20;
+  }
+  
+  /* ===== 风格3：数据卡 ===== */
+  .style3 .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .style3 .card-day {
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  
+  .style3 .card-day .red { color: #FF3B30; }
+  
+  .style3 .card-month {
+    font-size: 12px;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    margin-top: 4px;
+  }
+  
+  .style3 .card-weather {
+    text-align: right;
+    font-size: 11px;
+    opacity: 0.7;
+    line-height: 1.6;
+  }
+  
+  .style3 .card-weather .temp {
+    font-size: 24px;
+    font-weight: 700;
+    opacity: 1;
+  }
+  
+  .style3 .card-quote-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 24px 0;
+    margin: 16px 0;
+  }
+  
+  .style3 .card-quote-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #FF3B30;
+    margin-bottom: 12px;
+  }
+  
+  .style3 .card-quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  
+  .style3 .card-quote .red { color: #FF3B30; }
+  
+  .style3 .card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .style3 .card-stat {
+    text-align: center;
+    padding: 10px 4px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .style3 .card-stat-num {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  
+  .style3 .card-stat-num.red { color: #FF3B30; }
+  
+  .style3 .card-stat-label {
+    font-size: 8px;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- 风格1：极简寄语卡 -->
+<div class="card-wrapper">
+  <div class="card-label">风格 01 · <span class="red">极简寄语卡</span></div>
+  <div class="card style1" style="background-image: url('../../正式版/assets/wallpaper-street.jpg')">
+    <div class="card-content">
+      <div class="card-top">
+        <div class="card-date"><span class="line"></span>2026.09.01</div>
+        <div class="card-logo">ONEDAY</div>
+      </div>
+      <div class="card-center">
+        <div class="card-quote">把你的故事讲好，<span class="red">投资人会看到你的光芒</span></div>
+        <div class="card-divider"></div>
+        <div class="card-sub">ONE DAY · 第 248 天</div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-mood">心情：充满期待</div>
+        <div class="card-number">01</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 风格2：拍立得卡 -->
+<div class="card-wrapper">
+  <div class="card-label">风格 02 · <span class="red">拍立得卡</span></div>
+  <div class="card style2">
+    <div class="card-tape"></div>
+    <div class="card-photo" style="background-image: url('../../正式版/assets/wallpaper-cyber.jpg')">
+      <div class="card-photo-date">2026.09.01 · TUE</div>
+      <div class="card-photo-quote">今天期末考，<span class="red">放平心态</span>，相信自己</div>
+    </div>
+    <div class="card-caption">
+      <div class="card-caption-title">小宇的一天</div>
+      <div class="card-caption-sub">ONEDAY · 第 156 天 · 心情：紧张又期待</div>
+    </div>
+  </div>
+</div>
+
+<!-- 风格3：数据卡 -->
+<div class="card-wrapper">
+  <div class="card-label">风格 03 · <span class="red">数据卡</span></div>
+  <div class="card style3" style="background-image: url('../../正式版/assets/wallpaper-concert.jpg')">
+    <div class="card-content">
+      <div class="card-header">
+        <div>
+          <div class="card-day">01<span class="red">.</span></div>
+          <div class="card-month">SEP 2026 · TUE</div>
+        </div>
+        <div class="card-weather">
+          <div class="temp">26°</div>
+          <div>晴 · 南京</div>
+          <div>音乐节 🎵</div>
+        </div>
+      </div>
+      <div class="card-quote-area">
+        <div class="card-quote-label">// TODAY'S QUOTE</div>
+        <div class="card-quote">好的作品需要时间，<span class="red">你已经做得很棒了</span></div>
+      </div>
+      <div class="card-stats">
+        <div class="card-stat">
+          <div class="card-stat-num">3</div>
+          <div class="card-stat-label">TODOS</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-num red">1</div>
+          <div class="card-stat-label">DOING</div>
+        </div>
+        <div class="card-stat">
+          <div class="card-stat-num">✓</div>
+          <div class="card-stat-label">RUN</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 风格4：纯文字卡（第四个人物） -->
+<div class="card-wrapper">
+  <div class="card-label">风格 04 · <span class="red">大字卡</span></div>
+  <div class="card style1" style="background-image: url('../../正式版/assets/wallpaper-arcade.jpg')">
+    <div class="card-content">
+      <div class="card-top">
+        <div class="card-date"><span class="line"></span>2026.09.01</div>
+        <div class="card-logo">ONEDAY</div>
+      </div>
+      <div class="card-center">
+        <div class="card-quote" style="font-size: 36px;">再坚持<span class="red">一下</span>，<br>周末就到了</div>
+        <div class="card-divider"></div>
+        <div class="card-sub">老张的第 312 天</div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-mood">心情：疲惫但满足</div>
+        <div class="card-number">04</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

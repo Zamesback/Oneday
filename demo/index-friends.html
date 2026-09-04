@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneDay 一日 · Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --black: #000;
+    --white: #fff;
+    --red: #FF3B30;
+    --bg-dark: #0a0a0a;
+    --bg-card: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.12);
+    --text-primary: #fff;
+    --text-secondary: rgba(255,255,255,0.6);
+    --text-muted: rgba(255,255,255,0.35);
+  }
+  
+  body {
+    font-family: 'Space Mono', monospace;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+  }
+  
+  .app {
+    display: flex;
+    height: 100vh;
+  }
+  
+  /* ========== 侧边栏 ========== */
+  .sidebar {
+    width: 200px;
+    background: #050505;
+    border-right: 2px solid var(--red);
+    padding: 28px 0;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  
+  .sidebar-logo {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+    cursor: pointer;
+  }
+  
+  .sidebar-logo-cn {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--white);
+    letter-spacing: 4px;
+  }
+  
+  .sidebar-logo-en {
+    font-size: 10px;
+    color: #666;
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+  
+  .sidebar-logo-dot {
+    display: inline-block;
+    width: 5px; height: 5px;
+    background: var(--red);
+    margin-left: 2px;
+  }
+  
+  .sidebar-section {
+    padding: 8px 24px;
+    font-size: 9px;
+    color: #555;
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+  
+  .sidebar-nav { flex: 1; }
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    color: #888;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .nav-item:hover {
+    color: #ccc;
+    background: rgba(255,255,255,0.03);
+  }
+  
+  .nav-item.active {
+    color: var(--white);
+    background: rgba(255,59,48,0.15);
+    border-left-color: var(--red);
+  }
+  
+  .nav-item .icon { width: 16px; text-align: center; font-size: 12px; }
+  .nav-item.active .icon { color: var(--red); }
+  
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .sidebar-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--red);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  
+  .sidebar-user { flex: 1; }
+  .sidebar-user-name { font-size: 11px; color: var(--white); }
+  .sidebar-user-status { font-size: 9px; color: var(--red); }
+  
+  /* ========== 主内容区 ========== */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  .main::-webkit-scrollbar { width: 6px; }
+  .main::-webkit-scrollbar-track { background: transparent; }
+  .main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
+  
+  .page {
+    display: none;
+    padding: 40px 48px;
+    min-height: 100%;
+  }
+  
+  .page.active { display: block; }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+  }
+  
+  .page-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+  
+  .page-title .red { color: var(--red); }
+  
+  .page-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-top: 6px;
+  }
+  
+  /* ========== 开屏页 ========== */
+  .splash-page {
+    padding: 0;
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .splash-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .splash-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.25) 25%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.6) 80%, rgba(0,0,0,0.75) 100%);
+  }
+  
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .splash-content {
+    position: relative;
+    z-index: 10;
+    padding: 48px 56px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: var(--white);
+  }
+  
+  .splash-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  
+  .splash-date {
+    font-size: 13px;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+  
+  .splash-date .line { width: 36px; height: 2px; background: var(--red); }
+  
+  .splash-date .blink {
+    width: 7px; height: 7px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  
+  .wp-tag {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  
+  .wp-tag .dot { width: 5px; height: 5px; background: var(--red); }
+  
+  .splash-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 620px;
+  }
+  
+  .splash-greeting {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1.25;
+    margin-bottom: 18px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 30px rgba(0,0,0,0.4);
+  }
+  
+  .splash-greeting .red { color: var(--red); }
+  
+  .splash-quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    line-height: 1.7;
+    opacity: 0.95;
+    border-left: 3px solid var(--red);
+    padding: 10px 14px;
+    background: linear-gradient(90deg, rgba(0,0,0,0.35) 0%, transparent 100%);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    max-width: 90%;
+  }
+  
+  .splash-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  
+  .splash-stats { display: flex; gap: 2px; }
+  
+  .stat {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(15px);
+    padding: 14px 24px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .stat-num { font-size: 32px; font-weight: 700; }
+  .stat-num.red { color: var(--red); }
+  .stat-label { font-size: 9px; letter-spacing: 2px; opacity: 0.7; margin-top: 3px; }
+  
+  .cta-btn {
+    background: var(--white);
+    color: var(--black);
+    border: none;
+    padding: 16px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    transition: transform 0.2s;
+  }
+  
+  .cta-btn:hover { transform: translateY(-2px); }
+  .cta-btn::after { content: '→'; color: var(--red); font-size: 16px; }
+  
+  /* ========== 通用卡片 ========== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  
+  .card-title {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .card-title::before {
+    content: '';
+    width: 3px; height: 3px;
+    background: var(--red);
+  }
+  
+  /* ========== 待办页 ========== */
+  .todo-list { display: flex; flex-direction: column; gap: 2px; }
+  
+  .todo-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .todo-item:hover { background: rgba(255,255,255,0.05); }
+  
+  .todo-item.done .todo-text { text-decoration: line-through; opacity: 0.4; }
+  
+  .todo-check {
+    width: 20px; height: 20px;
+    border: 2px solid var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  
+  .todo-item.done .todo-check {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  
+  .todo-item.done .todo-check::after {
+    content: '✓';
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  
+  .todo-text { flex: 1; font-size: 14px; }
+  
+  .todo-tag {
+    font-size: 9px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    letter-spacing: 1px;
+  }
+  
+  .todo-tag.work { color: var(--red); border-color: rgba(255,59,48,0.3); }
+  .todo-tag.personal { color: #4CAF50; border-color: rgba(76,175,80,0.3); }
+  .todo-tag.interest { color: #FFD60A; border-color: rgba(255,214,10,0.3); }
+  
+  /* ========== 重要事件页 ========== */
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  
+  .project-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .project-card:hover {
+    border-color: rgba(255,59,48,0.4);
+    transform: translateY(-2px);
+  }
+  
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  
+  .project-name {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  
+  .project-priority {
+    font-size: 9px;
+    padding: 3px 8px;
+    letter-spacing: 1px;
+  }
+  
+  .project-priority.high { background: var(--red); color: var(--white); }
+  .project-priority.medium { background: rgba(255,59,48,0.5); color: var(--white); }
+  .project-priority.low { background: rgba(255,255,255,0.1); color: var(--text-secondary); }
+  
+  .project-client {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  
+  .project-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  
+  .project-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  
+  .project-tags { display: flex; gap: 6px; }
+  
+  .project-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    letter-spacing: 1px;
+  }
+  
+  /* ========== 朋友图谱页 ========== */
+  .friends-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 24px;
+    height: calc(100vh - 140px);
+  }
+  
+  .graph-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  #friendGraph {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  
+  .graph-legend {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    font-size: 10px;
+  }
+  
+  .legend-title {
+    color: var(--red);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  
+  .friend-detail {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .friend-detail-empty {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 40px 0;
+  }
+  
+  .friend-detail-name {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  
+  .friend-detail-role {
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  
+  .friend-detail-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .friend-stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .friend-stat-num { font-size: 20px; font-weight: 700; }
+  .friend-stat-num.red { color: var(--red); }
+  .friend-stat-label { font-size: 9px; color: var(--text-muted); letter-spacing: 1px; margin-top: 2px; }
+  
+  .friend-detail-section {
+    margin-bottom: 16px;
+  }
+  
+  .friend-detail-section-title {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  
+  .friend-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  
+  .friend-tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  
+  .friend-mentions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .friend-mention {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding: 6px 8px;
+    border-left: 2px solid var(--red);
+    background: rgba(255,59,48,0.05);
+  }
+  
+  .friend-mention-date {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+  
+  /* ========== 卡片集页 ========== */
+  .cards-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  
+  .cards-month-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .month-btn {
+    width: 32px; height: 32px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  
+  .month-btn:hover { border-color: var(--red); color: var(--red); }
+  
+  .month-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+  
+  .cards-stats {
+    display: flex;
+    gap: 24px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  
+  .cards-stat-num { font-size: 20px; font-weight: 700; color: var(--white); }
+  .cards-stat-num.red { color: var(--red); }
+  
+  .calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .weekday {
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    padding: 8px 0;
+  }
+  
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+  
+  .calendar-cell {
+    aspect-ratio: 3/4;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  
+  .calendar-cell:hover {
+    border-color: rgba(255,59,48,0.4);
+    transform: translateY(-2px);
+  }
+  
+  .calendar-cell.empty {
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.08);
+    cursor: default;
+  }
+  
+  .calendar-cell.empty:hover { transform: none; border-color: rgba(255,255,255,0.08); }
+  
+  .calendar-cell.no-record {
+    background: rgba(255,255,255,0.01);
+  }
+  
+  .cell-date {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    z-index: 2;
+  }
+  
+  .calendar-cell.has-card .cell-date {
+    color: var(--white);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  
+  .cell-card-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .cell-card-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%);
+  }
+  
+  .cell-card-text {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.3;
+    z-index: 2;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .cell-no-record {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: rgba(255,255,255,0.08);
+  }
+  
+  .cell-today {
+    border: 2px solid var(--red);
+  }
+  
+  .cell-today .cell-date {
+    color: var(--red);
+    font-weight: 700;
+  }
+  
+  /* ========== 卡片详情弹窗 ========== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal-overlay.active { display: flex; }
+  
+  .modal-card {
+    width: 390px;
+    height: 693px;
+    position: relative;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4);
+    animation: cardIn 0.3s ease-out;
+  }
+  
+  @keyframes cardIn {
+    from { transform: scale(0.9) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  
+  .modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    width: 32px; height: 32px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  
+  .modal-close:hover { border-color: var(--red); color: var(--red); }
+  
+  /* ========== 灵感页 ========== */
+  .inspiration-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .inspiration-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    border-left: 3px solid var(--red);
+  }
+  
+  .inspiration-text {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 8px;
+  }
+  
+  .inspiration-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  
+  /* ========== 运动页 ========== */
+  .exercise-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  
+  .exercise-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .exercise-stat-num {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  
+  .exercise-stat-num.red { color: var(--red); }
+  
+  .exercise-stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+  }
+  
+  .exercise-log {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .exercise-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+  
+  .exercise-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    width: 80px;
+  }
+  
+  .exercise-type {
+    flex: 1;
+    font-size: 14px;
+  }
+  
+  .exercise-duration {
+    font-size: 12px;
+    color: var(--red);
+    font-weight: 700;
+  }
+  
+  /* ========== AI对话页 ========== */
+  .chat-layout {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 140px);
+  }
+  
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 16px;
+  }
+  
+  .chat-message {
+    display: flex;
+    gap: 12px;
+    max-width: 70%;
+  }
+  
+  .chat-message.ai { align-self: flex-start; }
+  .chat-message.user { align-self: flex-end; flex-direction: row-reverse; }
+  
+  .chat-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  
+  .chat-message.ai .chat-avatar { background: var(--red); color: var(--white); }
+  .chat-message.user .chat-avatar { background: rgba(255,255,255,0.1); color: var(--white); }
+  
+  .chat-bubble {
+    padding: 14px 18px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  
+  .chat-message.ai .chat-bubble {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+  
+  .chat-message.user .chat-bubble {
+    background: var(--red);
+    color: var(--white);
+  }
+  
+  .chat-input-area {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  
+  .chat-input {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    color: var(--white);
+    font-size: 14px;
+    font-family: 'Space Mono', monospace;
+    outline: none;
+  }
+  
+  .chat-input:focus { border-color: var(--red); }
+  
+  .chat-send {
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+  }
+  
+  /* ========== 设置页 ========== */
+  .settings-section {
+    margin-bottom: 32px;
+  }
+  
+  .settings-section-title {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  
+  .settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .settings-label { font-size: 14px; }
+  .settings-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  
+  .toggle {
+    width: 44px; height: 24px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .toggle.on { background: var(--red); border-color: var(--red); }
+  
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 18px; height: 18px;
+    background: var(--white);
+    transition: all 0.2s;
+  }
+  
+  .toggle.on::after { left: 22px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 侧边栏 -->
+  <div class="sidebar">
+    <div class="sidebar-logo" onclick="navigate('splash')">
+      <div class="sidebar-logo-cn">一日</div>
+      <div class="sidebar-logo-en">ONE DAY<span class="sidebar-logo-dot"></span></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">今日</div>
+      <div class="nav-item" data-page="splash" onclick="navigate('splash')"><span class="icon">◈</span>开屏</div>
+      <div class="nav-item" data-page="todos" onclick="navigate('todos')"><span class="icon">✓</span>待办</div>
+      <div class="nav-item" data-page="projects" onclick="navigate('projects')"><span class="icon">▣</span>重要事件</div>
+      <div class="sidebar-section">生活</div>
+      <div class="nav-item" data-page="inspiration" onclick="navigate('inspiration')"><span class="icon">✦</span>灵感</div>
+      <div class="nav-item" data-page="exercise" onclick="navigate('exercise')"><span class="icon">⚡</span>运动</div>
+      <div class="nav-item active" data-page="friends" onclick="navigate('friends')"><span class="icon">◎</span>朋友</div>
+      <div class="nav-item" data-page="cards" onclick="navigate('cards')"><span class="icon">▤</span>卡片集</div>
+      <div class="sidebar-section">对话</div>
+      <div class="nav-item" data-page="chat" onclick="navigate('chat')"><span class="icon">◉</span>AI 对话</div>
+      <div class="sidebar-section">系统</div>
+      <div class="nav-item" data-page="settings" onclick="navigate('settings')"><span class="icon">⚙</span>设置</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">阿</div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name">阿杰</div>
+        <div class="sidebar-user-status">● 在线</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 主内容区 -->
+  <div class="main" id="mainContent">
+    <!-- 开屏页 -->
+    <div class="page splash-page" id="page-splash">
+      <div class="splash-bg" style="background-image: url('assets/wallpaper-street.jpg')"></div>
+      <div class="grid-overlay"></div>
+      <div class="splash-content">
+        <div class="splash-top">
+          <div class="splash-date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+          <div class="wp-tag"><span class="dot"></span>STREET · 街头涂鸦 · 晴 28°</div>
+        </div>
+        <div class="splash-center">
+          <div class="splash-greeting"><span class="red">早上好</span>，阿杰。<br>今天去路演，<span class="red">把故事讲好</span>。</div>
+          <div class="splash-quote">投资人会看到你的光芒，白板上的每一个 idea，都是改变世界的种子。今天状态不错，加油！</div>
+        </div>
+        <div class="splash-bottom">
+          <div class="splash-stats">
+            <div class="stat"><div class="stat-num">5</div><div class="stat-label">TODOS</div></div>
+            <div class="stat"><div class="stat-num red">4</div><div class="stat-label">DOING</div></div>
+            <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+          </div>
+          <button class="cta-btn">有什么想说的</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 待办页 -->
+    <div class="page" id="page-todos">
+      <div class="page-header">
+        <div>
+          <div class="page-title">待办<span class="red">清单</span></div>
+          <div class="page-subtitle">TODAY · 5 TASKS · 2 DONE</div>
+        </div>
+      </div>
+      <div class="todo-list" id="todoList"></div>
+    </div>
+    
+    <!-- 重要事件页 -->
+    <div class="page" id="page-projects">
+      <div class="page-header">
+        <div>
+          <div class="page-title">重要<span class="red">事件</span></div>
+          <div class="page-subtitle">PROJECTS · 4 ACTIVE</div>
+        </div>
+      </div>
+      <div class="project-grid" id="projectGrid"></div>
+    </div>
+    
+    <!-- 灵感页 -->
+    <div class="page" id="page-inspiration">
+      <div class="page-header">
+        <div>
+          <div class="page-title">灵感<span class="red">收集</span></div>
+          <div class="page-subtitle">INSPIRATION · 12 NOTES</div>
+        </div>
+      </div>
+      <div class="inspiration-list" id="inspirationList"></div>
+    </div>
+    
+    <!-- 运动页 -->
+    <div class="page" id="page-exercise">
+      <div class="page-header">
+        <div>
+          <div class="page-title">运动<span class="red">记录</span></div>
+          <div class="page-subtitle">EXERCISE · THIS WEEK</div>
+        </div>
+      </div>
+      <div class="exercise-stats">
+        <div class="exercise-stat"><div class="exercise-stat-num red">5</div><div class="exercise-stat-label">DAYS</div></div>
+        <div class="exercise-stat"><div class="exercise-stat-num">28.5</div><div class="exercise-stat-label">KM</div></div>
+        <div class="exercise-stat"><div class="exercise-stat-num">2,340</div><div class="exercise-stat-label">KCAL</div></div>
+        <div class="exercise-stat"><div class="exercise-stat-num">78%</div><div class="exercise-stat-label">GOAL</div></div>
+      </div>
+      <div class="exercise-log" id="exerciseLog"></div>
+    </div>
+    
+    <!-- 朋友图谱页 -->
+    <div class="page active" id="page-friends">
+      <div class="page-header">
+        <div>
+          <div class="page-title">朋友<span class="red">图谱</span></div>
+          <div class="page-subtitle">FRIENDS GRAPH · 12 PEOPLE · 拖拽节点 · 滚轮缩放</div>
+        </div>
+      </div>
+      <div class="friends-layout">
+        <div class="graph-container">
+          <canvas id="friendGraph"></canvas>
+          <div class="graph-legend">
+            <div class="legend-title">LEGEND</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#FF3B30"></div>高频提及 · 重要人物</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.6)"></div>中频提及</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.3)"></div>低频提及</div>
+            <div class="legend-item" style="margin-top:6px;color:var(--text-muted)">节点大小 = 提及次数</div>
+          </div>
+        </div>
+        <div class="friend-detail" id="friendDetail">
+          <div class="friend-detail-empty">点击图谱中的节点<br>查看人物详情</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 卡片集页 -->
+    <div class="page" id="page-cards">
+      <div class="page-header">
+        <div>
+          <div class="page-title">卡片<span class="red">集</span></div>
+          <div class="page-subtitle">ONE DAY CARDS · 今年已收集 243 张 · 点击卡片查看详情</div>
+        </div>
+      </div>
+      <div class="cards-header">
+        <div class="cards-month-nav">
+          <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+          <div class="month-title" id="monthTitle">2026年9月</div>
+          <button class="month-btn" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cards-stats">
+          <div><div class="cards-stat-num red">243</div>今年已收集</div>
+          <div><div class="cards-stat-num">28</div>本月记录</div>
+          <div><div class="cards-stat-num">12</div>连续天数</div>
+          <div><div class="cards-stat-num">365</div>全年目标</div>
+        </div>
+      </div>
+      <div class="calendar-weekdays">
+        <div class="weekday">MON</div><div class="weekday">TUE</div><div class="weekday">WED</div>
+        <div class="weekday">THU</div><div class="weekday">FRI</div><div class="weekday">SAT</div><div class="weekday">SUN</div>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+    
+    <!-- AI对话页 -->
+    <div class="page" id="page-chat">
+      <div class="page-header">
+        <div>
+          <div class="page-title">与我<span class="red">聊聊</span></div>
+          <div class="page-subtitle">AI CONVERSATION · 不用打字，只要闲聊</div>
+        </div>
+      </div>
+      <div class="chat-layout">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" placeholder="今天过得怎么样？有什么想说的..." id="chatInput">
+          <button class="chat-send" onclick="sendMessage()">发送</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 设置页 -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div>
+          <div class="page-title">设置</div>
+          <div class="page-subtitle">SETTINGS</div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">每日提醒</div>
+        <div class="settings-item">
+          <div><div class="settings-label">早晨问候</div><div class="settings-desc">每天 7:30 自动生成开屏页并问候</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-item">
+          <div><div class="settings-label">晚间总结</div><div class="settings-desc">每天 22:00 主动发起对话，回顾今天</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-item">
+          <div><div class="settings-label">运动监督</div><div class="settings-desc">晚上未打卡时提醒运动</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">AI 模型</div>
+        <div class="settings-item">
+          <div><div class="settings-label">对话模型</div><div class="settings-desc">DeepSeek / 豆包 / GPT</div></div>
+          <div style="font-size:12px;color:var(--text-secondary)">DeepSeek</div>
+        </div>
+        <div class="settings-item">
+          <div><div class="settings-label">壁纸生成</div><div class="settings-desc">每日 AI 生成专属开屏壁纸</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 卡片详情弹窗 -->
+<div class="modal-overlay" id="cardModal" onclick="closeCardModal(event)">
+  <div class="modal-card" id="modalCardContent"></div>
+  <button class="modal-close" onclick="closeCardModal()">✕</button>
+</div>
+
+<script>
+// ========== 导航 ==========
+function navigate(page) {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.page === page);
+  });
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.toggle('active', p.id === 'page-' + page);
+  });
+  if (page === 'friends') setTimeout(initFriendGraph, 100);
+  if (page === 'cards') renderCalendar();
+}
+
+// ========== 待办数据 ==========
+const todos = [
+  { text: '完成路演PPT最终版', tag: 'work', done: true },
+  { text: '和投资人喝咖啡聊30分钟', tag: 'work', done: true },
+  { text: '团队复盘会议', tag: 'work', done: false },
+  { text: '晚上跑步5公里', tag: 'personal', done: false },
+  { text: '整理本周灵感笔记', tag: 'interest', done: false },
+];
+
+function renderTodos() {
+  const list = document.getElementById('todoList');
+  list.innerHTML = todos.map((t, i) => `
+    <div class="todo-item ${t.done ? 'done' : ''}" onclick="toggleTodo(${i})">
+      <div class="todo-check"></div>
+      <div class="todo-text">${t.text}</div>
+      <div class="todo-tag ${t.tag}">${t.tag.toUpperCase()}</div>
+    </div>
+  `).join('');
+}
+
+function toggleTodo(i) {
+  todos[i].done = !todos[i].done;
+  renderTodos();
+}
+
+// ========== 重要事件数据 ==========
+const projects = [
+  { name: 'Akkodis 人头外包', client: '昂际航电 AVG', priority: 'high', desc: '已成交，3个工程师在岗，持续跟进需求扩展', tags: ['工作', '已成交'], date: '进行中' },
+  { name: '贝克休斯合作', client: 'Baker Hughes', priority: 'medium', desc: '已联系采购 Sunny Wang，正在沟通需求', tags: ['工作', '联系中'], date: '跟进中' },
+  { name: '西门子中国', client: 'Siemens China', priority: 'medium', desc: '已联系间接性采购，负责人员外包', tags: ['工作', '联系中'], date: '跟进中' },
+  { name: '个人品牌建设', client: '自我成长', priority: 'low', desc: '每周更新一篇行业洞察文章，积累影响力', tags: ['个人', '兴趣'], date: '长期' },
+];
+
+function renderProjects() {
+  const grid = document.getElementById('projectGrid');
+  grid.innerHTML = projects.map(p => `
+    <div class="project-card">
+      <div class="project-header">
+        <div class="project-name">${p.name}</div>
+        <div class="project-priority ${p.priority}">${p.priority.toUpperCase()}</div>
+      </div>
+      <div class="project-client">${p.client}</div>
+      <div class="project-desc">${p.desc}</div>
+      <div class="project-footer">
+        <div class="project-tags">${p.tags.map(t => `<span class="project-tag">${t}</span>`).join('')}</div>
+        <div>${p.date}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========== 灵感数据 ==========
+const inspirations = [
+  { text: 'AI 输入端更人性化，但数据展现端还是工具组合——这个想法可以做成产品', date: '08.30', tag: '产品' },
+  { text: '每天一张专属开屏图，一年365张，可以收集和交换', date: '08.31', tag: '功能' },
+  { text: '朋友关系图谱里，被提及多的人圆变大——这个视觉化很有意思', date: '09.01', tag: '设计' },
+];
+
+function renderInspiration() {
+  const list = document.getElementById('inspirationList');
+  list.innerHTML = inspirations.map(i => `
+    <div class="inspiration-item">
+      <div class="inspiration-text">${i.text}</div>
+      <div class="inspiration-meta"><span>${i.date}</span><span>${i.tag}</span></div>
+    </div>
+  `).join('');
+}
+
+// ========== 运动数据 ==========
+const exercises = [
+  { date: '08.26 周一', type: '晨跑 · 5公里', duration: '32分钟' },
+  { date: '08.27 周二', type: '力量训练 · 上肢', duration: '45分钟' },
+  { date: '08.28 周三', type: '夜跑 · 3公里', duration: '20分钟' },
+  { date: '08.30 周五', type: '游泳 · 1000米', duration: '40分钟' },
+  { date: '08.31 周六', type: '晨跑 · 7.5公里', duration: '48分钟' },
+];
+
+function renderExercise() {
+  const log = document.getElementById('exerciseLog');
+  log.innerHTML = exercises.map(e => `
+    <div class="exercise-item">
+      <div class="exercise-date">${e.date}</div>
+      <div class="exercise-type">${e.type}</div>
+      <div class="exercise-duration">${e.duration}</div>
+    </div>
+  `).join('');
+}
+
+// ========== 朋友关系图谱 ==========
+let graphInited = false;
+let graphNodes = [];
+let graphLinks = [];
+let canvas, ctx;
+let selectedNode = null;
+let hoveredNode = null;
+let draggingNode = null;
+let scale = 1;
+let offsetX = 0, offsetY = 0;
+
+const friendData = [
+  { name: '王总', role: '投资人', mentions: 42, tags: ['工作', '投资人', '路演'], color: '#FF3B30' },
+  { name: 'Sunny', role: '贝克休斯采购', mentions: 28, tags: ['工作', '采购', '客户'], color: '#FF3B30' },
+  { name: '李经理', role: '西门子采购', mentions: 25, tags: ['工作', '采购', '客户'], color: 'rgba(255,255,255,0.8)' },
+  { name: '老张', role: '同事/球友', mentions: 18, tags: ['同事', '运动', '朋友'], color: 'rgba(255,255,255,0.8)' },
+  { name: '小林', role: '设计师朋友', mentions: 15, tags: ['朋友', '设计', '兴趣'], color: 'rgba(255,255,255,0.6)' },
+  { name: '陈律师', role: '法律顾问', mentions: 12, tags: ['工作', '顾问'], color: 'rgba(255,255,255,0.6)' },
+  { name: '妈妈', role: '家人', mentions: 35, tags: ['家人', '生活'], color: '#FF3B30' },
+  { name: '小宇', role: '前同事', mentions: 10, tags: ['同事', '朋友'], color: 'rgba(255,255,255,0.5)' },
+  { name: '周教练', role: '健身教练', mentions: 8, tags: ['运动', '健康'], color: 'rgba(255,255,255,0.4)' },
+  { name: '刘编辑', role: '媒体朋友', mentions: 6, tags: ['朋友', '媒体'], color: 'rgba(255,255,255,0.35)' },
+  { name: '赵医生', role: '家庭医生', mentions: 4, tags: ['健康', '顾问'], color: 'rgba(255,255,255,0.3)' },
+  { name: '阿杰', role: '我自己', mentions: 100, tags: ['自己'], color: '#fff', isSelf: true },
+];
+
+const friendLinksData = [
+  { source: '阿杰', target: '王总', strength: 0.9 },
+  { source: '阿杰', target: 'Sunny', strength: 0.8 },
+  { source: '阿杰', target: '李经理', strength: 0.7 },
+  { source: '阿杰', target: '老张', strength: 0.8 },
+  { source: '阿杰', target: '妈妈', strength: 1.0 },
+  { source: '阿杰', target: '小林', strength: 0.6 },
+  { source: '王总', target: '陈律师', strength: 0.5 },
+  { source: 'Sunny', target: '李经理', strength: 0.4 },
+  { source: '老张', target: '周教练', strength: 0.6 },
+  { source: '小林', target: '刘编辑', strength: 0.5 },
+  { source: '妈妈', target: '赵医生', strength: 0.4 },
+  { source: '阿杰', target: '小宇', strength: 0.5 },
+  { source: '阿杰', target: '陈律师', strength: 0.4 },
+  { source: '阿杰', target: '周教练', strength: 0.5 },
+];
+
+function initFriendGraph() {
+  if (graphInited) return;
+  graphInited = true;
+  
+  canvas = document.getElementById('friendGraph');
+  ctx = canvas.getContext('2d');
+  
+  const container = canvas.parentElement;
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+  
+  // 初始化节点位置
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  
+  graphNodes = friendData.map((f, i) => {
+    const angle = (i / friendData.length) * Math.PI * 2;
+    const radius = f.isSelf ? 0 : 120 + Math.random() * 100;
+    return {
+      ...f,
+      x: centerX + Math.cos(angle) * radius,
+      y: centerY + Math.sin(angle) * radius,
+      vx: 0, vy: 0,
+      radius: f.isSelf ? 30 : 12 + f.mentions * 0.4,
+    };
+  });
+  
+  graphLinks = friendLinksData.map(l => ({
+    source: graphNodes.find(n => n.name === l.source),
+    target: graphNodes.find(n => n.name === l.target),
+    strength: l.strength,
+  }));
+  
+  // 事件监听
+  canvas.addEventListener('mousemove', onGraphMouseMove);
+  canvas.addEventListener('mousedown', onGraphMouseDown);
+  canvas.addEventListener('mouseup', onGraphMouseUp);
+  canvas.addEventListener('wheel', onGraphWheel, { passive: false });
+  
+  animateGraph();
+}
+
+function onGraphMouseMove(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left - offsetX) / scale;
+  const my = (e.clientY - rect.top - offsetY) / scale;
+  
+  hoveredNode = null;
+  for (const node of graphNodes) {
+    const dx = mx - node.x;
+    const dy = my - node.y;
+    if (dx * dx + dy * dy < node.radius * node.radius) {
+      hoveredNode = node;
+      break;
+    }
+  }
+  
+  canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+  
+  if (draggingNode) {
+    draggingNode.x = mx;
+    draggingNode.y = my;
+    draggingNode.vx = 0;
+    draggingNode.vy = 0;
+  }
+}
+
+function onGraphMouseDown(e) {
+  if (hoveredNode) {
+    draggingNode = hoveredNode;
+    selectedNode = hoveredNode;
+    showFriendDetail(selectedNode);
+  }
+}
+
+function onGraphMouseUp() {
+  draggingNode = null;
+}
+
+function onGraphWheel(e) {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  scale *= delta;
+  scale = Math.max(0.3, Math.min(3, scale));
+}
+
+function animateGraph() {
+  // 力导向模拟
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  
+  for (const node of graphNodes) {
+    if (node === draggingNode) continue;
+    
+    // 向心力
+    node.vx += (centerX - node.x) * 0.002;
+    node.vy += (centerY - node.y) * 0.002;
+    
+    // 节点间斥力
+    for (const other of graphNodes) {
+      if (other === node) continue;
+      const dx = node.x - other.x;
+      const dy = node.y - other.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const force = 800 / (dist * dist);
+      node.vx += (dx / dist) * force;
+      node.vy += (dy / dist) * force;
+    }
+  }
+  
+  // 连线引力
+  for (const link of graphLinks) {
+    const dx = link.target.x - link.source.x;
+    const dy = link.target.y - link.source.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const force = (dist - 100) * 0.005 * link.strength;
+    
+    if (link.source !== draggingNode) {
+      link.source.vx += (dx / dist) * force;
+      link.source.vy += (dy / dist) * force;
+    }
+    if (link.target !== draggingNode) {
+      link.target.vx -= (dx / dist) * force;
+      link.target.vy -= (dy / dist) * force;
+    }
+  }
+  
+  // 更新位置
+  for (const node of graphNodes) {
+    if (node === draggingNode) continue;
+    node.vx *= 0.9;
+    node.vy *= 0.9;
+    node.x += node.vx;
+    node.y += node.vy;
+  }
+  
+  drawGraph();
+  requestAnimationFrame(animateGraph);
+}
+
+function drawGraph() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.save();
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(scale, scale);
+  
+  // 画连线
+  for (const link of graphLinks) {
+    const isHighlighted = hoveredNode && (link.source === hoveredNode || link.target === hoveredNode);
+    const isSelected = selectedNode && (link.source === selectedNode || link.target === selectedNode);
+    
+    ctx.beginPath();
+    ctx.moveTo(link.source.x, link.source.y);
+    ctx.lineTo(link.target.x, link.target.y);
+    
+    if (isHighlighted || isSelected) {
+      ctx.strokeStyle = `rgba(255,59,48,${0.6 * link.strength})`;
+      ctx.lineWidth = 2;
+    } else {
+      ctx.strokeStyle = `rgba(255,255,255,${0.15 * link.strength})`;
+      ctx.lineWidth = 1;
+    }
+    ctx.stroke();
+    
+    // 连线光点动画
+    if (isHighlighted || isSelected) {
+      const t = (Date.now() % 2000) / 2000;
+      const px = link.source.x + (link.target.x - link.source.x) * t;
+      const py = link.source.y + (link.target.y - link.source.y) * t;
+      ctx.beginPath();
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#FF3B30';
+      ctx.fill();
+    }
+  }
+  
+  // 画节点
+  for (const node of graphNodes) {
+    const isHovered = node === hoveredNode;
+    const isSelected = node === selectedNode;
+    const isConnected = selectedNode && graphLinks.some(l => 
+      (l.source === selectedNode && l.target === node) || 
+      (l.target === selectedNode && l.source === node)
+    );
+    
+    // 光晕
+    if (isHovered || isSelected || node.isSelf) {
+      const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.radius * 2.5);
+      gradient.addColorStop(0, node.isSelf ? 'rgba(255,255,255,0.2)' : 'rgba(255,59,48,0.25)');
+      gradient.addColorStop(1, 'rgba(255,59,48,0)');
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
+    
+    // 节点圆
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+    
+    if (node.isSelf) {
+      ctx.fillStyle = '#fff';
+    } else if (isHovered || isSelected) {
+      ctx.fillStyle = '#FF3B30';
+    } else if (isConnected) {
+      ctx.fillStyle = 'rgba(255,59,48,0.6)';
+    } else {
+      ctx.fillStyle = node.color;
+    }
+    ctx.fill();
+    
+    // 节点边框
+    ctx.strokeStyle = isHovered || isSelected ? '#fff' : 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = isHovered || isSelected ? 2 : 1;
+    ctx.stroke();
+    
+    // 节点文字
+    ctx.fillStyle = node.isSelf ? '#000' : '#fff';
+    ctx.font = `bold ${node.isSelf ? 14 : 11}px 'Space Mono', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(node.name, node.x, node.y);
+    
+    // 提及次数（高频节点显示）
+    if (node.mentions >= 20 && !node.isSelf) {
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = '9px "Space Mono", monospace';
+      ctx.fillText(`${node.mentions}次`, node.x, node.y + node.radius + 12);
+    }
+  }
+  
+  ctx.restore();
+}
+
+function showFriendDetail(node) {
+  const detail = document.getElementById('friendDetail');
+  
+  const mentions = [
+    { date: '08.30', text: '和王总聊了路演时间，定在9月1日' },
+    { date: '08.28', text: '王总介绍了陈律师认识' },
+    { date: '08.25', text: '王总说对我们的项目很感兴趣' },
+  ];
+  
+  detail.innerHTML = `
+    <div class="friend-detail-name">${node.name}</div>
+    <div class="friend-detail-role">${node.role}</div>
+    <div class="friend-detail-stats">
+      <div class="friend-stat"><div class="friend-stat-num red">${node.mentions}</div><div class="friend-stat-label">提及次数</div></div>
+      <div class="friend-stat"><div class="friend-stat-num">${Math.round(node.mentions / 4)}</div><div class="friend-stat-label">本周</div></div>
+    </div>
+    <div class="friend-detail-section">
+      <div class="friend-detail-section-title">标签</div>
+      <div class="friend-tags">${node.tags.map(t => `<span class="friend-tag">${t}</span>`).join('')}</div>
+    </div>
+    <div class="friend-detail-section">
+      <div class="friend-detail-section-title">最近提及</div>
+      <div class="friend-mentions">
+        ${mentions.map(m => `<div class="friend-mention"><div class="friend-mention-date">${m.date}</div>${m.text}</div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ========== 卡片集 ==========
+const cardData = {
+  1: { text: '把故事讲好。', sub: '路演日，投资人看到了你的光芒。', wallpaper: 'https://picsum.photos/seed/cyber-night-01/800/600', hasCard: true, completed: ['完成路演PPT最终版', '和投资人喝咖啡聊了30分钟', '团队复盘会议'], highlights: ['投资人说"你们的故事很有感染力"', '白板上写了27个idea'] },
+  2: { text: '凌晨三点的城市，只有我和代码。', sub: '产品跑通了，明天给团队演示。', wallpaper: 'https://picsum.photos/seed/neon-city-02/800/600', hasCard: true },
+  3: { text: '霓虹灯下，谁还不是个玩家。', sub: '设计稿还差一版，晚上去音乐节。', wallpaper: 'https://picsum.photos/seed/neon-street-03/800/600', hasCard: true },
+  4: { text: '今天也要做自己的主角。', sub: '客户会议很顺利，周五约了老同事打球。', wallpaper: 'https://picsum.photos/seed/cyber-game-04/800/600', hasCard: true },
+  5: { text: '周末睡到自然醒，也是一种胜利。', sub: '难得的休息日，什么都不做也很好。', wallpaper: 'https://picsum.photos/seed/neon-room-05/800/600', hasCard: true },
+  6: { text: '和朋友吃了火锅，辣到流泪也开心。', sub: '老同事聚会，聊了很多过去的事。', wallpaper: 'https://picsum.photos/seed/street-food-06/800/600', hasCard: true },
+  7: { text: '新的一周，冲就完了。', sub: '周一早晨，充满干劲。', wallpaper: 'https://picsum.photos/seed/cyber-morning-07/800/600', hasCard: true },
+  8: { text: '客户说"这个方向对了"，一切都值了。', sub: '和西门子的沟通有了突破。', wallpaper: 'https://picsum.photos/seed/tech-win-08/800/600', hasCard: true },
+  9: { text: '下雨天，适合思考人生和代码。', sub: '窗外下着雨，在咖啡馆想了很多。', wallpaper: 'https://picsum.photos/seed/neon-rain-09/800/600', hasCard: true },
+  10: { text: '跑了10公里，多巴胺拉满。', sub: '周末晨跑，状态很好。', wallpaper: 'https://picsum.photos/seed/street-run-10/800/600', hasCard: true },
+  11: { text: '突然想通了一个问题，这就是顿悟吧。', sub: '困扰了很久的架构问题，今天突然有了答案。', wallpaper: 'https://picsum.photos/seed/tech-eureka-11/800/600', hasCard: true },
+  12: { text: '妈妈打电话来了，想家了。', sub: '聊了很久，想家了。', wallpaper: 'https://picsum.photos/seed/neon-call-12/800/600', hasCard: true },
+  13: { text: '看了一场很棒的电影，哭了好几次。', sub: '一个人去看的，哭了好几次。', wallpaper: 'https://picsum.photos/seed/cinema-night-13/800/600', hasCard: true },
+  14: { text: '灵感爆棚的一天，记了满满一页。', sub: '想到了3个新产品idea。', wallpaper: 'https://picsum.photos/seed/cyber-idea-14/800/600', hasCard: true },
+  15: { text: '签约了！这就是努力的意义。', sub: '贝克休斯的合同终于签下来了。', wallpaper: 'https://picsum.photos/seed/cyber-sign-15/800/600', hasCard: true, completed: ['完成合同最终审核', '和客户签约仪式', '团队庆祝午餐'], highlights: ['客户说"期待长期合作"', '这是本月第三个签约客户'] },
+  16: { text: '安静地读了一下午书，世界都安静了。', sub: '把那本拖了很久的书读完了。', wallpaper: 'https://picsum.photos/seed/neon-read-16/800/600', hasCard: true },
+  17: { text: '和老张打了球，老兄弟还是老兄弟。', sub: '老同事聚会，聊了很多。', wallpaper: 'https://picsum.photos/seed/street-ball-17/800/600', hasCard: true },
+  18: { text: '工作效率很高，一上午干完一周的活。', sub: '一上午就把本周的任务做完了。', wallpaper: 'https://picsum.photos/seed/tech-flow-18/800/600', hasCard: true },
+  19: { text: '深夜改方案，咖啡续了第三杯。', sub: '明天要给客户汇报。', wallpaper: 'https://picsum.photos/seed/cyber-night-19/800/600', hasCard: true },
+  20: { text: '晚霞很美，停下来拍了张照。', sub: '下班路上看到了很漂亮的晚霞。', wallpaper: 'https://picsum.photos/seed/neon-sunset-20/800/600', hasCard: true },
+  21: { text: '周末去看了展，灵感又满了。', sub: '设计展，收获很多灵感。', wallpaper: 'https://picsum.photos/seed/street-art-21/800/600', hasCard: true },
+  22: { text: '新的一周开始，准备好迎接挑战了吗？', sub: '充满希望的周一。', wallpaper: 'https://picsum.photos/seed/cyber-week-22/800/600', hasCard: true },
+  23: { text: '学会了一道新菜，黑暗料理也有春天。', sub: '自己做的意面，味道还不错。', wallpaper: 'https://picsum.photos/seed/neon-cook-23/800/600', hasCard: true },
+  24: { text: '和投资人喝咖啡，聊了下一轮的可能性。', sub: '聊了下一轮融资的可能性。', wallpaper: 'https://picsum.photos/seed/tech-meet-24/800/600', hasCard: true },
+  25: { text: '整理了房间，断舍离后心情舒畅。', sub: '断舍离，扔了很多没用的东西。', wallpaper: 'https://picsum.photos/seed/neon-clean-25/800/600', hasCard: true },
+  26: { text: '跑了半马！人生第一个，完成了！', sub: '人生第一个半程马拉松，完成了！', wallpaper: 'https://picsum.photos/seed/cyber-run-26/800/600', hasCard: true, completed: ['完成半程马拉松（21.0975km）', '赛后拉伸恢复', '和跑友合影庆祝'], highlights: ['净成绩1小时58分，进2小时了！', '最后3公里超越了5个人'] },
+  27: { text: '在家躺了一天，恢复也是训练的一部分。', sub: '跑完半马后的恢复日，什么都不做。', wallpaper: 'https://picsum.photos/seed/neon-rest-27/800/600', hasCard: true },
+  28: { text: '团队聚餐，庆祝项目里程碑。', sub: '庆祝项目里程碑，大家都很开心。', wallpaper: 'https://picsum.photos/seed/street-party-28/800/600', hasCard: true },
+  29: { text: '月底了，复盘一下，继续前进。', sub: '这个月做了很多事，也有很多不足。', wallpaper: 'https://picsum.photos/seed/cyber-review-29/800/600', hasCard: true },
+  30: { text: '月底总结，这个月没白过。', sub: '这个月收获很多，下个月继续加油。', wallpaper: 'https://picsum.photos/seed/neon-summary-30/800/600', hasCard: true, completed: ['完成本月所有项目交付', '整理本月工作复盘文档', '制定下月计划'], highlights: ['本月签约3个新客户', '团队规模扩大到8人'] },
+};
+
+let currentMonth = 8; // 9月（0-indexed）
+let currentYear = 2026;
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  const monthTitle = document.getElementById('monthTitle');
+  
+  monthTitle.textContent = `${currentYear}年${currentMonth + 1}月`;
+  
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  
+  // 调整为周一开始（周日=0 -> 6）
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+  
+  let html = '';
+  
+  // 空白格
+  for (let i = 0; i < startOffset; i++) {
+    html += '<div class="calendar-cell empty"></div>';
+  }
+  
+  // 日期格
+  for (let day = 1; day <= daysInMonth; day++) {
+    const card = cardData[day];
+    const isToday = day === 1 && currentMonth === 8 && currentYear === 2026;
+    
+    if (card && card.hasCard) {
+      html += `
+        <div class="calendar-cell has-card ${isToday ? 'cell-today' : ''}" onclick="openCard(${day})">
+          <div class="cell-card-bg" style="background-image: url('${card.wallpaper}')"></div>
+          <div class="cell-date">${day}</div>
+          <div class="cell-card-text">${card.text}</div>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="calendar-cell no-record ${isToday ? 'cell-today' : ''}">
+          <div class="cell-date">${day}</div>
+          <div class="cell-no-record">—</div>
+        </div>
+      `;
+    }
+  }
+  
+  grid.innerHTML = html;
+}
+
+function changeMonth(delta) {
+  currentMonth += delta;
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  renderCalendar();
+}
+
+function openCard(day) {
+  const card = cardData[day];
+  if (!card) return;
+  
+  const modal = document.getElementById('cardModal');
+  const content = document.getElementById('modalCardContent');
+  
+  // 动态生成今日完成和今日高光
+  let completedHtml = '';
+  let highlightsHtml = '';
+  if (card.completed) {
+    completedHtml = card.completed.map(c => '✓ ' + c).join('<br>');
+  } else {
+    completedHtml = '✓ 度过了充实的一天<br>✓ 和 OneDay 聊了聊';
+  }
+  if (card.highlights) {
+    highlightsHtml = card.highlights.map(h => '★ ' + h).join('<br>');
+  } else {
+    highlightsHtml = '★ 今天也有好好生活';
+  }
+  
+  content.innerHTML = `
+    <div style="position:absolute;inset:0;background-image:url('${card.wallpaper}');background-size:cover;background-position:center;"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.25) 20%,rgba(0,0,0,0.35) 50%,rgba(0,0,0,0.65) 75%,rgba(0,0,0,0.85) 100%);"></div>
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:20px 20px;"></div>
+    <div style="position:relative;z-index:10;padding:28px;height:100%;display:flex;flex-direction:column;color:#fff;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <div style="font-size:36px;font-weight:700;font-family:'Space Mono',monospace;text-shadow:0 2px 8px rgba(0,0,0,0.6);">${currentMonth + 1}<span style="color:#FF3B30">.</span>${String(day).padStart(2,'0')}</div>
+          <div style="font-size:12px;opacity:0.8;letter-spacing:2px;">2026</div>
+        </div>
+        <div style="font-size:11px;background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);padding:4px 10px;border:1px solid rgba(255,255,255,0.15);">晴 28°</div>
+      </div>
+      <div style="height:1px;background:linear-gradient(90deg,#FF3B30 0%,rgba(255,255,255,0.2) 50%,transparent 100%);margin:6px 0 14px;"></div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-family:'Noto Serif SC',serif;font-size:52px;font-weight:900;line-height:1.2;letter-spacing:2px;text-shadow:0 4px 8px rgba(0,0,0,0.7),0 8px 24px rgba(0,0,0,0.5);">
+          <span style="color:#FF3B30">${card.text.split('。')[0]}</span>。
+        </div>
+        <div style="font-family:'Noto Serif SC',serif;font-size:13px;line-height:1.6;opacity:0.85;margin-top:12px;max-width:280px;border-left:2px solid #FF3B30;padding-left:12px;text-shadow:0 1px 4px rgba(0,0,0,0.6);">${card.sub}</div>
+      </div>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+        <div style="background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);padding:8px 10px;">
+          <div style="font-size:9px;letter-spacing:2px;color:#FF3B30;margin-bottom:6px;">今日完成</div>
+          <div style="font-size:10px;opacity:0.85;line-height:1.4;">' + completedHtml + '</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);padding:8px 10px;">
+          <div style="font-size:9px;letter-spacing:2px;color:#FF3B30;margin-bottom:6px;">今日高光</div>
+          <div style="font-size:10px;opacity:0.85;line-height:1.4;">' + highlightsHtml + '</div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:20px;right:20px;font-size:10px;letter-spacing:2px;opacity:0.4;z-index:10;">NO.${String(day).padStart(3,'0')} / 365</div>
+  `;
+  
+  modal.classList.add('active');
+}
+
+function closeCardModal(e) {
+  if (e && e.target !== document.getElementById('cardModal') && !e.target.classList.contains('modal-close')) return;
+  document.getElementById('cardModal').classList.remove('active');
+}
+
+// ========== AI对话 ==========
+const chatMessagesData = [
+  { from: 'ai', text: '早上好，阿杰。今天是路演日，准备得怎么样了？需要我帮你梳理一下要点吗？' },
+  { from: 'user', text: '早上好！PPT已经改完了，就是有点紧张。' },
+  { from: 'ai', text: '紧张是正常的，说明你在乎这件事。你已经准备得很充分了——昨天我们一起梳理了3遍要点，投资人会看到你的光芒的。深呼吸，把故事讲好就够了。对了，今天天气不错，路演前可以去楼下走一圈醒醒脑。' },
+];
+
+function renderChat() {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML = chatMessagesData.map(m => `
+    <div class="chat-message ${m.from}">
+      <div class="chat-avatar">${m.from === 'ai' ? '一' : '阿'}</div>
+      <div class="chat-bubble">${m.text}</div>
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  chatMessagesData.push({ from: 'user', text });
+  input.value = '';
+  renderChat();
+  
+  // 模拟AI回复
+  setTimeout(() => {
+    chatMessagesData.push({ from: 'ai', text: '我听到了。让我帮你整理一下...（这是demo，实际会接入AI模型）' });
+    renderChat();
+  }, 1000);
+}
+
+// ========== 初始化 ==========
+window.addEventListener('load', () => {
+  renderTodos();
+  renderProjects();
+  renderInspiration();
+  renderExercise();
+  renderChat();
+  renderCalendar();
+  
+  // 支持URL参数 ?page=xxx 默认显示指定页面
+  const urlParams = new URLSearchParams(window.location.search);
+  const page = urlParams.get('page');
+  if (page) {
+    navigate(page);
+  }
+});
+
+// 回车发送消息
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.activeElement.id === 'chatInput') {
+    sendMessage();
+  }
+});
+</script>
+</body>
+</html>

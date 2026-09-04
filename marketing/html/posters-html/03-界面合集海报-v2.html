@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneDay 界面合集海报</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    width: 1600px;
+    height: 1200px;
+    background: #FAFAFA;
+    font-family: 'Space Mono', 'SF Mono', monospace;
+    color: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+  
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 200px; height: 6px;
+    background: #FF3B30;
+  }
+  
+  .corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border: 2px solid #000;
+  }
+  .corner-tl { top: 30px; left: 50px; border-right: none; border-bottom: none; }
+  .corner-tr { top: 30px; right: 50px; border-left: none; border-bottom: none; }
+  .corner-bl { bottom: 30px; left: 50px; border-right: none; border-top: none; }
+  .corner-br { bottom: 30px; right: 50px; border-left: none; border-top: none; }
+  
+  .container {
+    padding: 60px 80px;
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+  }
+  
+  .title-group .eyebrow {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: #FF3B30;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  
+  .title-group h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+  
+  .title-group h1 .red { color: #FF3B30; }
+  
+  .header-right {
+    text-align: right;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.8;
+    letter-spacing: 1px;
+  }
+  
+  .header-right .logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 4px;
+    letter-spacing: 3px;
+  }
+  
+  .logo-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: #FF3B30;
+    margin-left: 2px;
+  }
+  
+  /* 界面网格 */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 24px;
+    flex: 1;
+  }
+  
+  .module {
+    border: 2px solid #000;
+    border-radius: 4px;
+    background: #fff;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 6px 6px 0 rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .module-header {
+    padding: 12px 16px;
+    border-bottom: 2px solid #000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #000;
+    color: #fff;
+  }
+  
+  .module-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .module-title .num {
+    color: #FF3B30;
+  }
+  
+  .module-dots {
+    display: flex;
+    gap: 4px;
+  }
+  
+  .module-dots span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #333;
+  }
+  
+  .module-dots span:first-child { background: #FF3B30; }
+  
+  .module-body {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* 待办模块 */
+  .todo-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid #eee;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+  
+  .todo-check {
+    width: 14px; height: 14px;
+    border: 1.5px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    flex-shrink: 0;
+  }
+  
+  .todo-check.done {
+    background: #000;
+    color: #fff;
+  }
+  
+  .todo-text.done {
+    text-decoration: line-through;
+    color: #999;
+  }
+  
+  .todo-tag {
+    margin-left: auto;
+    font-size: 9px;
+    padding: 2px 6px;
+    background: #FF3B30;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+  
+  /* 项目模块 */
+  .project-item {
+    padding: 10px;
+    border: 1px solid #eee;
+    border-left: 3px solid #FF3B30;
+  }
+  
+  .project-name {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  
+  .project-meta {
+    font-size: 10px;
+    color: #666;
+    display: flex;
+    gap: 12px;
+  }
+  
+  .project-progress {
+    height: 4px;
+    background: #eee;
+    margin-top: 6px;
+    position: relative;
+  }
+  
+  .project-progress-bar {
+    height: 100%;
+    background: #FF3B30;
+  }
+  
+  /* 对话模块 */
+  .chat-msg {
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+  }
+  
+  .chat-msg.ai { justify-content: flex-start; }
+  .chat-msg.user { justify-content: flex-end; }
+  
+  .chat-bubble {
+    max-width: 80%;
+    padding: 8px 10px;
+    border-radius: 2px;
+    line-height: 1.5;
+  }
+  
+  .chat-msg.ai .chat-bubble {
+    background: #f5f5f5;
+    border: 1px solid #eee;
+  }
+  
+  .chat-msg.user .chat-bubble {
+    background: #000;
+    color: #fff;
+  }
+  
+  /* 灵感模块 */
+  .inspiration-card {
+    padding: 10px;
+    border: 1px solid #eee;
+    font-size: 10px;
+    line-height: 1.6;
+    position: relative;
+  }
+  
+  .inspiration-card::before {
+    content: '"';
+    position: absolute;
+    top: -4px;
+    left: 6px;
+    font-size: 24px;
+    color: #FF3B30;
+    font-family: serif;
+  }
+  
+  .inspiration-time {
+    font-size: 9px;
+    color: #999;
+    margin-top: 6px;
+    text-align: right;
+  }
+  
+  /* 运动模块 */
+  .exercise-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .exercise-stat {
+    text-align: center;
+    padding: 12px 8px;
+    border: 1px solid #eee;
+  }
+  
+  .exercise-num {
+    font-size: 24px;
+    font-weight: 700;
+    color: #FF3B30;
+  }
+  
+  .exercise-label {
+    font-size: 9px;
+    color: #666;
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+  
+  .exercise-week {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .exercise-day {
+    width: 24px;
+    text-align: center;
+    font-size: 9px;
+  }
+  
+  .exercise-day .bar {
+    height: 30px;
+    background: #eee;
+    margin: 4px 0;
+    position: relative;
+  }
+  
+  .exercise-day .bar-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #FF3B30;
+  }
+  
+  /* 朋友模块 */
+  .friend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .friend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border: 1px solid #eee;
+  }
+  
+  .friend-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  
+  .friend-avatar.hot {
+    background: #FF3B30;
+  }
+  
+  .friend-info {
+    flex: 1;
+  }
+  
+  .friend-name {
+    font-size: 11px;
+    font-weight: 700;
+  }
+  
+  .friend-relation {
+    font-size: 9px;
+    color: #666;
+  }
+  
+  .friend-count {
+    font-size: 10px;
+    color: #FF3B30;
+    font-weight: 700;
+  }
+  
+  /* 底部 */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #000;
+  }
+  
+  .footer-left {
+    font-size: 11px;
+    color: #666;
+    letter-spacing: 2px;
+  }
+  
+  .footer-left .red { color: #FF3B30; }
+  
+  .footer-right {
+    font-size: 10px;
+    color: #999;
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  
+  <div class="container">
+    <div class="header">
+      <div class="title-group">
+        <div class="eyebrow">// INTERFACE COLLECTION</div>
+        <h1>六个模块，<span class="red">一个伙伴</span></h1>
+      </div>
+      <div class="header-right">
+        <div class="logo">ONE DAY<span class="logo-dot"></span></div>
+        <div>不用打字，只要闲聊</div>
+        <div>AI 自动帮你记录一切</div>
+      </div>
+    </div>
+    
+    <div class="grid">
+      <!-- 待办 -->
+      <div class="module">
+        <div class="module-header">
+          <div class="module-title"><span class="num">01</span>TO DO 待办</div>
+          <div class="module-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="module-body">
+          <div class="todo-item">
+            <div class="todo-check done">✓</div>
+            <div class="todo-text done">给客户发报价单</div>
+          </div>
+          <div class="todo-item">
+            <div class="todo-check"></div>
+            <div class="todo-text">准备下周路演PPT</div>
+            <div class="todo-tag">高</div>
+          </div>
+          <div class="todo-item">
+            <div class="todo-check"></div>
+            <div class="todo-text">约 Sunny 喝咖啡</div>
+          </div>
+          <div class="todo-item">
+            <div class="todo-check"></div>
+            <div class="todo-text">跑步5公里</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 项目 -->
+      <div class="module">
+        <div class="module-header">
+          <div class="module-title"><span class="num">02</span>PROJECT 项目</div>
+          <div class="module-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="module-body">
+          <div class="project-item">
+            <div class="project-name">昂际航电 · 工程师外包</div>
+            <div class="project-meta"><span>已成交</span><span>3人在岗</span></div>
+            <div class="project-progress"><div class="project-progress-bar" style="width:100%"></div></div>
+          </div>
+          <div class="project-item" style="border-left-color:#000">
+            <div class="project-name">贝克休斯 · 采购对接</div>
+            <div class="project-meta"><span>联系中</span><span>Sunny Wang</span></div>
+            <div class="project-progress"><div class="project-progress-bar" style="width:40%"></div></div>
+          </div>
+          <div class="project-item" style="border-left-color:#999">
+            <div class="project-name">西门子中国 · 人员外包</div>
+            <div class="project-meta"><span>初步接触</span><span>间接采购</span></div>
+            <div class="project-progress"><div class="project-progress-bar" style="width:15%"></div></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 对话 -->
+      <div class="module">
+        <div class="module-header">
+          <div class="module-title"><span class="num">03</span>CHAT 对话</div>
+          <div class="module-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="module-body">
+          <div class="chat-msg ai">
+            <div class="chat-bubble">早上好阿杰，今天去路演，把故事讲好。需要我帮你整理要点吗？</div>
+          </div>
+          <div class="chat-msg user">
+            <div class="chat-bubble">好，帮我记一下：下午3点约了投资人，晚上要跑步。</div>
+          </div>
+          <div class="chat-msg ai">
+            <div class="chat-bubble">已记录 ✓ 日程：15:00 投资人会议 待办：今晚跑步5公里 加油！</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 灵感 -->
+      <div class="module">
+        <div class="module-header">
+          <div class="module-title"><span class="num">04</span>IDEA 灵感</div>
+          <div class="module-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="module-body">
+          <div class="inspiration-card">
+            能不能把CRM的输入方式改成语音？说一句话就自动录入客户信息...
+            <div class="inspiration-time">今天 14:32</div>
+          </div>
+          <div class="inspiration-card">
+            每日开屏页可以做成卡片，一年365张，还能和朋友交换...
+            <div class="inspiration-time">昨天 22:15</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 运动 -->
+      <div class="module">
+        <div class="module-header">
+          <div class="module-title"><span class="num">05</span>RUN 运动</div>
+          <div class="module-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="module-body">
+          <div class="exercise-stats">
+            <div class="exercise-stat">
+              <div class="exercise-num">23</div>
+              <div class="exercise-label">本月打卡</div>
+            </div>
+            <div class="exercise-stat">
+              <div class="exercise-num">128</div>
+              <div class="exercise-label">累计公里</div>
+            </div>
+          </div>
+          <div class="exercise-week">
+            <div class="exercise-day">一<div class="bar"><div class="bar-fill" style="height:80%"></div></div>✓</div>
+            <div class="exercise-day">二<div class="bar"><div class="bar-fill" style="height:60%"></div></div>✓</div>
+            <div class="exercise-day">三<div class="bar"><div class="bar-fill" style="height:0%"></div></div>—</div>
+            <div class="exercise-day">四<div class="bar"><div class="bar-fill" style="height:90%"></div></div>✓</div>
+            <div class="exercise-day">五<div class="bar"><div class="bar-fill" style="height:70%"></div></div>✓</div>
+            <div class="exercise-day">六<div class="bar"><div class="bar-fill" style="height:0%"></div></div>—</div>
+            <div class="exercise-day">日<div class="bar"><div class="bar-fill" style="height:0%"></div></div>今</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 朋友 -->
+      <div class="module">
+        <div class="module-header">
+          <div class="module-title"><span class="num">06</span>FRIENDS 朋友</div>
+          <div class="module-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="module-body">
+          <div class="friend-list">
+            <div class="friend-item">
+              <div class="friend-avatar hot">张</div>
+              <div class="friend-info">
+                <div class="friend-name">老张</div>
+                <div class="friend-relation">同事 · 项目经理</div>
+              </div>
+              <div class="friend-count">42次</div>
+            </div>
+            <div class="friend-item">
+              <div class="friend-avatar">李</div>
+              <div class="friend-info">
+                <div class="friend-name">小李</div>
+                <div class="friend-relation">客户 · 采购</div>
+              </div>
+              <div class="friend-count">28次</div>
+            </div>
+            <div class="friend-item">
+              <div class="friend-avatar">王</div>
+              <div class="friend-info">
+                <div class="friend-name">Sunny Wang</div>
+                <div class="friend-relation">客户 · 贝克休斯</div>
+              </div>
+              <div class="friend-count">15次</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="footer-left">和 <span class="red">OneDay</span> 闲聊，它自动帮你记录到这六个模块里</div>
+      <div class="footer-right">ONE DAY / 一日 · 2026</div>
+    </div>
+  </div>
+</body>
+</html>

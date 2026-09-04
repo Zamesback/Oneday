@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1440px; font-family: 'Space Mono', monospace; }
+  
+  .splash {
+    width: 1440px;
+    height: 900px;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+  }
+  
+  .splash::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.6) 80%, rgba(0,0,0,0.75) 100%);
+  }
+  
+  .splash::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
+  }
+  
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .px-corner {
+    position: absolute;
+    width: 28px; height: 28px;
+    border: 2px solid rgba(255,255,255,0.4);
+    z-index: 5;
+  }
+  .px-tl { top: 32px; left: 48px; border-right: none; border-bottom: none; }
+  .px-tr { top: 32px; right: 48px; border-left: none; border-bottom: none; }
+  .px-bl { bottom: 32px; left: 48px; border-right: none; border-top: none; }
+  .px-br { bottom: 32px; right: 48px; border-left: none; border-top: none; }
+  
+  .content {
+    position: relative;
+    z-index: 10;
+    padding: 60px 80px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+  }
+  
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .date {
+    font-size: 14px;
+    letter-spacing: 3px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+  
+  .date .line { width: 48px; height: 3px; background: #FF3B30; }
+  
+  .date .blink {
+    width: 8px; height: 8px;
+    background: #FF3B30;
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  
+  .wp-tag {
+    font-size: 11px;
+    letter-spacing: 2px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  
+  .wp-tag .dot { width: 6px; height: 6px; background: #FF3B30; }
+  
+  .center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 700px;
+  }
+  
+  .greeting {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 1.25;
+    margin-bottom: 20px;
+    text-shadow: 
+      0 2px 4px rgba(0,0,0,0.8),
+      0 4px 16px rgba(0,0,0,0.6),
+      0 0 30px rgba(0,0,0,0.4);
+  }
+  
+  .greeting .red { color: #FF3B30; }
+  
+  .quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    line-height: 1.7;
+    opacity: 0.95;
+    border-left: 3px solid #FF3B30;
+    padding: 12px 16px;
+    background: linear-gradient(90deg, rgba(0,0,0,0.35) 0%, transparent 100%);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    max-width: 90%;
+  }
+  
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  
+  .stats {
+    display: flex;
+    gap: 3px;
+  }
+  
+  .stat {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(15px);
+    padding: 16px 28px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  
+  .stat-num {
+    font-size: 36px;
+    font-weight: 700;
+  }
+  
+  .stat-num.red { color: #FF3B30; }
+  
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    margin-top: 4px;
+  }
+  
+  .cta {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 18px 32px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+    font-family: 'Space Mono', monospace;
+  }
+  
+  .cta::after {
+    content: '→';
+    color: #FF3B30;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+
+<!-- 案例1：阿杰 - 街头涂鸦 -->
+<div class="splash" style="background-image: url('../../正式版/assets/wallpaper-street.jpg')">
+  <div class="grid-overlay"></div>
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+  <div class="content">
+    <div class="top">
+      <div class="date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+      <div class="wp-tag"><span class="dot"></span>STREET · 街头涂鸦</div>
+    </div>
+    <div class="center">
+      <div class="greeting"><span class="red">早上好</span>，阿杰。<br>今天去路演，<span class="red">把故事讲好</span>。</div>
+      <div class="quote">投资人会看到你的光芒，白板上的每一个 idea，都是改变世界的种子。</div>
+    </div>
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="stat-num">5</div><div class="stat-label">TODOS</div></div>
+        <div class="stat"><div class="stat-num red">4</div><div class="stat-label">DOING</div></div>
+        <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+      </div>
+      <button class="cta">有什么想说的</button>
+    </div>
+  </div>
+</div>
+
+<!-- 案例2：小宇 - 赛博朋克 -->
+<div class="splash" style="background-image: url('../../正式版/assets/wallpaper-cyber.jpg')">
+  <div class="grid-overlay"></div>
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+  <div class="content">
+    <div class="top">
+      <div class="date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+      <div class="wp-tag"><span class="dot"></span>CYBER · 赛博朋克</div>
+    </div>
+    <div class="center">
+      <div class="greeting"><span class="red">早上好</span>，小宇。<br>今天期末考，<span class="red">放平心态</span>。</div>
+      <div class="quote">你已经准备得很充分了，相信自己，正常发挥就好。考完一起去吃火锅。</div>
+    </div>
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="stat-num">6</div><div class="stat-label">TODOS</div></div>
+        <div class="stat"><div class="stat-num red">2</div><div class="stat-label">DOING</div></div>
+        <div class="stat"><div class="stat-num">—</div><div class="stat-label">RUN</div></div>
+      </div>
+      <button class="cta">有什么想说的</button>
+    </div>
+  </div>
+</div>
+
+<!-- 案例3：小林 - 音乐节 -->
+<div class="splash" style="background-image: url('../../正式版/assets/wallpaper-concert.jpg')">
+  <div class="grid-overlay"></div>
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+  <div class="content">
+    <div class="top">
+      <div class="date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+      <div class="wp-tag"><span class="dot"></span>CONCERT · 音乐节</div>
+    </div>
+    <div class="center">
+      <div class="greeting"><span class="red">下午好</span>，小林。<br>设计稿还差一版，<span class="red">慢慢来</span>。</div>
+      <div class="quote">好的作品需要时间，你已经做得很棒了。晚上有音乐节，忙完去放松一下。</div>
+    </div>
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="stat-num">3</div><div class="stat-label">TODOS</div></div>
+        <div class="stat"><div class="stat-num red">1</div><div class="stat-label">DOING</div></div>
+        <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+      </div>
+      <button class="cta">有什么想说的</button>
+    </div>
+  </div>
+</div>
+
+<!-- 案例4：老张 - 复古街机 -->
+<div class="splash" style="background-image: url('../../正式版/assets/wallpaper-arcade.jpg')">
+  <div class="grid-overlay"></div>
+  <div class="px-corner px-tl"></div>
+  <div class="px-corner px-tr"></div>
+  <div class="px-corner px-bl"></div>
+  <div class="px-corner px-br"></div>
+  <div class="content">
+    <div class="top">
+      <div class="date"><span class="line"></span>2026.09.01 · TUE<span class="blink"></span></div>
+      <div class="wp-tag"><span class="dot"></span>ARCADE · 复古街机</div>
+    </div>
+    <div class="center">
+      <div class="greeting"><span class="red">晚上好</span>，老张。<br>客户会议很顺利，<span class="red">再坚持一下</span>。</div>
+      <div class="quote">这周辛苦了，周五晚上约了老同事打球，好好放松一下。生活不只有工作。</div>
+    </div>
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="stat-num">8</div><div class="stat-label">TODOS</div></div>
+        <div class="stat"><div class="stat-num red">3</div><div class="stat-label">DOING</div></div>
+        <div class="stat"><div class="stat-num">✓</div><div class="stat-label">RUN</div></div>
+      </div>
+      <button class="cta">有什么想说的</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

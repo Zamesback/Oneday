@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneDay 一日 · plog 灵感 Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Serif+SC:wght@400;700;900&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --black: #000000;
+    --white: #ffffff;
+    --red: #ff453a;
+    --gray-100: #f5f5f5;
+    --gray-200: #e8e8e8;
+    --gray-300: #cccccc;
+    --gray-500: #888888;
+    --gray-700: #555555;
+    --mono: "SF Mono", "Menlo", "Consolas", monospace;
+    --serif: "Noto Serif SC", "Songti SC", "STSong", serif;
+  }
+  
+  body {
+    font-family: var(--mono);
+    background: #fafafa;
+    color: var(--black);
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .app { display: flex; height: 100vh; }
+  
+  /* ===== 左侧菜单栏（保持黑色，产品特色） ===== */
+  .sidebar {
+    width: 200px;
+    background: var(--black);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding-top: 40px;
+    border-right: 2px solid var(--red);
+  }
+  .sidebar-logo {
+    padding: 8px 24px 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+  .sidebar-logo-cn {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--white);
+    letter-spacing: 4px;
+  }
+  .sidebar-logo-en {
+    font-size: 10px;
+    color: var(--gray-500);
+    letter-spacing: 2px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sidebar-logo-dot {
+    width: 4px; height: 4px;
+    background: var(--red);
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 24px;
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    letter-spacing: 1px;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+  .nav-item.active {
+    color: var(--white);
+    background: rgba(255,69,58,0.12);
+    border-left-color: var(--red);
+    font-weight: 700;
+  }
+  .nav-item .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+  
+  /* ===== 右侧主界面 ===== */
+  .main { flex: 1; overflow-y: auto; }
+  .page { padding: 48px 48px 40px; max-width: 1100px; }
+  
+  /* 页面标题（demo 风格） */
+  .page-header-demo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 20px;
+  }
+  .page-title-demo {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: var(--black);
+  }
+  .page-title-demo .red { color: var(--red); }
+  .page-subtitle-demo {
+    font-size: 11px;
+    color: var(--gray-500);
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  
+  /* ===== plog 主题池 ===== */
+  .plog-weekly-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 5px 12px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+    background: rgba(255,69,58,0.05);
+  }
+  .plog-weekly-badge .pulse {
+    width: 6px; height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+  }
+  
+  .plog-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  
+  .plog-topic {
+    background: var(--white);
+    border: 2px solid var(--black);
+    border-radius: 12px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    transform: rotate(var(--rotation, 0deg));
+  }
+  .plog-topic:hover {
+    transform: rotate(0deg) translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    border-color: var(--red);
+  }
+  .plog-topic-num {
+    font-size: 10px;
+    color: var(--gray-500);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .plog-topic-num .tag {
+    background: rgba(255,69,58,0.1);
+    color: var(--red);
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 10px;
+  }
+  .plog-topic-title {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .plog-topic-desc {
+    font-size: 12px;
+    color: var(--gray-700);
+    line-height: 1.7;
+    font-family: var(--serif);
+  }
+  .plog-topic-source {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--gray-500);
+    letter-spacing: 0.5px;
+  }
+  .plog-topic-source .from {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .plog-topic-source .from .dot {
+    width: 6px; height: 6px;
+    background: var(--black);
+    border-radius: 50%;
+  }
+  .plog-topic-source .upgrade {
+    color: var(--red);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  
+  .plog-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray-500);
+  }
+  
+  /* ===== 大纲弹窗 ===== */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .overlay.show { display: flex; opacity: 1; }
+  
+  .outline-modal {
+    background: var(--white);
+    border: 2px solid var(--black);
+    border-radius: 16px;
+    width: 620px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .overlay.show .outline-modal { transform: translateY(0) scale(1); }
+  
+  /* 录制模式：弹窗变宽，左大纲右录制 */
+  .outline-modal.recording-mode {
+    width: 1120px;
+    max-width: 94vw;
+    display: flex;
+    overflow: hidden;
+    padding: 0;
+  }
+  .outline-modal.recording-mode .outline-left {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .outline-modal.recording-mode .record-panel {
+    width: 400px;
+    flex-shrink: 0;
+    border-left: 2px solid var(--black);
+    background: var(--black);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+  }
+  /* 录制时左侧大纲稍微弱化，提示当前在录制 */
+  .outline-modal.recording-mode .outline-left .outline-head {
+    padding: 24px 28px 16px;
+  }
+  .outline-modal.recording-mode .outline-left .outline-body {
+    padding: 20px 28px 24px;
+  }
+  .outline-modal.recording-mode .outline-left .outline-section {
+    margin-bottom: 16px;
+  }
+  .outline-modal.recording-mode .outline-left .outline-actions {
+    display: none;
+  }
+  .outline-modal.recording-mode .outline-left .outline-title {
+    font-size: 22px;
+  }
+  .outline-modal.recording-mode .outline-left .outline-section-text {
+    font-size: 13px;
+  }
+  .outline-modal.recording-mode .outline-left .outline-section-label {
+    font-size: 9px;
+  }
+  
+  .outline-head {
+    padding: 28px 32px 20px;
+    border-bottom: 2px solid var(--black);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .outline-eyebrow {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gray-500);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .outline-eyebrow .mic {
+    width: 20px; height: 20px;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 10px;
+  }
+  .outline-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    line-height: 1.4;
+  }
+  .outline-close {
+    width: 32px; height: 32px;
+    border: 2px solid var(--gray-300);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    background: none;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .outline-close:hover { border-color: var(--red); color: var(--red); }
+  
+  .outline-body { padding: 24px 32px 32px; }
+  
+  .outline-section {
+    margin-bottom: 22px;
+    padding-left: 16px;
+    border-left: 2px solid var(--gray-200);
+  }
+  .outline-section:last-child { margin-bottom: 0; }
+  .outline-section-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--red);
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .outline-section-label .en { color: var(--gray-500); margin-left: 6px; font-weight: 400; }
+  .outline-section-text {
+    font-family: var(--serif);
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--black);
+  }
+  .outline-point {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .outline-point .num {
+    color: var(--red);
+    font-weight: 700;
+    font-family: var(--mono);
+    flex-shrink: 0;
+  }
+  
+  /* 生成中动画 */
+  .generating {
+    padding: 48px 32px;
+    text-align: center;
+  }
+  .generating-spinner {
+    width: 44px; height: 44px;
+    border: 3px solid var(--gray-200);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .generating-text {
+    font-size: 13px;
+    color: var(--gray-700);
+    letter-spacing: 1px;
+  }
+  .generating-lines {
+    margin-top: 20px;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .gen-line {
+    height: 10px;
+    background: var(--gray-100);
+    border-radius: 100px;
+    margin-bottom: 10px;
+  }
+  
+  /* 录制按钮 */
+  .outline-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid var(--gray-200);
+  }
+  .btn-record {
+    flex: 1;
+    background: var(--black);
+    color: var(--white);
+    border: 2px solid var(--black);
+    border-radius: 12px;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-record:hover {
+    background: var(--red);
+    border-color: var(--red);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255,69,58,0.3);
+  }
+  .btn-record .record-icon {
+    width: 16px; height: 16px;
+    background: var(--red);
+    border-radius: 50%;
+    transition: all 0.3s;
+  }
+  .btn-record:hover .record-icon { background: #fff; }
+  .btn-save-draft {
+    padding: 16px 24px;
+    background: none;
+    border: 2px solid var(--gray-300);
+    border-radius: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .btn-save-draft:hover { border-color: var(--black); color: var(--black); }
+  
+  /* ===== 右侧录制面板 ===== */
+  .record-panel-head {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .record-ep {
+    font-size: 10px;
+    color: var(--gray-500);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .record-topic-name {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .record-recv {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 1px;
+    margin-top: 8px;
+  }
+  .record-recv .rec-dot {
+    width: 7px; height: 7px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+  
+  .record-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px 20px;
+  }
+  .wave-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 80px;
+    margin-bottom: 24px;
+    width: 100%;
+  }
+  .wave-bar {
+    width: 4px;
+    border-radius: 100px;
+    background: linear-gradient(180deg, var(--red) 0%, rgba(255,69,58,0.4) 100%);
+    height: 10px;
+  }
+  .wave-bar.recording { animation: wave 0.8s ease-in-out infinite; }
+  @keyframes wave {
+    0%, 100% { height: 10px; }
+    50% { height: 66px; }
+  }
+  
+  .record-timer {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-family: var(--mono);
+    margin-bottom: 6px;
+  }
+  .record-timer .dot { color: var(--red); }
+  .record-hint {
+    font-size: 10px;
+    color: var(--gray-500);
+    letter-spacing: 1px;
+    font-family: var(--serif);
+    text-align: center;
+    line-height: 1.6;
+  }
+  
+  .record-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    padding: 0 24px 30px;
+  }
+  .ctrl-btn {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-size: 16px;
+  }
+  .ctrl-btn:hover { border-color: var(--white); background: rgba(255,255,255,0.1); }
+  .ctrl-btn.stop {
+    width: 70px; height: 70px;
+    background: var(--red);
+    border-color: var(--red);
+    box-shadow: 0 0 24px rgba(255,69,58,0.5);
+  }
+  .ctrl-btn.stop:hover { background: #ff2d1f; transform: scale(1.05); }
+  .ctrl-btn.pause { width: 50px; height: 50px; font-size: 13px; }
+  
+  .record-panel-foot {
+    padding: 12px 24px;
+    background: rgba(255,255,255,0.03);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--gray-500);
+    letter-spacing: 1px;
+    font-family: var(--serif);
+  }
+  
+  /* 提示 toast */
+  .toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--black);
+    color: var(--white);
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    z-index: 2000;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    font-family: var(--serif);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  
+  /* 深色模式适配（保持一致性） */
+  .dark-mode { background: #0a0a0a !important; }
+  .dark-mode .page-title-demo { color: #f5f5f5; }
+  .dark-mode .plog-topic { background: #1a1a1a; border-color: #333; color: #e0e0e0; }
+  .dark-mode .plog-topic:hover { border-color: var(--red); }
+  .dark-mode .plog-topic-title { color: #f5f5f5; }
+  .dark-mode .plog-topic-desc { color: #999; }
+  .dark-mode .plog-topic-source { border-top-color: #333; color: #888; }
+  .dark-mode .page-header-demo { border-bottom-color: #333; }
+  
+  /* 说明浮签 */
+  .demo-note {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--black);
+    color: var(--white);
+    padding: 10px 18px;
+    border-radius: 100px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    z-index: 500;
+    opacity: 0.8;
+    font-family: var(--serif);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== 左侧菜单栏 ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-cn">一日</div>
+      <div class="sidebar-logo-en">ONE DAY<span class="sidebar-logo-dot"></span></div>
+    </div>
+    <div class="nav-item"><span class="nav-icon">☀</span> 开屏</div>
+    <div class="nav-item"><span class="nav-icon">☑</span> 待办</div>
+    <div class="nav-item"><span class="nav-icon">◈</span> 重要事件</div>
+    <div class="nav-item active"><span class="nav-icon">✦</span> plog 灵感</div>
+    <div class="nav-item"><span class="nav-icon">◉</span> 朋友</div>
+    <div class="nav-item"><span class="nav-icon">▦</span> 卡片集</div>
+    <div class="nav-item"><span class="nav-icon">⚙</span> 设置</div>
+  </aside>
+
+  <!-- ===== 右侧主界面 ===== -->
+  <main class="main">
+    <div class="page">
+
+      <div class="page-header-demo">
+        <div>
+          <div class="page-title-demo">plog <span class="red">灵感</span></div>
+          <div class="page-subtitle-demo">PLOG IDEAS · 本周 4 个可出主题</div>
+        </div>
+        <div style="font-size:11px;color:var(--gray-500);letter-spacing:1px;font-family:var(--serif);">从你的碎碎念里，长出可以做成一期的节目</div>
+      </div>
+
+      <div class="plog-weekly-badge">
+        <span class="pulse"></span>
+        本周灵感池 · 已从 23 条碎碎念中提炼 4 个主题
+      </div>
+
+      <div class="plog-grid" id="plog-grid">
+        <!-- 主题卡片由 JS 渲染 -->
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== 大纲 + 录制弹窗 ===== -->
+<div class="overlay" id="outline-overlay">
+  <div class="outline-modal" id="outline-modal">
+    <!-- 左栏：大纲内容 -->
+    <div class="outline-left">
+      <div id="outline-content"></div>
+    </div>
+    <!-- 右栏：录制面板（录制模式时显示） -->
+    <div class="record-panel" id="record-panel" style="display:none;">
+      <div class="record-panel-head">
+        <div class="record-ep">PLOG · EPISODE OUTLINE</div>
+        <div class="record-topic-name" id="record-topic-name">本期主题</div>
+        <div class="record-recv"><span class="rec-dot"></span> 正在录制</div>
+      </div>
+      <div class="record-stage">
+        <div class="wave-container" id="wave-container"></div>
+        <div class="record-timer"><span id="record-timer">00:00</span><span class="dot">.</span><span style="font-size:14px;">00</span></div>
+        <div class="record-hint" id="record-hint">对照左侧大纲，开始你的录制</div>
+      </div>
+      <div class="record-controls">
+        <button class="ctrl-btn pause" id="btn-pause" onclick="togglePause()" style="opacity:0.4;pointer-events:none;">❚❚</button>
+        <button class="ctrl-btn stop" id="btn-stop" onclick="stopRecord()">■</button>
+      </div>
+      <div class="record-panel-foot">
+        <span>左栏：你的大纲</span>
+        <span>可暂停 · 可随时停止</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="demo-note">OneDay 一日 · plog 灵感 demo</div>
+
+<script>
+// ========== 假数据：当周可出的 plog 主题 ==========
+const plogTopics = [
+  {
+    id: 't1',
+    num: 'IDEA · 01',
+    title: '被看见的小事',
+    desc: '这周碎碎念里反复出现的一个词：被看见。记录生活的意义，原来藏在一件件小事里。',
+    source: '来自 8 条碎碎念',
+    rotation: '-1deg',
+    outline: {
+      hook: '你有没有想过，那些被你忽略的小事，其实才是最真实的你？',
+      intro: '这周，我每天用 30 秒碎碎念记录生活。一开始觉得是任务，后来发现——原来我一直渴望被看见，哪怕是被自己看见。',
+      points: [
+        '从"记录一顿饭"开始：为什么越微小越真实',
+        '小事的重量：那些没说出口的情绪都藏在细节里',
+        '被自己看见：碎碎念原来是一面温柔的镜子'
+      ],
+      emotion: '最打动我的，是某天回听自己一周的碎碎念，突然觉得"这个认真生活的人，还挺可爱的"。',
+      ending: '生活不在远方，就在你开口说"今天"的那一刻。'
+    }
+  },
+  {
+    id: 't2',
+    num: 'IDEA · 02',
+    title: '慢下来，也是一种前进',
+    desc: '从一次主动放慢的工作节奏聊起，关于"效率焦虑"和属于自己的节奏。',
+    source: '来自 6 条碎碎念',
+    rotation: '0.5deg',
+    outline: {
+      hook: '如果"慢"和"快"一样，都是一种能力呢？',
+      intro: '上周我刻意放慢了一件事的节奏。原以为会落后，结果反而想得更清楚了。这让我重新思考"前进"的定义。',
+      points: [
+        '效率焦虑：我们为什么停不下来',
+        '一次"慢"的试验：我做了什么，结果如何',
+        '自己的节拍：如何找到属于你的前进速度'
+      ],
+      emotion: '放下"必须更快"的那一刻，呼吸都变得轻了。',
+      ending: '慢不是停，是另一种走法。'
+    }
+  },
+  {
+    id: 't3',
+    num: 'IDEA · 03',
+    title: '那些没说出口的感谢',
+    desc: '翻碎碎念时发现，很多感谢一直没说出口。关于表达、关系，和勇敢开口。',
+    source: '来自 5 条碎碎念',
+    rotation: '-0.5deg',
+    outline: {
+      hook: '你上一次认真说"谢谢"，是什么时候？',
+      intro: '整理碎碎念的时候，发现我欠下了很多"谢谢"。有些人是朋友，有些是同事，有些甚至只是陌生人。',
+      points: [
+        '欠下的感谢：我翻出 3 个没说出口的故事',
+        '为什么我们总把感谢藏在心里',
+        '一次勇敢的表达：说出口之后发生了什么'
+      ],
+      emotion: '其实最怕的不是被拒绝，而是"来不及"。',
+      ending: '谢谢，现在说，刚刚好。'
+    }
+  },
+  {
+    id: 't4',
+    num: 'IDEA · 04',
+    title: '我的清晨仪式',
+    desc: '从每天早上的 10 分钟聊起，关于仪式感、状态，和如何开启一天。',
+    source: '来自 4 条碎碎念',
+    rotation: '1deg',
+    outline: {
+      hook: '每天早上第一件事，你做什么？',
+      intro: '三个月前我给自己设计了一个 10 分钟的清晨仪式。今天回看，它改变了我对"一天"的感受。',
+      points: [
+        '最初的仪式：从一杯水到一个动作',
+        '仪式不是打卡，是给自己的一天盖章',
+        '你也能拥有：3 个零成本的小仪式'
+      ],
+      emotion: '最治愈的时刻，是早晨只有我和自己的那 10 分钟。',
+      ending: '你如何度过清晨，就如何度过一生。'
+    }
+  }
+];
+
+// ========== 渲染主题池 ==========
+function renderTopics() {
+  const grid = document.getElementById('plog-grid');
+  grid.innerHTML = plogTopics.map(t => `
+    <div class="plog-topic" style="--rotation:${t.rotation};" onclick="openOutline('${t.id}')">
+      <div class="plog-topic-num">
+        <span>${t.num}</span>
+        <span class="tag">可升级</span>
+      </div>
+      <div class="plog-topic-title">${t.title}</div>
+      <div class="plog-topic-desc">${t.desc}</div>
+      <div class="plog-topic-source">
+        <span class="from"><span class="dot"></span>${t.source}</span>
+        <span class="upgrade">升级为 plog →</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========== 大纲生成 ==========
+let currentOutline = null;
+
+function openOutline(id) {
+  const topic = plogTopics.find(t => t.id === id);
+  if (!topic) return;
+  currentOutline = topic;
+  
+  const overlay = document.getElementById('outline-overlay');
+  const content = document.getElementById('outline-content');
+  
+  // 先显示生成中动画
+  content.innerHTML = `
+    <div class="generating">
+      <div class="generating-spinner"></div>
+      <div class="generating-text">正在从「${topic.title}」中生成大纲<span class="blink" style="animation:blink 1.2s infinite;">...</span></div>
+      <div class="generating-lines">
+        <div class="gen-line" style="width:85%"></div>
+        <div class="gen-line" style="width:60%"></div>
+        <div class="gen-line" style="width:75%"></div>
+        <div class="gen-line" style="width:45%"></div>
+      </div>
+    </div>
+  `;
+  
+  // 确保退出录制模式
+  document.getElementById('outline-modal').classList.remove('recording-mode');
+  document.getElementById('record-panel').style.display = 'none';
+  stopWaves();
+  
+  overlay.classList.add('show');
+  
+  // 模拟生成过程后显示大纲
+  setTimeout(() => {
+    renderOutline(topic);
+  }, 900);
+}
+
+function renderOutline(topic) {
+  const content = document.getElementById('outline-content');
+  content.innerHTML = `
+    <div class="outline-head">
+      <div>
+        <div class="outline-eyebrow"><span class="mic">♪</span> PLOG · EPISODE OUTLINE · ${topic.num}</div>
+        <div class="outline-title">「${topic.title}」</div>
+      </div>
+      <button class="outline-close" onclick="closeOutline()">×</button>
+    </div>
+    <div class="outline-body">
+      <div class="outline-section">
+        <div class="outline-section-label">开场 Hook <span class="en">HOOK</span></div>
+        <div class="outline-section-text">${topic.outline.hook}</div>
+      </div>
+      <div class="outline-section">
+        <div class="outline-section-label">主题引入 <span class="en">INTRO</span></div>
+        <div class="outline-section-text">${topic.outline.intro}</div>
+      </div>
+      <div class="outline-section">
+        <div class="outline-section-label">正文脉络 <span class="en">BODY</span></div>
+        ${topic.outline.points.map((p, i) => `
+          <div class="outline-point"><span class="num">0${i+1}</span><span>${p}</span></div>
+        `).join('')}
+      </div>
+      <div class="outline-section">
+        <div class="outline-section-label">情绪 / 共鸣 <span class="en">EMOTION</span></div>
+        <div class="outline-section-text">${topic.outline.emotion}</div>
+      </div>
+      <div class="outline-section">
+        <div class="outline-section-label">收尾金句 <span class="en">ENDING</span></div>
+        <div class="outline-section-text" style="font-weight:900;">${topic.outline.ending}</div>
+      </div>
+      <div class="outline-actions">
+        <button class="btn-record" onclick="openRecord('${topic.id}')">
+          <span class="record-icon"></span> 录制 plog
+        </button>
+        <button class="btn-save-draft" onclick="saveDraft()">存为草稿</button>
+      </div>
+    </div>
+  `;
+}
+
+function closeOutline() {
+  document.getElementById('outline-overlay').classList.remove('show');
+  document.getElementById('outline-modal').classList.remove('recording-mode');
+  document.getElementById('record-panel').style.display = 'none';
+  stopWaves();
+}
+
+function saveDraft() {
+  if (!currentOutline) return;
+  showToast('大纲已存为草稿 ✦');
+  setTimeout(() => closeOutline(), 600);
+}
+
+// ========== 录制（弹窗变大，左大纲右录制） ==========
+let recording = false;
+let timerInterval = null;
+let seconds = 0;
+
+function openRecord(id) {
+  const topic = plogTopics.find(t => t.id === id);
+  if (topic) {
+    document.getElementById('record-topic-name').textContent = '「' + topic.title + '」';
+  }
+  
+  const modal = document.getElementById('outline-modal');
+  // 进入录制模式：弹窗变大，显示右栏
+  modal.classList.add('recording-mode');
+  const panel = document.getElementById('record-panel');
+  panel.style.display = 'flex';
+  
+  // 生成声波
+  const waveContainer = document.getElementById('wave-container');
+  waveContainer.innerHTML = '';
+  for (let i = 0; i < 40; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'wave-bar';
+    bar.style.animationDelay = (i * 0.03) + 's';
+    waveContainer.appendChild(bar);
+  }
+  
+  // 重置计时
+  seconds = 0;
+  document.getElementById('record-timer').textContent = '00:00';
+  document.getElementById('record-hint').textContent = '对照左侧大纲，开始你的录制';
+  
+  startRecord();
+}
+
+function startRecord() {
+  recording = true;
+  document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('recording'));
+  document.getElementById('record-hint').textContent = '录制中... 放松，像聊天一样说出来';
+  document.getElementById('btn-pause').style.opacity = '1';
+  document.getElementById('btn-pause').style.pointerEvents = 'auto';
+  
+  timerInterval = setInterval(() => {
+    seconds++;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    document.getElementById('record-timer').textContent = m + ':' + s;
+  }, 1000);
+}
+
+function togglePause() {
+  const btn = document.getElementById('btn-pause');
+  if (recording) {
+    recording = false;
+    clearInterval(timerInterval);
+    document.querySelectorAll('.wave-bar').forEach(b => b.classList.remove('recording'));
+    document.getElementById('record-hint').textContent = '已暂停 · 随时继续';
+    btn.textContent = '▶';
+  } else {
+    recording = true;
+    document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('recording'));
+    document.getElementById('record-hint').textContent = '继续录制中...';
+    btn.textContent = '❚❚';
+    timerInterval = setInterval(() => {
+      seconds++;
+      const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      document.getElementById('record-timer').textContent = m + ':' + s;
+    }, 1000);
+  }
+}
+
+function stopWaves() {
+  if (timerInterval) clearInterval(timerInterval);
+  recording = false;
+}
+
+function stopRecord() {
+  clearInterval(timerInterval);
+  recording = false;
+  showToast('已保存为一期 plog 作品 🎙 可在卡片集当日查看');
+  // 回到普通大纲模式（关闭弹窗）
+  setTimeout(() => closeOutline(), 800);
+}
+
+// ========== 关闭弹窗（点遮罩） ==========
+document.getElementById('outline-overlay').addEventListener('click', function(e) {
+  if (e.target === this) {
+    this.classList.remove('show');
+    document.getElementById('outline-modal').classList.remove('recording-mode');
+    document.getElementById('record-panel').style.display = 'none';
+    stopWaves();
+  }
+});
+
+// ========== Toast ==========
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ========== 初始化 ==========
+renderTopics();
+
+// Esc 关闭
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.getElementById('outline-overlay').classList.remove('show');
+    document.getElementById('outline-modal').classList.remove('recording-mode');
+    document.getElementById('record-panel').style.display = 'none';
+    stopWaves();
+  }
+});
+</script>
+</body>
+</html>

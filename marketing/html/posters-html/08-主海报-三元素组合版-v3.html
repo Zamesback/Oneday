@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>OneDay 主海报 - 三元素组合版 v3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 1600px;
+    background: #fafafa;
+    font-family: 'Noto Serif SC', serif;
+    color: #000;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 网格背景 */
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* 四角装饰 */
+  .corner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 3px solid #000;
+    z-index: 10;
+  }
+  .corner.tl { top: 30px; left: 50px; border-right: none; border-bottom: none; }
+  .corner.tr { top: 30px; right: 50px; border-left: none; border-bottom: none; }
+  .corner.bl { bottom: 30px; left: 50px; border-right: none; border-top: none; }
+  .corner.br { bottom: 30px; right: 50px; border-left: none; border-top: none; }
+
+  /* 顶部红色条 */
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 280px;
+    height: 8px;
+    background: #FF3B30;
+  }
+
+  .container {
+    position: relative;
+    z-index: 5;
+    padding: 70px 80px 60px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 头部 */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .logo-cn {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+  .logo-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #666;
+  }
+  .logo-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background: #FF3B30;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 2px;
+    border: 2px solid #000;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tag-dot {
+    width: 8px;
+    height: 8px;
+    background: #FF3B30;
+    border-radius: 50%;
+  }
+
+  /* 副标题 */
+  .subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 8px;
+    color: #FF3B30;
+    margin-bottom: 28px;
+  }
+
+  /* 主标题 */
+  .main-title {
+    font-size: 108px;
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+  .main-title .highlight {
+    color: #FF3B30;
+    position: relative;
+  }
+  .main-title .highlight::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: rgba(255, 59, 48, 0.2);
+    z-index: -1;
+  }
+
+  /* 概述 */
+  .overview {
+    font-size: 20px;
+    line-height: 1.9;
+    color: #333;
+    max-width: 900px;
+    margin-bottom: 40px;
+  }
+  .overview strong {
+    font-weight: 700;
+    color: #000;
+  }
+
+  /* 三合一展示区 */
+  .showcase {
+    position: relative;
+    flex: 1;
+    min-height: 520px;
+    margin: 0 -20px;
+  }
+
+  /* 桌面端 - 居中 */
+  .desktop-shot {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 720px;
+    border: 3px solid #000;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    z-index: 2;
+  }
+  .desktop-shot img {
+    width: 100%;
+    display: block;
+  }
+
+  /* 手机端 - 左下角 */
+  .phone-shot {
+    position: absolute;
+    bottom: 20px;
+    left: 40px;
+    width: 200px;
+    z-index: 3;
+    border-radius: 28px;
+    overflow: hidden;
+    filter: drop-shadow(0 15px 40px rgba(0,0,0,0.3));
+  }
+  .phone-shot img {
+    width: 100%;
+    display: block;
+    border-radius: 28px;
+  }
+
+  /* 卡片 - 右下角倾斜 */
+  .card-shot {
+    position: absolute;
+    bottom: 10px;
+    right: 50px;
+    width: 230px;
+    transform: rotate(3deg);
+    z-index: 3;
+    filter: drop-shadow(0 15px 40px rgba(0,0,0,0.3));
+  }
+  .card-shot img {
+    width: 100%;
+    display: block;
+    border-radius: 16px;
+  }
+
+  /* 底部分隔线 */
+  .divider {
+    border: none;
+    border-top: 2px solid #000;
+    margin: 30px 0 28px;
+  }
+
+  /* 三个特性 */
+  .features {
+    display: flex;
+    gap: 40px;
+  }
+
+  .feature {
+    flex: 1;
+  }
+
+  .feature-icon {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    width: 44px;
+    height: 44px;
+    border: 2px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .feature:nth-child(2) .feature-icon {
+    background: #FF3B30;
+    color: #fff;
+    border-color: #FF3B30;
+  }
+
+  .feature-title {
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+
+  .feature-desc {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #555;
+  }
+
+  /* 页脚 */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .footer-quote {
+    font-size: 16px;
+    color: #999;
+    font-style: italic;
+    letter-spacing: 1px;
+  }
+
+  .footer-brand {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <div class="container">
+    <!-- 头部 -->
+    <div class="header">
+      <div class="logo">
+        <span class="logo-cn">一日</span>
+        <span class="logo-en">ONE DAY<span class="logo-dot"></span></span>
+      </div>
+      <div class="tag">
+        <span class="tag-dot"></span>
+        AI 生活伙伴
+      </div>
+    </div>
+
+    <!-- 副标题 -->
+    <div class="subtitle">YOUR DAILY COMPANION</div>
+
+    <!-- 主标题 -->
+    <h1 class="main-title">
+      不用打字，<br>
+      只要<span class="highlight">闲聊</span>。
+    </h1>
+
+    <!-- 概述 -->
+    <p class="overview">
+      和 OneDay 闲聊你的一天，把生活记录成属于你的故事（plog）。它会帮助你记录<strong>待办、项目、灵感、朋友</strong>，每日为你生成一张专属卡片，用你自己的方式开启每一天。
+    </p>
+
+    <!-- 三合一展示 -->
+    <div class="showcase">
+      <div class="desktop-shot">
+        <img src="../开屏页案例/桌面版-完整UI-1-阿杰-创业者-路演日.png" alt="桌面端开屏页">
+      </div>
+      <div class="phone-shot">
+        <img src="../开屏页案例/手机版-完整UI-1-阿杰-创业者-路演日.png" alt="手机端开屏页">
+      </div>
+      <div class="card-shot">
+        <img src="../每日卡片设计/每日卡片-9x16-1-阿杰-创业者-路演日.png" alt="每日卡片">
+      </div>
+    </div>
+
+    <!-- 分隔线 -->
+    <hr class="divider">
+
+    <!-- 三个特性 -->
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">01</div>
+        <h3 class="feature-title">零输入，全靠聊</h3>
+        <p class="feature-desc">不用手动录入任何数据，和 AI 闲聊你的一天，它自动帮你记录待办、项目、灵感、朋友。</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">02</div>
+        <h3 class="feature-title">每日专属卡片</h3>
+        <p class="feature-desc">结合你的状态、待办、节气、天气，每天生成一张独一无二的卡片，用你自己的方式开启每一天。</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">03</div>
+        <h3 class="feature-title">把日子录成 plog</h3>
+        <p class="feature-desc">每一次闲聊，AI 都会帮你收集。从灵感主题到节目大纲，一键录制，快速生成。</p>
+      </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="footer">
+      <div class="footer-quote">「每个人有独一无二的当日一张图」</div>
+      <div class="footer-brand">ONE DAY / 一日</div>
+    </div>
+  </div>
+</body>
+</html>
