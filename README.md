@@ -3,6 +3,8 @@
 > 不用打字，只要闲聊。把你的生活记录成故事。
 > No typing, just chat. Turn your life into stories.
 
+![OneDay 主海报](marketing/posters/01-主海报/08-主海报-三元素组合版.png)
+
 ---
 
 ## 🌅 关于 OneDay / About OneDay
@@ -38,6 +40,30 @@ Every chat, AI helps you collect inspirations. From inspiration topic to show ou
 ### 4. 朋友图谱 / Friends Graph
 AI 在闲聊中自动捕捉你提到的人，记录身份、关系和互动。被提及越多的人，在图谱里的节点越大——让你直观看到谁在你生活里最重要。
 AI automatically captures people you mention in chats, recording identity, relationships, and interactions. The more someone is mentioned, the larger their node in the graph — letting you visually see who matters most in your life.
+
+---
+
+## 🖼 界面展示 / Screenshots
+
+### 开屏页 · 千人千面 / Splash Page · Unique for Everyone
+
+| 创业者 · 路演日 | 程序员 · 深夜写代码 |
+|:---:|:---:|
+| ![阿杰-创业者](marketing/sources/开屏页案例/桌面版-完整UI-1-阿杰-创业者-路演日.png) | ![小宇-程序员](marketing/sources/开屏页案例/桌面版-完整UI-2-小宇-程序员-深夜写代码.png) |
+
+| 设计师 · 音乐节 | 白领 · 下班放松 |
+|:---:|:---:|
+| ![小林-设计师](marketing/sources/开屏页案例/桌面版-完整UI-3-小林-设计师-音乐节.png) | ![老张-白领](marketing/sources/开屏页案例/桌面版-完整UI-4-老张-白领-下班放松.png) |
+
+### 核心模块 / Core Modules
+
+| Plog 灵感 | 每日卡片 |
+|:---:|:---:|
+| ![Plog灵感](marketing/posters/04-模块介绍/09-模块介绍-1-Plog灵感.png) | ![每日卡片](marketing/posters/04-模块介绍/09-模块介绍-2-每日卡片.png) |
+
+| 朋友图谱 |
+|:---:|
+| ![朋友图谱](marketing/posters/04-模块介绍/09-模块介绍-3-朋友图谱.png) |
 
 ---
 
