@@ -48,6 +48,101 @@ def save_json(filename, data):
 def gen_id(prefix):
     return prefix + '_' + str(int(datetime.datetime.now().timestamp() * 1000)) + '_' + str(random.randint(100, 999))
 
+# ===== 节气与节日计算 =====
+
+# 24节气（21世纪 C 值，用于公式 [Y*D+C]-L）
+SOLAR_TERMS_C = {
+    '小寒': 5.4055, '大寒': 20.12, '立春': 3.87, '雨水': 18.73,
+    '惊蛰': 5.63, '春分': 20.646, '清明': 4.81, '谷雨': 20.1,
+    '立夏': 5.52, '小满': 21.04, '芒种': 5.678, '夏至': 21.37,
+    '小暑': 7.108, '大暑': 22.83, '立秋': 7.5, '处暑': 23.13,
+    '白露': 7.646, '秋分': 23.042, '寒露': 8.318, '霜降': 23.438,
+    '立冬': 7.438, '小雪': 22.36, '大雪': 7.18, '冬至': 21.94,
+}
+
+# 节气顺序
+SOLAR_TERMS_ORDER = list(SOLAR_TERMS_C.keys())
+
+# 常见节日（月-日）
+FESTIVALS = {
+    '01-01': '元旦', '02-14': '情人节', '03-08': '妇女节', '03-12': '植树节',
+    '04-01': '愚人节', '05-01': '劳动节', '05-04': '青年节', '06-01': '儿童节',
+    '07-01': '建党节', '08-01': '建军节', '09-10': '教师节', '10-01': '国庆节',
+    '12-24': '平安夜', '12-25': '圣诞节',
+}
+
+def get_solar_term(date=None):
+    """获取指定日期的节气（如果当天是节气则返回节气名，否则返回最近的节气和距离天数）"""
+    if date is None:
+        date = datetime.date.today()
+    
+    year = date.year
+    y = year % 100
+    d = 0.2422
+    l = y // 4  # 闰年数
+    
+    # 计算每个节气的日期
+    term_dates = {}
+    for i, (name, c) in enumerate(SOLAR_TERMS_C.items()):
+        month = (i // 2) + 1
+        day = int(y * d + c) - l
+        # 修正特殊年份（2026年部分节气需要+1）
+        if year == 2026 and name in ['立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪', '小寒']:
+            day += 0  # 公式已较准确，特殊情况可微调
+        term_dates[name] = datetime.date(year, month, day)
+    
+    # 检查当天是否是节气
+    today_str = date.strftime('%m-%d')
+    for name, term_date in term_dates.items():
+        if term_date == date:
+            return {'is_today': True, 'name': name, 'days_until': 0}
+    
+    # 找下一个节气
+    future_terms = [(name, td) for name, td in term_dates.items() if td > date]
+    if future_terms:
+        next_name, next_date = min(future_terms, key=lambda x: x[1])
+        days_until = (next_date - date).days
+        return {'is_today': False, 'name': next_name, 'days_until': days_until, 'next_date': next_date.isoformat()}
+    
+    # 如果今年都过了，返回明年第一个节气
+    return {'is_today': False, 'name': '小寒', 'days_until': (datetime.date(year+1, 1, 5) - date).days}
+
+def get_festival(date=None):
+    """获取指定日期的节日"""
+    if date is None:
+        date = datetime.date.today()
+    date_str = date.strftime('%m-%d')
+    return FESTIVALS.get(date_str, '')
+
+def get_date_context(date=None):
+    """获取日期上下文（节气+节日+星期），用于 AI 生成寄语"""
+    if date is None:
+        date = datetime.date.today()
+    
+    weekday_names = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    term = get_solar_term(date)
+    festival = get_festival(date)
+    
+    context = {
+        'date': date.isoformat(),
+        'weekday': weekday_names[date.weekday()],
+        'month': date.month,
+        'day': date.day,
+    }
+    
+    if term['is_today']:
+        context['solar_term'] = term['name']
+        context['solar_term_is_today'] = True
+    else:
+        context['next_solar_term'] = term['name']
+        context['days_until_solar_term'] = term['days_until']
+        context['solar_term_is_today'] = False
+    
+    if festival:
+        context['festival'] = festival
+    
+    return context
+
 # ===== 模块配置 =====
 MODULES = {
     'projects': {'file': 'projects.json', 'prefix': 'proj', 'label': '重要事件'},
@@ -607,10 +702,83 @@ def chat_with_ai_harness(message, history):
         saved = save_extracted_info(extracted)
         return reply, extracted, saved
 
+# ===== 天气获取 =====
+
+# 常见城市和风天气 LocationID 映射
+CITY_LOCATION_MAP = {
+    '北京': '101010100', '上海': '101020100', '广州': '101280101', '深圳': '101280601',
+    '杭州': '101210101', '南京': '101190101', '成都': '101270101', '武汉': '101200101',
+    '西安': '101110101', '重庆': '101040100', '天津': '101030100', '苏州': '101190401',
+    '厦门': '101230201', '长沙': '101250101', '青岛': '101120201', '大连': '101070201',
+    '沈阳': '101070101', '济南': '101120101', '郑州': '101180101', '合肥': '101220101',
+    '福州': '101230101', '南昌': '101240101', '昆明': '101290101', '贵阳': '101260101',
+    '南宁': '101300101', '海口': '101310101', '兰州': '101160101', '西宁': '101150101',
+    '银川': '101170101', '乌鲁木齐': '101130101', '拉萨': '101140101', '呼和浩特': '101080101',
+    '太原': '101100101', '石家庄': '101090101', '哈尔滨': '101050101', '长春': '101060101',
+}
+
+# 天气缓存
+_weather_cache = {'data': None, 'date': None}
+
+def get_weather():
+    """获取当天天气（和风天气 API，带缓存）"""
+    global _weather_cache
+    today = datetime.date.today().isoformat()
+    
+    # 如果今天已经缓存过，直接返回
+    if _weather_cache['date'] == today and _weather_cache['data']:
+        return _weather_cache['data']
+    
+    settings = load_settings()
+    api_key = settings.get('weatherApiKey', '')
+    city = settings.get('weatherCity', '上海')
+    
+    if not api_key:
+        return {'enabled': False, 'message': '未配置天气API Key'}
+    
+    # 获取城市 LocationID
+    location = CITY_LOCATION_MAP.get(city, city)
+    
+    try:
+        import urllib.request
+        url = f'https://devapi.qweather.com/v7/weather/now?location={location}&key={api_key}'
+        req = urllib.request.Request(url, headers={'User-Agent': 'OneDay/1.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode('utf-8'))
+        
+        if data.get('code') == '200' and data.get('now'):
+            now = data['now']
+            weather_data = {
+                'enabled': True,
+                'city': city,
+                'temp': now.get('temp', ''),
+                'feels_like': now.get('feelsLike', ''),
+                'text': now.get('text', ''),
+                'wind_dir': now.get('windDir', ''),
+                'wind_scale': now.get('windScale', ''),
+                'humidity': now.get('humidity', ''),
+                'icon': now.get('icon', ''),
+                'update_time': data.get('updateTime', ''),
+            }
+            _weather_cache = {'data': weather_data, 'date': today}
+            return weather_data
+        else:
+            return {'enabled': False, 'message': f'天气API返回错误: {data.get("code", "unknown")}'}
+    except Exception as e:
+        print(f'获取天气失败: {e}')
+        return {'enabled': False, 'message': f'获取天气失败: {str(e)}'}
+
+def get_weather_text():
+    """获取天气的文本描述，用于 AI 生成寄语"""
+    weather = get_weather()
+    if not weather.get('enabled'):
+        return ''
+    return f"{weather['city']} {weather['text']}，{weather['temp']}°C，体感{weather['feels_like']}°C，{weather['wind_dir']}{weather['wind_scale']}级，湿度{weather['humidity']}%"
+
 # ===== 晨间/晚间 AI 生成 =====
 
 def generate_morning_greeting_ai():
-    """用 AI 生成早间问候（更个性化）"""
+    """用 AI 生成早间问候（更个性化，结合天气+节气+待办+项目）"""
     settings = load_settings()
     name = settings.get('userName', '')
     
@@ -622,32 +790,81 @@ def generate_morning_greeting_ai():
             projects = load_module('projects')
             active = [p for p in projects if p.get('status') not in ('done', 'cancelled')][-3:]
             
+            # 获取天气和节气
+            weather_text = get_weather_text()
+            date_context = get_date_context()
+            
+            # 构建节气/节日描述
+            term_desc = ''
+            if date_context.get('solar_term_is_today'):
+                term_desc = f"今天是{date_context['solar_term']}"
+            elif date_context.get('next_solar_term'):
+                term_desc = f"距离{date_context['next_solar_term']}还有{date_context['days_until_solar_term']}天"
+            
+            festival_desc = f"今天是{date_context['festival']}" if date_context.get('festival') else ''
+            
             context = f"""用户称呼：{name}
+今天是{date_context['date']} {date_context['weekday']}
+{term_desc}
+{festival_desc if festival_desc else ''}
+{weather_text if weather_text else ''}
 今天有 {len(pending)} 个待办，{len(active)} 个进行中的项目。
 待办：{', '.join([t.get('title','') for t in pending]) if pending else '无'}
 项目：{', '.join([p.get('name','') for p in active]) if active else '无'}"""
             
-            prompt = f"""你是 OneDay，用户的 AI 生活伙伴。现在是早上，请给用户生成一段温暖、个性化的早间问候。
+            prompt = f"""你是 OneDay，用户的 AI 生活伙伴。现在是早上，请给用户生成一段温暖、个性化的早间问候寄语。
 
 {context}
 
 要求：
 1. 称呼用户的名字
-2. 提到今天的待办或项目（自然地带过，不要罗列）
-3. 语气温暖、鼓励、有活力
-4. 100字以内
-5. 只返回问候文字，不要其他内容"""
+2. 自然地结合今天的天气、节气或节日（如果有）
+3. 提到今天的待办或项目（自然地带过，不要罗列）
+4. 语气温暖、鼓励、有活力，像朋友一样
+5. 60-100字
+6. 只返回寄语文字，不要其他内容，不要加引号"""
             
             result = call_real_ai("你是 OneDay，温暖的 AI 生活伙伴。", prompt)
+            greeting = ''
             if result and isinstance(result, str):
-                return result
+                greeting = result
             elif result and isinstance(result, dict) and result.get('reply'):
-                return result['reply']
+                greeting = result['reply']
+            
+            if greeting:
+                # 保存当天的寄语，供开屏页使用
+                save_daily_greeting(greeting)
+                return greeting
         except Exception as e:
             print(f"AI 早间问候生成失败: {e}")
     
     # 回退到模拟模式
-    return generate_morning_greeting()
+    greeting = generate_morning_greeting()
+    save_daily_greeting(greeting)
+    return greeting
+
+def save_daily_greeting(greeting):
+    """保存当天的 AI 寄语"""
+    settings = load_settings()
+    today = datetime.date.today().isoformat()
+    settings['dailyGreeting'] = {
+        'content': greeting,
+        'date': today,
+        'generated_at': datetime.datetime.now().isoformat(),
+    }
+    save_settings(settings)
+
+def get_daily_greeting():
+    """获取当天的寄语（如果没有生成过，返回默认语录）"""
+    settings = load_settings()
+    today = datetime.date.today().isoformat()
+    
+    greeting_data = settings.get('dailyGreeting', {})
+    if greeting_data.get('date') == today and greeting_data.get('content'):
+        return greeting_data['content']
+    
+    # 如果今天还没生成，返回默认语录
+    return get_daily_quote()
 
 def generate_evening_prompt_ai():
     """用 AI 生成晚间总结提示"""
@@ -860,15 +1077,33 @@ WALLPAPER_GRADIENTS = [
 ]
 
 def get_daily_wallpaper():
-    """获取每日壁纸（静态渐变，预留 AI 生成接口）"""
+    """获取每日开屏页数据（AI寄语+天气+节气+渐变背景）"""
     today = datetime.date.today().isoformat()
     # 基于日期选择固定的渐变，保证一天内不变
     day_index = datetime.date.today().toordinal() % len(WALLPAPER_GRADIENTS)
+    
+    # 获取日期上下文（节气+节日）
+    date_context = get_date_context()
+    
+    # 获取天气
+    weather = get_weather()
+    
+    # 获取 AI 生成的寄语（如果今天还没生成，返回默认语录）
+    greeting = get_daily_greeting()
+    
     return {
         'date': today,
+        'weekday': date_context.get('weekday', ''),
         'type': 'gradient',
         'value': WALLPAPER_GRADIENTS[day_index],
-        'quote': get_daily_quote(),
+        'quote': greeting,
+        'weather': weather if weather.get('enabled') else None,
+        'solar_term': {
+            'name': date_context.get('solar_term') or date_context.get('next_solar_term', ''),
+            'is_today': date_context.get('solar_term_is_today', False),
+            'days_until': date_context.get('days_until_solar_term', 0),
+        },
+        'festival': date_context.get('festival', ''),
     }
 
 QUOTES = [

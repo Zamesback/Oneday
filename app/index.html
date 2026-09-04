@@ -3557,6 +3557,61 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
         </div>
 
         <div class="settings-section">
+          <h3>天气配置</h3>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">和风天气 API Key</div>
+              <div class="settings-desc">配置后开屏页显示天气，AI 寄语结合天气生成</div>
+            </div>
+            <div class="settings-control">
+              <input type="password" id="set-weatherApiKey" placeholder="和风天气Key">
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">所在城市</div>
+              <div class="settings-desc">用于获取当地天气</div>
+            </div>
+            <div class="settings-control">
+              <select id="set-weatherCity">
+                <option value="北京">北京</option>
+                <option value="上海">上海</option>
+                <option value="广州">广州</option>
+                <option value="深圳">深圳</option>
+                <option value="杭州">杭州</option>
+                <option value="南京">南京</option>
+                <option value="成都">成都</option>
+                <option value="武汉">武汉</option>
+                <option value="西安">西安</option>
+                <option value="重庆">重庆</option>
+                <option value="天津">天津</option>
+                <option value="苏州">苏州</option>
+                <option value="厦门">厦门</option>
+                <option value="长沙">长沙</option>
+                <option value="青岛">青岛</option>
+                <option value="大连">大连</option>
+                <option value="沈阳">沈阳</option>
+                <option value="济南">济南</option>
+                <option value="郑州">郑州</option>
+                <option value="合肥">合肥</option>
+                <option value="福州">福州</option>
+                <option value="南昌">南昌</option>
+                <option value="昆明">昆明</option>
+                <option value="贵阳">贵阳</option>
+                <option value="南宁">南宁</option>
+                <option value="海口">海口</option>
+                <option value="兰州">兰州</option>
+                <option value="哈尔滨">哈尔滨</option>
+                <option value="长春">长春</option>
+                <option value="呼和浩特">呼和浩特</option>
+                <option value="乌鲁木齐">乌鲁木齐</option>
+                <option value="拉萨">拉萨</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <h3>数据</h3>
           <div class="settings-item">
             <div>
@@ -5368,6 +5423,8 @@ function renderSettings() {
   document.getElementById('set-apiProvider').value = s.apiProvider || 'deepseek';
   document.getElementById('set-apiKey').value = s.apiKey || '';
   document.getElementById('set-aiStyle').value = s.aiStyle || 'encouraging';
+  document.getElementById('set-weatherApiKey').value = s.weatherApiKey || '';
+  document.getElementById('set-weatherCity').value = s.weatherCity || '上海';
 }
 
 async function saveSettings() {
@@ -5380,6 +5437,8 @@ async function saveSettings() {
     apiProvider: document.getElementById('set-apiProvider').value,
     apiKey: document.getElementById('set-apiKey').value.trim(),
     aiStyle: document.getElementById('set-aiStyle').value,
+    weatherApiKey: document.getElementById('set-weatherApiKey').value.trim(),
+    weatherCity: document.getElementById('set-weatherCity').value,
   };
   _data.settings = settings;
   await fetch(API_BASE + '/settings', {
