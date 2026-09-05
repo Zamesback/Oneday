@@ -184,7 +184,7 @@ def generate_daily_card():
     chats = load_module('chats')
     settings = load_settings()
     
-    todos_today = [t for t in todos if t.get('date', '').startswith(today) or True]
+    todos_today = [t for t in todos if (t.get('due_date') or t.get('date', '')).startswith(today)]
     todos_completed = [t for t in todos_today if t.get('status') == 'done']
     exercises_today = [e for e in exercises if e.get('date', '').startswith(today)]
     
@@ -396,11 +396,11 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
 ## 你的核心能力
 1. **倾听与回应**：回应用户说的话，给予情感支持和建议
 2. **信息捕捉**：从用户的话中自动识别并提取以下信息：
-   - 待办事项（todos）：用户说要做什么、需要做什么、记得做什么
-   - 重要事件/项目（projects）：用户提到的正在跟进的项目、目标、事件
+   - 待办事项（todos）：用户说要做什么、需要做什么、记得做什么、要参加什么会议、什么评审、什么截止日期、什么汇报。**只要是未来要做的事情，都应该识别成待办！**
+   - 重要事件/项目（projects）：用户提到的正在跟进的长期项目、目标、客户关系（注意：具体的会议、评审、截止日期应该识别成待办，不是项目）
    - 灵感（inspirations）：用户突然想到的想法、创意、点子
    - 朋友/人物（friends）：用户提到的人名、身份、关系
-   - 运动（exercise）：用户提到运动、跑步、健身等
+   - 运动（exercise）：用户提到运动、跑步、健身等（没有提到就 status=none）
    - 情绪状态（mood）：用户当前的心情状态
 3. **主动关心**：在合适的时候提醒用户、鼓励用户、给出建议
 
@@ -427,6 +427,8 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
 - 用户说"下周一/下周X做XX"，due_date 就是对应的日期
 - 用户说"这周内做XX"，due_date 就是本周日的日期
 - 用户说"月底做XX"，due_date 就是本月最后一天
+- 用户说"9月25号有XX"、"9月25日XX"，due_date 就是 2026-09-25
+- **会议、评审、汇报、截止日期、review 都要识别成待办！** 比如"下周四review PPT"、"9月25号商飞评审会"都要识别成待办
 - 用户没有明确说时间，due_date 就是今天的日期
 - priority 根据用户语气判断：紧急/重要=high，普通=medium，随便/low
 - 今天的日期是：{{TODAY}}

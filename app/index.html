@@ -4033,8 +4033,8 @@ function updatePageSubtitles() {
   const todosSubtitle = document.getElementById('todos-subtitle');
   if (todosSubtitle && _data && _data.todos) {
     const today = new Date().toISOString().split('T')[0];
-    const todayTodos = _data.todos.filter(t => t.date === today || !t.date);
-    const doneCount = todayTodos.filter(t => t.completed).length;
+    const todayTodos = _data.todos.filter(t => (t.due_date || t.date || '').startsWith(today) || !t.due_date);
+    const doneCount = todayTodos.filter(t => t.completed || t.status === 'done').length;
     todosSubtitle.textContent = `TODAY · ${todayTodos.length} TASKS · ${doneCount} DONE`;
   }
   
@@ -4099,7 +4099,7 @@ function renderCalendar() {
 }
 
 function renderCalendarDay(day, dateStr, isOtherMonth, today) {
-  const todos = (_data?.todos || []).filter(t => (t.date || '').startsWith(dateStr));
+  const todos = (_data?.todos || []).filter(t => (t.due_date || t.date || '').startsWith(dateStr));
   const isToday = dateStr === today;
   const isSelected = dateStr === _selectedDate;
   const hasTodo = todos.length > 0;
@@ -4165,7 +4165,7 @@ function renderTodoList() {
   
   if (!list) return;
   
-  const todos = (_data?.todos || []).filter(t => (t.date || '').startsWith(_selectedDate));
+  const todos = (_data?.todos || []).filter(t => (t.due_date || t.date || '').startsWith(_selectedDate));
   const sorted = todos.slice().sort((a, b) => {
     if (a.status === 'done' && b.status !== 'done') return 1;
     if (a.status !== 'done' && b.status === 'done') return -1;
@@ -4191,7 +4191,7 @@ function renderTodoList() {
         <div class="todo-meta">
           ${t.priority === 'high' ? '<span class="tag tag-red">高优先级</span>' : ''}
           ${t.source === 'ai_extract' ? '<span>AI 提取</span>' : '<span>手动</span>'}
-          <span>${formatDate(t.date)}</span>
+          <span>${formatDate(t.due_date || t.date)}</span>
         </div>
       </div>
       <span class="todo-delete" onclick="deleteTodo('${t.id}')">删除</span>
@@ -4208,6 +4208,7 @@ async function addTodo() {
     priority: 'medium', 
     status: 'pending', 
     source: 'manual',
+    due_date: _selectedDate,
     date: _selectedDate + 'T00:00:00.000Z'
   });
   _data.todos.unshift(item);
@@ -5700,7 +5701,7 @@ function showExtractedTags(extracted) {
     const uniqueNames = [...new Set(extracted.friends)];
     tags.push(`<span class="voice-extracted-tag friend">✓ 提到${uniqueNames.length}个人</span>`);
   }
-  if (extracted.exercise) {
+  if (extracted.exercise && extracted.exercise.status === 'done') {
     tags.push(`<span class="voice-extracted-tag todo">✓ 运动已记录</span>`);
   }
   container.innerHTML = tags.join('');
