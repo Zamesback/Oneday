@@ -1,0 +1,14 @@
+{
+  "userName": "",
+  "morningTime": "07:30",
+  "eveningTime": "21:30",
+  "exerciseReminderTime": "20:00",
+  "notificationsEnabled": true,
+  "apiProvider": "mock",
+  "apiKey": "",
+  "aiStyle": "encouraging",
+  "weatherApiKey": "",
+  "weatherCity": "上海",
+  "wallpaperMode": "static",
+  "theme": "light"
+}

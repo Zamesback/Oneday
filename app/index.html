@@ -1380,8 +1380,23 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   font-size: 18px; line-height: 1.9; font-family: var(--serif);
   color: rgba(255,255,255,0.9); white-space: pre-wrap;
   animation: fadeInUp 0.5s ease;
+  transition: color 0.3s ease, font-size 0.3s ease;
 }
 .voice-reply-text .red { color: var(--red); }
+/* 用户说的话：红色、稍小、斜体 */
+.voice-reply-text.user-msg {
+  color: var(--red);
+  font-size: 16px;
+  font-style: italic;
+  opacity: 0.85;
+}
+/* AI 回复：白色、正常字号 */
+.voice-reply-text.ai-msg {
+  color: rgba(255,255,255,0.95);
+  font-size: 18px;
+  font-style: normal;
+  opacity: 1;
+}
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1389,6 +1404,17 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 .voice-reply-meta {
   margin-top: 16px; font-size: 10px; color: var(--gray-500);
   font-family: var(--mono); letter-spacing: 2px;
+  transition: color 0.3s ease;
+}
+/* 用户 meta：红色 */
+.voice-reply-meta.user-meta {
+  color: var(--red);
+  opacity: 0.7;
+}
+/* AI meta：灰色 */
+.voice-reply-meta.ai-meta {
+  color: var(--gray-500);
+  opacity: 1;
 }
 /* 提取到的信息标签 */
 .voice-extracted {
@@ -5387,9 +5413,28 @@ function showVoiceReply(text, meta) {
     let html = text.replace(/\n/g, '<br>');
     html = html.replace(/(OneDay|一日|One Day)/gi, '<span class="red">$1</span>');
     replyText.innerHTML = html;
+    
+    // 根据说话人设置不同的样式
+    const isUser = meta && (meta.includes('你说') || meta.includes('用户') || meta.includes('YOU'));
+    if (isUser) {
+      replyText.classList.add('user-msg');
+      replyText.classList.remove('ai-msg');
+    } else {
+      replyText.classList.add('ai-msg');
+      replyText.classList.remove('user-msg');
+    }
   }
   if (replyMeta) {
     replyMeta.textContent = meta ? '— ' + meta + ' —' : '— 不用打字，只要闲聊 —';
+    // meta 也根据说话人设置颜色
+    const isUser = meta && (meta.includes('你说') || meta.includes('用户') || meta.includes('YOU'));
+    if (isUser) {
+      replyMeta.classList.add('user-meta');
+      replyMeta.classList.remove('ai-meta');
+    } else {
+      replyMeta.classList.add('ai-meta');
+      replyMeta.classList.remove('user-meta');
+    }
   }
 }
 
