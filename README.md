@@ -43,6 +43,178 @@ AI automatically captures people you mention in chats, recording identity, relat
 
 ---
 
+## 🚀 新手引导 / Getting Started Guide
+
+### 这是什么？/ What is this?
+
+**中文：**
+
+OneDay 是一个 AI 驱动的个人生活管理平台。它的核心理念是**"不用打字，只要闲聊"**——你不需要手动录入任何数据，每天花 5-10 分钟跟 AI 说说话，它会帮你把生活中的一切都整理好。
+
+想象一下：每天晚上睡前，你跟 AI 聊聊天，说说今天发生了什么、心情怎么样、完成了什么、还有什么没做、明天要干嘛。AI 会自动帮你：
+- 把待办事项记录下来，并按日期分类
+- 把正在跟进的项目整理好
+- 把你提到的人记录到朋友图谱
+- 把你的灵感收集起来，甚至帮你生成播客大纲
+- 记录你的运动状态
+- 第二天早上，根据你的状态、待办、天气、节气，生成一张专属于你的卡片，用一句温暖的话开启你的新的一天
+
+**English:**
+
+OneDay is an AI-powered personal life management platform. Its core philosophy is **"No typing, just chat"** — you don't need to manually input anything. Spend 5-10 minutes chatting with AI every day, and it will help you organize everything in your life.
+
+Imagine: every night before bed, you chat with AI, talk about what happened today, how you feel, what you accomplished, what's left undone, what to do tomorrow. AI will automatically help you:
+- Record todos and categorize them by date
+- Organize projects you're following up on
+- Record people you mention into the friends graph
+- Collect your inspirations, even help generate podcast outlines
+- Track your exercise status
+- Every morning, based on your state, todos, weather, and solar terms, generate a card unique to you, opening your new day with a warm message
+
+---
+
+### 能干嘛？/ What can it do?
+
+**中文：**
+
+| 模块 | 功能 | 怎么用 |
+|------|------|--------|
+| 🎙️ **AI 对话** | 跟 AI 闲聊，自动提取信息 | 点击麦克风按钮，说话，再点击结束 |
+| 📋 **待办清单** | 记录待办事项，按日期分类 | AI 自动从对话中提取，也可手动添加 |
+| 📁 **重要项目** | 跟进中的项目，记录进度 | AI 自动从对话中提取，也可手动添加 |
+| 💡 **Plog 灵感** | 收集灵感，生成播客大纲，一键录制 | AI 自动收集灵感，点击可升级为播客主题 |
+| 👥 **朋友图谱** | 记录你提到的人，可视化关系网络 | AI 自动捕捉，可手动编辑身份和关系 |
+| 🎴 **每日卡片** | 每天生成专属卡片，记录你的一天 | 早上自动生成，可在卡片集中查看历史 |
+| 🏃 **运动打卡** | 记录运动状态，首页提醒打卡 | AI 自动记录，也可手动打卡 |
+
+**English:**
+
+| Module | Feature | How to use |
+|--------|---------|------------|
+| 🎙️ **AI Chat** | Chat with AI, auto-extract info | Click mic button, speak, click again to end |
+| 📋 **Todos** | Record todos, categorize by date | AI auto-extracts from chat, or add manually |
+| 📁 **Projects** | Projects in progress, track progress | AI auto-extracts from chat, or add manually |
+| 💡 **Plog Inspiration** | Collect inspirations, generate podcast outlines, one-click recording | AI auto-collects, click to upgrade to podcast topic |
+| 👥 **Friends Graph** | Record people you mention, visualize relationship network | AI auto-captures, manually edit identity and relationship |
+| 🎴 **Daily Card** | Generate unique card every day, record your day | Auto-generated in morning, view history in card collection |
+| 🏃 **Exercise** | Track exercise status, homepage reminder | AI auto-records, or check in manually |
+
+---
+
+### 一般怎么操作？/ How to use it?
+
+**中文：**
+
+#### 典型的一天 / A Typical Day
+
+```
+🌅 早上 7:30
+   ↓
+打开 OneDay，看到专属于你的开屏卡片
+（AI 根据你的状态、待办、天气、节气生成）
+   ↓
+卡片上有一句温暖的问候，告诉你今天要做什么
+   ↓
+📝 白天
+   ↓
+有灵感了？跟 AI 说一声，它帮你记下来
+遇到新朋友了？跟 AI 提一下，它帮你记录到朋友图谱
+完成运动了？跟 AI 说一声，它帮你打卡
+   ↓
+🌙 晚上 21:30
+   ↓
+花 5-10 分钟跟 AI 聊聊今天
+"今天跟客户王总开了个会，项目有进展了"
+"明天要做 PPT，后天要写报告"
+"今天跑了 5 公里，感觉不错"
+"突然想到一个点子，可以做个打卡功能"
+   ↓
+AI 自动帮你整理好一切：
+- 待办：做PPT（明天）、写报告（后天）
+- 项目：客户项目（有进展）
+- 朋友：王总（客户）
+- 灵感：打卡功能
+- 运动：跑了5公里
+   ↓
+😴 睡觉，等待第二天的专属卡片
+```
+
+#### 第一次使用 / First Time Use
+
+1. **启动应用**：双击 `启动 OneDay.command`，或在终端运行 `python3 server.py`
+2. **打开浏览器**：访问 `http://localhost:8765/`
+3. **配置 AI**：进入设置页面，配置你的 AI API Key（推荐 DeepSeek 或豆包）
+4. **开始聊天**：点击麦克风按钮，跟 AI 说说话
+5. **查看结果**：去各个模块看看 AI 帮你整理了什么
+
+**English:**
+
+#### A Typical Day
+
+```
+🌅 7:30 AM
+   ↓
+Open OneDay, see your unique splash card
+(AI generates based on your state, todos, weather, solar terms)
+   ↓
+Card has a warm greeting, tells you what to do today
+   ↓
+📝 Daytime
+   ↓
+Got an inspiration? Tell AI, it helps you record it
+Met someone new? Mention to AI, it helps record to friends graph
+Finished exercise? Tell AI, it helps you check in
+   ↓
+🌙 9:30 PM
+   ↓
+Spend 5-10 minutes chatting with AI about today
+"Had a meeting with client Mr. Wang today, project made progress"
+"Need to make PPT tomorrow, write report the day after"
+"Ran 5km today, feeling good"
+"Suddenly thought of an idea, could make a check-in feature"
+   ↓
+AI automatically organizes everything for you:
+- Todos: Make PPT (tomorrow), Write report (day after)
+- Project: Client project (making progress)
+- Friend: Mr. Wang (client)
+- Inspiration: Check-in feature
+- Exercise: Ran 5km
+   ↓
+😴 Sleep, wait for next day's unique card
+```
+
+#### First Time Use
+
+1. **Launch app**: Double-click `启动 OneDay.command`, or run `python3 server.py` in terminal
+2. **Open browser**: Visit `http://localhost:8765/`
+3. **Configure AI**: Go to settings page, configure your AI API Key (recommend DeepSeek or Doubao)
+4. **Start chatting**: Click mic button, talk to AI
+5. **View results**: Go to each module to see what AI organized for you
+
+---
+
+### 小技巧 / Tips
+
+**中文：**
+
+- 💬 **说得越详细，AI 整理得越好**：跟 AI 聊天时，尽量说清楚时间、人物、事件，AI 能更准确地提取信息
+- 📅 **提到日期时用自然语言**："明天"、"后天"、"下周三"、"9月15日"都可以，AI 会自动识别
+- 👥 **提到人时说说身份**："客户王总"、"同事小李"，AI 会自动记录身份和关系
+- 💡 **灵感随时说**：白天有灵感了随时跟 AI 说，它会帮你收集，晚上还能帮你升级成播客主题
+- 🎴 **每天的卡片都是独一无二的**：坚持使用，一年后你会有 365 张专属于你的卡片，记录你度过的每一天
+- 🔄 **数据都存在本地**：所有数据都存在你电脑的 `data/` 目录下，不用担心隐私问题
+
+**English:**
+
+- 💬 **The more detailed you speak, the better AI organizes**: When chatting with AI, try to clarify time, people, events, AI can extract info more accurately
+- 📅 **Use natural language for dates**: "Tomorrow", "day after", "next Wednesday", "Sept 15" all work, AI auto-recognizes
+- 👥 **Mention identity when talking about people**: "Client Mr. Wang", "Colleague Xiao Li", AI auto-records identity and relationship
+- 💡 **Speak inspirations anytime**: Got an inspiration during the day? Tell AI anytime, it helps collect, and can even upgrade to podcast topic at night
+- 🎴 **Every day's card is unique**: Keep using it, after a year you'll have 365 cards unique to you, recording every day you lived
+- 🔄 **All data stored locally**: All data is stored in the `data/` directory on your computer, no privacy concerns
+
+---
+
 ## 🖼 界面展示 / Screenshots
 
 ### 开屏页 · 千人千面 / Splash Page · Unique for Everyone

@@ -1498,12 +1498,12 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   font-style: normal;
   opacity: 1;
 }
-/* AI 回复：红色、正常字号 */
+/* AI 回复：稍微泛灰的白、正常字号 */
 .voice-reply-text.ai-msg {
-  color: var(--red);
+  color: rgba(200,200,200,0.9);
   font-size: 18px;
   font-style: normal;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
@@ -1519,10 +1519,10 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   color: rgba(255,255,255,0.7);
   opacity: 1;
 }
-/* AI meta：红色 */
+/* AI meta：稍微泛灰的白 */
 .voice-reply-meta.ai-meta {
-  color: var(--red);
-  opacity: 0.7;
+  color: rgba(180,180,180,0.7);
+  opacity: 1;
 }
 /* 提取到的信息标签 */
 .voice-extracted {
