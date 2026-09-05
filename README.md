@@ -111,17 +111,55 @@ OneDay 一日/
 
 ## 🚀 快速开始 / Getting Started
 
+> ⚠️ **重要：必须先启动后端服务器，才能访问 localhost:8765**
+> 不要直接双击 `index.html` 打开（file:// 协议下 API 调用会全部失败）。
+>
+> ⚠️ **Important: You must start the backend server first before accessing localhost:8765**
+> Do NOT directly double-click `index.html` (API calls will fail under file:// protocol).
+
+### 环境要求 / Requirements
+- Python 3.7+（macOS 自带 / macOS comes with Python pre-installed）
+- 现代浏览器（Chrome / Safari / Edge）
+
 ### 启动正式版 / Run Production App
+
+**方式一：命令行 / Command Line**
 ```bash
 cd app
 python3 server.py
-# 或双击 / or double-click: 启动 OneDay.command
 ```
-浏览器打开 / Open in browser: http://localhost:8765
+
+**方式二：macOS 双击启动 / macOS Double-click**
+```
+直接双击 app/启动 OneDay.command
+```
+
+启动成功后会显示：
+```
+OneDay / 一日 后端已启动
+端口: 8765
+访问: http://localhost:8765
+```
+
+然后在浏览器打开 / Then open in browser: **http://localhost:8765**
 
 ### 查看 Demo / View Demo
-直接用浏览器打开 `demo/index.html` 即可体验演示版本。
-Simply open `demo/index.html` in your browser to experience the demo.
+Demo 是纯静态页面，可以直接用浏览器打开 `demo/index.html` 体验。
+Demo is a static page — simply open `demo/index.html` in your browser.
+
+### 常见问题 / FAQ
+
+**Q: 打开 localhost:8765 显示"无法访问此网站"怎么办？**
+A: 说明后端服务器没有启动。请先在终端运行 `cd app && python3 server.py`，看到启动成功提示后再访问。
+
+**Q: 提示 "python3: command not found" 怎么办？**
+A: 说明电脑没装 Python。macOS 用户运行 `xcode-select --install` 安装，或从 https://www.python.org/downloads/ 下载安装。
+
+**Q: 提示 "Address already in use" 怎么办？**
+A: 8765 端口被占用了。可以修改 `app/server.py` 里的 `PORT = 8765` 为其他端口，或关闭占用端口的程序。
+
+**Q: 直接双击 index.html 能打开但功能不正常？**
+A: 正常现象。直接打开用的是 file:// 协议，AI 对话、定时任务、数据保存等功能都需要后端服务器支持。请用上面的方式启动服务器后访问。
 
 ---
 
