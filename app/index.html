@@ -5353,22 +5353,29 @@ async function sendVoiceMessage(message) {
   showVoiceReply('「' + message + '」', '你说的');
   
   try {
+    console.log('[AI对话] 发送消息:', message);
     const res = await fetch(API_BASE + '/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, history: (_data?.chats || []).slice(0, 20) })
     });
+    console.log('[AI对话] 响应状态:', res.status);
     const result = await res.json();
+    console.log('[AI对话] 响应内容:', result);
     await loadData();
     if (result.reply) {
+      console.log('[AI对话] 显示回复:', result.reply);
       showVoiceReply(result.reply, 'OneDay');
+    } else {
+      console.warn('[AI对话] result.reply 为空！');
+      showVoiceReply('（AI 没有返回回复内容）', 'OneDay');
     }
     if (result.extracted) {
       showExtractedTags(result.extracted);
     }
   } catch (e) {
-    showVoiceReply('抱歉，我刚才走神了。能再说一遍吗？', 'OneDay');
-    console.error('发送失败:', e);
+    console.error('[AI对话] 发送失败:', e);
+    showVoiceReply('抱歉，我刚才走神了。能再说一遍吗？\n\n错误信息: ' + e.message, 'OneDay');
   }
   setVoiceStatus('', '待机中');
 }

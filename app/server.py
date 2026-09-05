@@ -409,7 +409,9 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
 {
   "reply": "你对用户说的话，自然温暖的回应",
   "extracted": {
-    "todos": ["待办1", "待办2"],
+    "todos": [
+      {"title": "待办内容", "due_date": "2026-09-06", "priority": "high/medium/low"}
+    ],
     "projects": [{"name": "项目名", "stage": "跟进中", "notes": "备注"}],
     "inspirations": ["灵感1", "灵感2"],
     "friends": [{"name": "人名", "identity": "身份", "relationship": "关系"}],
@@ -419,10 +421,22 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
   "suggestion": "可选的建议或提醒，没有就空字符串"
 }
 
+## 待办日期识别规则（非常重要）
+- 用户说"明天做XX"，due_date 就是明天的日期（格式 YYYY-MM-DD）
+- 用户说"后天做XX"，due_date 就是后天的日期
+- 用户说"下周一/下周X做XX"，due_date 就是对应的日期
+- 用户说"这周内做XX"，due_date 就是本周日的日期
+- 用户说"月底做XX"，due_date 就是本月最后一天
+- 用户没有明确说时间，due_date 就是今天的日期
+- priority 根据用户语气判断：紧急/重要=high，普通=medium，随便/low
+- 今天的日期是：{{TODAY}}
+
 ## 重要规则
 - 只返回 JSON，不要返回其他任何文字
 - reply 要自然，不要说"我帮你记了..."这种机械的话，而是自然地回应
 - 提取信息要准确，不要过度提取，不要把闲聊内容当成待办
+- **【强制】todos 必须返回对象数组！每个待办必须是 {"title": "...", "due_date": "YYYY-MM-DD", "priority": "high/medium/low"} 格式，绝对不能返回纯字符串！**
+- **待办一定要识别日期！** 用户说"明天/后天/下周"时，due_date 要对应到具体日期，不要都放今天；用户没说时间时，due_date 才是今天
 - 如果用户只是闲聊，没有具体信息，extracted 里的数组就为空
 - 情绪判断要基于用户的语气和内容
 - 你是鼓励型的伙伴，多给正面反馈，但不要虚假
@@ -568,6 +582,135 @@ def parse_ai_response(raw_response):
         'suggestion': ''
     }
 
+def parse_due_date(date_str):
+    """解析待办的截止日期，支持相对时间（明天、后天、下周一等）"""
+    if not date_str:
+        return datetime.date.today().isoformat()
+    
+    today = datetime.date.today()
+    date_str = str(date_str).strip().lower()
+    
+    # 已经是 YYYY-MM-DD 格式
+    try:
+        datetime.datetime.strptime(date_str, '%Y-%m-%d')
+        return date_str
+    except:
+        pass
+    
+    # 相对时间解析
+    if date_str in ['今天', '今日', 'today', 'today']:
+        return today.isoformat()
+    elif date_str in ['明天', '明日', 'tomorrow']:
+        return (today + datetime.timedelta(days=1)).isoformat()
+    elif date_str in ['后天', '后日', 'the day after tomorrow']:
+        return (today + datetime.timedelta(days=2)).isoformat()
+    elif date_str in ['大后天']:
+        return (today + datetime.timedelta(days=3)).isoformat()
+    
+    # 下周X
+    weekday_map = {'一': 0, '二': 1, '三': 2, '四': 3, '五': 4, '六': 5, '日': 6, '天': 6}
+    for cn, wd in weekday_map.items():
+        if date_str in [f'下周{cn}', f'下周{cn}', f'next {cn}']:
+            days_ahead = (wd - today.weekday() + 7) % 7
+            if days_ahead == 0:
+                days_ahead = 7
+            return (today + datetime.timedelta(days=days_ahead)).isoformat()
+    
+    # 本周X
+    for cn, wd in weekday_map.items():
+        if date_str in [f'本周{cn}', f'这周{cn}']:
+            days_ahead = (wd - today.weekday()) % 7
+            return (today + datetime.timedelta(days=days_ahead)).isoformat()
+    
+    # 周末
+    if date_str in ['周末', '这周末', '本周六']:
+        days_ahead = (5 - today.weekday()) % 7
+        if days_ahead == 0:
+            days_ahead = 7
+        return (today + datetime.timedelta(days=days_ahead)).isoformat()
+    
+    # 月底
+    if date_str in ['月底', '本月底', '月末']:
+        if today.month == 12:
+            next_month = datetime.date(today.year + 1, 1, 1)
+        else:
+            next_month = datetime.date(today.year, today.month + 1, 1)
+        return (next_month - datetime.timedelta(days=1)).isoformat()
+    
+    # 默认返回今天
+    return today.isoformat()
+
+def extract_date_from_text(text):
+    """从待办字符串里提取日期信息（容错处理）"""
+    if not text:
+        return datetime.date.today().isoformat()
+    
+    text = str(text).lower()
+    
+    # 检查常见的日期关键词
+    date_keywords = [
+        ('大后天', '大后天'),
+        ('后天', '后天'),
+        ('明天', '明天'),
+        ('今天', '今天'),
+        ('今日', '今天'),
+        ('下周一一', '下周一'),
+        ('下周二', '下周二'),
+        ('下周三', '下周三'),
+        ('下周四', '下周四'),
+        ('下周五', '下周五'),
+        ('下周六', '下周六'),
+        ('下周日', '下周日'),
+        ('本周一', '本周一'),
+        ('本周二', '本周二'),
+        ('本周三', '本周三'),
+        ('本周四', '本周四'),
+        ('本周五', '本周五'),
+        ('本周六', '本周六'),
+        ('本周日', '本周日'),
+        ('周末', '周末'),
+        ('这周末', '周末'),
+        ('月底', '月底'),
+        ('月末', '月底'),
+    ]
+    
+    for keyword, normalized in date_keywords:
+        if keyword in text:
+            return parse_due_date(normalized)
+    
+    # 检查 YYYY-MM-DD 格式
+    import re
+    date_match = re.search(r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})', text)
+    if date_match:
+        try:
+            year, month, day = int(date_match.group(1)), int(date_match.group(2)), int(date_match.group(3))
+            return datetime.date(year, month, day).isoformat()
+        except:
+            pass
+    
+    # 默认返回今天
+    return datetime.date.today().isoformat()
+
+def clean_todo_title(title):
+    """清理待办标题里的日期描述"""
+    if not title:
+        return title
+    
+    # 移除常见的日期描述
+    patterns_to_remove = [
+        r'[（(]\s*(明天|后天|大后天|今天|今日|下周[一二三四五六日天]|本周[一二三四五六日天]|周末|这周末|月底|月末)\s*[)）]',
+        r'[（(]\s*\d{4}[-/]\d{1,2}[-/]\d{1,2}\s*[)）]',
+        r'\s*(明天|后天|大后天|今天|今日|下周[一二三四五六日天]|本周[一二三四五六日天]|周末|这周末|月底|月末)\s*$',
+        r'^(明天|后天|大后天|今天|今日|下周[一二三四五六日天]|本周[一二三四五六日天]|周末|这周末|月底|月末)\s*',
+    ]
+    
+    import re
+    for pattern in patterns_to_remove:
+        title = re.sub(pattern, '', title)
+    
+    return title.strip()
+
+# ===== 保存提取的信息 =====
 def save_extracted_info(extracted):
     """把 AI 提取的信息保存到对应模块"""
     saved = {'todos': 0, 'projects': 0, 'inspirations': 0, 'friends': 0, 'exercise': 0}
@@ -575,14 +718,30 @@ def save_extracted_info(extracted):
     # 保存待办
     if extracted.get('todos'):
         todos = load_module('todos')
-        for todo_text in extracted['todos']:
-            if todo_text and len(todo_text) > 1:
+        for todo_item in extracted['todos']:
+            # 支持字符串格式（向后兼容）和对象格式
+            if isinstance(todo_item, str):
+                title = todo_item
+                # 从字符串里提取日期信息（容错处理）
+                due_date = extract_date_from_text(todo_item)
+                priority = 'medium'
+                # 清理标题里的日期描述
+                title = clean_todo_title(title)
+            elif isinstance(todo_item, dict):
+                title = todo_item.get('title', '')
+                due_date = parse_due_date(todo_item.get('due_date', ''))
+                priority = todo_item.get('priority', 'medium')
+            else:
+                continue
+            
+            if title and len(title) > 1:
                 todos.insert(0, {
                     'id': gen_id('todo'),
-                    'title': todo_text,
-                    'priority': 'medium',
+                    'title': title,
+                    'priority': priority,
                     'status': 'pending',
                     'source': 'ai_extract',
+                    'due_date': due_date,
                     'date': datetime.datetime.now().isoformat()
                 })
                 saved['todos'] += 1
@@ -678,8 +837,12 @@ def chat_with_ai_harness(message, history):
     # 构建上下文
     user_prompt = build_ai_context(message, history)
     
+    # 替换系统提示词里的日期占位符
+    today_str = datetime.date.today().isoformat()
+    system_prompt = AI_AGENT_SYSTEM_PROMPT.replace('{{TODAY}}', today_str)
+    
     # 尝试调用真实 AI
-    ai_result = call_real_ai(AI_AGENT_SYSTEM_PROMPT, user_prompt)
+    ai_result = call_real_ai(system_prompt, user_prompt)
     
     if ai_result:
         # 真实 AI 模式
@@ -1230,8 +1393,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=BASE_DIR, **kwargs)
 
     def log_message(self, format, *args):
-        if '/api/' in args[0]:
-            print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {args[0]}")
+        try:
+            msg = str(args[0]) if args else ''
+            if '/api/' in msg:
+                print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {msg}")
+        except Exception:
+            pass
 
     def send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False).encode('utf-8')
