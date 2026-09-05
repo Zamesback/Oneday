@@ -1328,6 +1328,111 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(1.3); }
 }
+/* 右上角容器 */
+.chat-voice-top-right {
+  display: flex; align-items: center; gap: 16px;
+}
+/* 历史记录按钮 */
+.voice-history-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; background: transparent;
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+  color: var(--gray-500); font-size: 10px; font-family: var(--mono);
+  letter-spacing: 1px; cursor: pointer; transition: all 0.3s;
+}
+.voice-history-btn:hover {
+  border-color: var(--red); color: var(--red);
+}
+.voice-history-btn svg {
+  width: 14px; height: 14px;
+}
+/* 聊天记录模态框 */
+.chat-history-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 1000; display: none; align-items: center; justify-content: center;
+}
+.chat-history-modal.active {
+  display: flex;
+}
+.chat-history-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+}
+.chat-history-panel {
+  position: relative; width: 90%; max-width: 600px; max-height: 80vh;
+  background: #111; border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.chat-history-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.chat-history-header h3 {
+  font-size: 14px; font-weight: 900; letter-spacing: 2px;
+  font-family: var(--mono); color: var(--white);
+}
+.chat-history-close {
+  background: transparent; border: none; color: var(--gray-500);
+  cursor: pointer; padding: 4px; transition: color 0.3s;
+}
+.chat-history-close:hover {
+  color: var(--red);
+}
+.chat-history-close svg {
+  width: 18px; height: 18px;
+}
+.chat-history-list {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.chat-history-list::-webkit-scrollbar {
+  width: 4px;
+}
+.chat-history-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-history-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2); border-radius: 2px;
+}
+.chat-history-item {
+  display: flex; flex-direction: column; gap: 6px;
+  max-width: 85%;
+}
+.chat-history-item.user {
+  align-self: flex-end; align-items: flex-end;
+}
+.chat-history-item.ai {
+  align-self: flex-start; align-items: flex-start;
+}
+.chat-history-item .chat-msg-meta {
+  font-size: 9px; font-family: var(--mono); letter-spacing: 1px;
+  color: var(--gray-500);
+}
+.chat-history-item.user .chat-msg-meta {
+  color: var(--red);
+}
+.chat-history-item .chat-msg-content {
+  padding: 10px 14px; border-radius: 6px; font-size: 13px;
+  line-height: 1.7; word-break: break-word;
+}
+.chat-history-item.user .chat-msg-content {
+  background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3);
+  color: rgba(255,255,255,0.9);
+}
+.chat-history-item.ai .chat-msg-content {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
+}
+.chat-history-empty {
+  text-align: center; padding: 40px 20px; color: var(--gray-500);
+  font-size: 12px; font-family: var(--mono); letter-spacing: 1px;
+}
 .chat-voice-center {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   position: relative; z-index: 2; padding: 20px 48px;
@@ -3428,9 +3533,18 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
               <p>AI 生活伙伴</p>
             </div>
           </div>
-          <div class="chat-voice-status" id="voice-status">
-            <span class="dot"></span>
-            <span id="voice-status-text">待机中</span>
+          <div class="chat-voice-top-right">
+            <button class="voice-history-btn" onclick="toggleChatHistory()" title="聊天记录">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span>历史</span>
+            </button>
+            <div class="chat-voice-status" id="voice-status">
+              <span class="dot"></span>
+              <span id="voice-status-text">待机中</span>
+            </div>
           </div>
         </div>
         
@@ -3459,6 +3573,25 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
           </button>
           <div class="voice-hint">
             <span class="red">点击</span>开始说话 · 再次点击结束 · 不用打字，只要闲聊
+          </div>
+        </div>
+      </div>
+      
+      <!-- 聊天记录模态框 -->
+      <div class="chat-history-modal" id="chat-history-modal">
+        <div class="chat-history-overlay" onclick="toggleChatHistory()"></div>
+        <div class="chat-history-panel">
+          <div class="chat-history-header">
+            <h3>聊天记录</h3>
+            <button class="chat-history-close" onclick="toggleChatHistory()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="chat-history-list" id="chat-history-list">
+            <!-- 聊天记录由JS生成 -->
           </div>
         </div>
       </div>
@@ -5405,6 +5538,109 @@ async function sendVoiceMessage(message) {
   }
   setVoiceStatus('', '待机中');
 }
+
+// ===== 聊天记录回看 =====
+let chatHistoryLoaded = false;
+
+function toggleChatHistory() {
+  const modal = document.getElementById('chat-history-modal');
+  if (!modal) return;
+  
+  if (modal.classList.contains('active')) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  } else {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if (!chatHistoryLoaded) {
+      loadChatHistory();
+    }
+  }
+}
+
+async function loadChatHistory() {
+  const list = document.getElementById('chat-history-list');
+  if (!list) return;
+  
+  list.innerHTML = '<div class="chat-history-empty">加载中...</div>';
+  
+  try {
+    const res = await fetch('/api/work-data');
+    const data = await res.json();
+    const chats = data.chats || [];
+    
+    if (chats.length === 0) {
+      list.innerHTML = '<div class="chat-history-empty">暂无聊天记录<br><br>点击下方按钮开始跟 OneDay 聊聊吧</div>';
+      chatHistoryLoaded = true;
+      return;
+    }
+    
+    // 按时间排序，最新的在后面
+    chats.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+    let html = '';
+    let lastDate = '';
+    
+    for (const chat of chats) {
+      const role = chat.role || 'user';
+      const content = chat.content || '';
+      const timestamp = chat.timestamp || '';
+      
+      // 格式化时间
+      let timeStr = '';
+      if (timestamp) {
+        const d = new Date(timestamp);
+        const dateStr = d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+        const timeStr2 = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        timeStr = `${dateStr} ${timeStr2}`;
+        
+        // 显示日期分隔
+        if (dateStr !== lastDate) {
+          html += `<div style="text-align:center; color:var(--gray-500); font-size:10px; font-family:var(--mono); padding:8px 0; letter-spacing:1px;">— ${dateStr} —</div>`;
+          lastDate = dateStr;
+        }
+      }
+      
+      const roleClass = role === 'user' ? 'user' : 'ai';
+      const roleLabel = role === 'user' ? '你' : 'OneDay';
+      
+      html += `
+        <div class="chat-history-item ${roleClass}">
+          <div class="chat-msg-meta">${roleLabel} · ${timeStr}</div>
+          <div class="chat-msg-content">${escapeHtml(content)}</div>
+        </div>
+      `;
+    }
+    
+    list.innerHTML = html;
+    chatHistoryLoaded = true;
+    
+    // 滚动到底部
+    setTimeout(() => {
+      list.scrollTop = list.scrollHeight;
+    }, 100);
+    
+  } catch (e) {
+    console.error('加载聊天记录失败:', e);
+    list.innerHTML = '<div class="chat-history-empty">加载失败，请稍后重试</div>';
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML.replace(/\n/g, '<br>');
+}
+
+// 点击 ESC 关闭聊天记录
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('chat-history-modal');
+    if (modal && modal.classList.contains('active')) {
+      toggleChatHistory();
+    }
+  }
+});
 
 function showVoiceReply(text, meta) {
   const replyText = document.getElementById('voice-reply-text');

@@ -646,15 +646,30 @@ def extract_date_from_text(text):
         return datetime.date.today().isoformat()
     
     text = str(text).lower()
+    today = datetime.date.today()
     
-    # 检查常见的日期关键词
+    # 检查常见的日期关键词（按优先级排序，长的在前）
     date_keywords = [
         ('大后天', '大后天'),
         ('后天', '后天'),
         ('明天', '明天'),
         ('今天', '今天'),
         ('今日', '今天'),
-        ('下周一一', '下周一'),
+        ('下个星期一', '下周一'),
+        ('下个星期二', '下周二'),
+        ('下个星期三', '下周三'),
+        ('下个星期四', '下周四'),
+        ('下个星期五', '下周五'),
+        ('下个星期六', '下周六'),
+        ('下个星期日', '下周日'),
+        ('下个礼拜一', '下周一'),
+        ('下个礼拜二', '下周二'),
+        ('下个礼拜三', '下周三'),
+        ('下个礼拜四', '下周四'),
+        ('下个礼拜五', '下周五'),
+        ('下个礼拜六', '下周六'),
+        ('下个礼拜天', '下周日'),
+        ('下周一', '下周一'),
         ('下周二', '下周二'),
         ('下周三', '下周三'),
         ('下周四', '下周四'),
@@ -668,6 +683,20 @@ def extract_date_from_text(text):
         ('本周五', '本周五'),
         ('本周六', '本周六'),
         ('本周日', '本周日'),
+        ('这周一', '本周一'),
+        ('这周二', '本周二'),
+        ('这周三', '本周三'),
+        ('这周四', '本周四'),
+        ('这周五', '本周五'),
+        ('这周六', '本周六'),
+        ('这周日', '本周日'),
+        ('礼拜一', '本周一'),
+        ('礼拜二', '本周二'),
+        ('礼拜三', '本周三'),
+        ('礼拜四', '本周四'),
+        ('礼拜五', '本周五'),
+        ('礼拜六', '本周六'),
+        ('礼拜天', '本周日'),
         ('周末', '周末'),
         ('这周末', '周末'),
         ('月底', '月底'),
@@ -677,6 +706,20 @@ def extract_date_from_text(text):
     for keyword, normalized in date_keywords:
         if keyword in text:
             return parse_due_date(normalized)
+    
+    # 检查单独的"周X"格式（如"周三"、"周四"）
+    # 逻辑：如果今天已经过了周X，就指下周；否则指本周
+    weekday_map = {'一': 0, '二': 1, '三': 2, '四': 3, '五': 4, '六': 5, '日': 6, '天': 6}
+    for cn, wd in weekday_map.items():
+        if f'周{cn}' in text:
+            if today.weekday() >= wd:
+                days_ahead = (wd - today.weekday() + 7) % 7
+                if days_ahead == 0:
+                    days_ahead = 7
+                return (today + datetime.timedelta(days=days_ahead)).isoformat()
+            else:
+                days_ahead = (wd - today.weekday()) % 7
+                return (today + datetime.timedelta(days=days_ahead)).isoformat()
     
     # 检查 YYYY-MM-DD 格式
     import re
@@ -688,6 +731,32 @@ def extract_date_from_text(text):
         except:
             pass
     
+    # 检查中文日期格式（如 9月15日、9月15号）
+    cn_date_match = re.search(r'(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]', text)
+    if cn_date_match:
+        try:
+            month, day = int(cn_date_match.group(1)), int(cn_date_match.group(2))
+            if 1 <= month <= 12 and 1 <= day <= 31:
+                year = today.year
+                if datetime.date(year, month, day) < today:
+                    year += 1
+                return datetime.date(year, month, day).isoformat()
+        except:
+            pass
+    
+    # 检查 MM-DD 格式（如 9-10、09/10）
+    date_match2 = re.search(r'(\d{1,2})[-/](\d{1,2})', text)
+    if date_match2:
+        try:
+            month, day = int(date_match2.group(1)), int(date_match2.group(2))
+            if 1 <= month <= 12 and 1 <= day <= 31:
+                year = today.year
+                if datetime.date(year, month, day) < today:
+                    year += 1
+                return datetime.date(year, month, day).isoformat()
+        except:
+            pass
+    
     # 默认返回今天
     return datetime.date.today().isoformat()
 
@@ -696,17 +765,26 @@ def clean_todo_title(title):
     if not title:
         return title
     
-    # 移除常见的日期描述
+    import re
+    
+    # 移除常见的日期描述（按优先级排序，长的在前）
     patterns_to_remove = [
-        r'[（(]\s*(明天|后天|大后天|今天|今日|下周[一二三四五六日天]|本周[一二三四五六日天]|周末|这周末|月底|月末)\s*[)）]',
-        r'[（(]\s*\d{4}[-/]\d{1,2}[-/]\d{1,2}\s*[)）]',
-        r'\s*(明天|后天|大后天|今天|今日|下周[一二三四五六日天]|本周[一二三四五六日天]|周末|这周末|月底|月末)\s*$',
-        r'^(明天|后天|大后天|今天|今日|下周[一二三四五六日天]|本周[一二三四五六日天]|周末|这周末|月底|月末)\s*',
+        # 括号里的日期
+        r'[（(]\s*(大后天|后天|明天|今天|今日|下个星期[一二三四五六日天]|下个礼拜[一二三四五六日天]|下周[一二三四五六日天]|本周[一二三四五六日天]|这周[一二三四五六日天]|礼拜[一二三四五六日天]|周[一二三四五六日天]|周末|这周末|月底|月末|\d{1,2}月\d{1,2}[日号]|\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2})\s*[)）]',
+        # 结尾的日期
+        r'\s*(大后天|后天|明天|今天|今日|下个星期[一二三四五六日天]|下个礼拜[一二三四五六日天]|下周[一二三四五六日天]|本周[一二三四五六日天]|这周[一二三四五六日天]|礼拜[一二三四五六日天]|周[一二三四五六日天]|周末|这周末|月底|月末|\d{1,2}月\d{1,2}[日号]|\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2})\s*$',
+        # 开头的日期
+        r'^(大后天|后天|明天|今天|今日|下个星期[一二三四五六日天]|下个礼拜[一二三四五六日天]|下周[一二三四五六日天]|本周[一二三四五六日天]|这周[一二三四五六日天]|礼拜[一二三四五六日天]|周[一二三四五六日天]|周末|这周末|月底|月末|\d{1,2}月\d{1,2}[日号]|\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2})\s*',
+        # 中间的日期（后面跟动词或标点）
+        r'\s*(大后天|后天|明天|今天|今日|下个星期[一二三四五六日天]|下个礼拜[一二三四五六日天]|下周[一二三四五六日天]|本周[一二三四五六日天]|这周[一二三四五六日天]|礼拜[一二三四五六日天]|周[一二三四五六日天]|周末|这周末|月底|月末|\d{1,2}月\d{1,2}[日号])\s*(要|去|做|跟|和|提交|准备|开会|汇报|写|，|,|。)',
     ]
     
-    import re
     for pattern in patterns_to_remove:
-        title = re.sub(pattern, '', title)
+        title = re.sub(pattern, r'\2' if r'\2' in pattern else '', title)
+    
+    # 清理多余的空格和标点
+    title = re.sub(r'\s+', ' ', title)
+    title = re.sub(r'^[，,。.、]+|[，,。.、]+$', '', title)
     
     return title.strip()
 
