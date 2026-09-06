@@ -498,6 +498,51 @@ def build_ai_context(user_message, history):
     
     return full_prompt
 
+def make_https_request(url, headers, payload, timeout=30):
+    """发送 HTTPS 请求，自动处理 SSL 证书问题
+    策略：
+    1. 先尝试正常 SSL 验证
+    2. 失败则尝试使用 certifi 库的 CA 证书
+    3. 再失败则尝试跳过 SSL 验证（记录警告）
+    """
+    import urllib.request
+    import json
+    import ssl
+    
+    data = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(url, data=data, headers=headers)
+    
+    # 策略1：正常 SSL 验证
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            return json.loads(response.read().decode('utf-8'))
+    except ssl.SSLCertVerificationError as e:
+        print(f"[SSL] 默认证书验证失败，尝试 certifi: {e}")
+    except Exception as e:
+        # 非 SSL 错误直接抛出
+        raise
+    
+    # 策略2：使用 certifi 库的 CA 证书
+    try:
+        import certifi
+        context = ssl.create_default_context(cafile=certifi.where())
+        with urllib.request.urlopen(req, timeout=timeout, context=context) as response:
+            return json.loads(response.read().decode('utf-8'))
+    except ImportError:
+        print("[SSL] certifi 未安装，尝试跳过 SSL 验证")
+    except ssl.SSLCertVerificationError as e:
+        print(f"[SSL] certifi 证书验证也失败，尝试跳过 SSL: {e}")
+    except Exception as e:
+        raise
+    
+    # 策略3：跳过 SSL 验证（最后手段，记录警告）
+    print("[SSL] 警告：跳过 SSL 证书验证，这可能不安全")
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    with urllib.request.urlopen(req, timeout=timeout, context=context) as response:
+        return json.loads(response.read().decode('utf-8'))
+
 def call_real_ai(system_prompt, user_prompt):
     """调用真实 AI API（DeepSeek / 豆包）
     预留接口，用户配置 API Key 后启用
@@ -510,7 +555,6 @@ def call_real_ai(system_prompt, user_prompt):
         return None
     
     try:
-        import urllib.request
         import json
         
         if provider == 'deepseek':
@@ -533,19 +577,14 @@ def call_real_ai(system_prompt, user_prompt):
             'response_format': {'type': 'json_object'}
         }
         
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode('utf-8'),
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {api_key}'
-            }
-        )
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}'
+        }
         
-        with urllib.request.urlopen(req, timeout=30) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            content = result['choices'][0]['message']['content']
-            return json.loads(content)
+        result = make_https_request(url, headers, payload, timeout=30)
+        content = result['choices'][0]['message']['content']
+        return json.loads(content)
             
     except Exception as e:
         print(f"调用真实 AI 失败: {e}")
@@ -568,7 +607,6 @@ def check_api_key():
         }
     
     try:
-        import urllib.request
         import json
         
         if provider == 'deepseek':
@@ -594,31 +632,26 @@ def check_api_key():
             'max_tokens': 1
         }
         
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode('utf-8'),
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {api_key}'
-            }
-        )
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}'
+        }
         
-        with urllib.request.urlopen(req, timeout=15) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            if 'choices' in result:
-                return {
-                    'valid': True,
-                    'message': 'API Key 有效',
-                    'provider': provider,
-                    'checked_at': datetime.datetime.now().isoformat()
-                }
-            else:
-                return {
-                    'valid': False,
-                    'message': f'API 返回异常: {json.dumps(result, ensure_ascii=False)[:100]}',
-                    'provider': provider,
-                    'checked_at': datetime.datetime.now().isoformat()
-                }
+        result = make_https_request(url, headers, payload, timeout=15)
+        if 'choices' in result:
+            return {
+                'valid': True,
+                'message': 'API Key 有效',
+                'provider': provider,
+                'checked_at': datetime.datetime.now().isoformat()
+            }
+        else:
+            return {
+                'valid': False,
+                'message': f'API 返回异常: {json.dumps(result, ensure_ascii=False)[:100]}',
+                'provider': provider,
+                'checked_at': datetime.datetime.now().isoformat()
+            }
                 
     except urllib.error.HTTPError as e:
         error_msg = f'HTTP {e.code}'
