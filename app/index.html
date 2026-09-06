@@ -1332,6 +1332,44 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 .chat-voice-top-right {
   display: flex; align-items: center; gap: 16px;
 }
+/* API 状态指示器 */
+.api-status-indicator {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+  font-size: 10px; font-family: var(--mono);
+  letter-spacing: 1px; color: rgba(255,255,255,0.6);
+  transition: all 0.3s;
+}
+.api-status-indicator .api-status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #ff9500;
+  animation: pulse 2s infinite;
+}
+.api-status-indicator.valid {
+  background: rgba(52, 199, 89, 0.1);
+  border-color: rgba(52, 199, 89, 0.4);
+  color: #34c759;
+}
+.api-status-indicator.valid .api-status-dot {
+  background: #34c759;
+  animation: none;
+  box-shadow: 0 0 8px rgba(52, 199, 89, 0.6);
+}
+.api-status-indicator.invalid {
+  background: rgba(255, 59, 48, 0.1);
+  border-color: rgba(255, 59, 48, 0.4);
+  color: #FF3B30;
+}
+.api-status-indicator.invalid .api-status-dot {
+  background: #FF3B30;
+  animation: none;
+  box-shadow: 0 0 8px rgba(255, 59, 48, 0.6);
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 /* 历史记录按钮 */
 .voice-history-btn {
   display: flex; align-items: center; gap: 6px;
@@ -3731,6 +3769,10 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
             </div>
           </div>
           <div class="chat-voice-top-right">
+            <div class="api-status-indicator" id="api-status-indicator" title="API 状态检查中...">
+              <span class="api-status-dot"></span>
+              <span class="api-status-text">检查中</span>
+            </div>
             <button class="voice-history-btn" onclick="toggleChatHistory()" title="聊天记录">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
@@ -5843,22 +5885,28 @@ async function sendVoiceMessage(message) {
       body: JSON.stringify({ message, history: (_data?.chats || []).slice(0, 20) })
     });
     console.log('[AI对话] 响应状态:', res.status);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const result = await res.json();
     console.log('[AI对话] 响应内容:', result);
     await loadData();
+    
     if (result.reply) {
       console.log('[AI对话] 显示回复:', result.reply);
       showVoiceReply(result.reply, 'OneDay');
     } else {
       console.warn('[AI对话] result.reply 为空！');
-      showVoiceReply('（AI 没有返回回复内容）', 'OneDay');
+      showVoiceReply('（AI 没有返回回复内容，请检查 API 配置）', 'OneDay');
     }
     if (result.extracted) {
       showExtractedTags(result.extracted);
     }
   } catch (e) {
     console.error('[AI对话] 发送失败:', e);
-    showVoiceReply('抱歉，我刚才走神了。能再说一遍吗？\n\n错误信息: ' + e.message, 'OneDay');
+    showVoiceReply('抱歉，我刚才走神了。能再说一遍吗？\n\n错误信息: ' + e.message + '\n\n（如果持续出现此问题，请检查 API Key 是否有效，或去设置页面重新配置）', 'OneDay');
   }
   setVoiceStatus('', '待机中');
 }
@@ -6089,10 +6137,17 @@ async function checkApiStatus() {
   const btn = document.getElementById('api-check-btn');
   const desc = document.getElementById('api-status-desc');
   const banner = document.getElementById('api-status-banner');
+  const indicator = document.getElementById('api-status-indicator');
+  const indicatorDot = indicator ? indicator.querySelector('.api-status-dot') : null;
+  const indicatorText = indicator ? indicator.querySelector('.api-status-text') : null;
   
   if (btn) {
     btn.textContent = '检查中...';
     btn.disabled = true;
+  }
+  if (indicator) {
+    indicator.className = 'api-status-indicator';
+    if (indicatorText) indicatorText.textContent = '检查中';
   }
   
   try {
@@ -6109,6 +6164,12 @@ async function checkApiStatus() {
         banner.style.color = '#34c759';
         banner.innerHTML = `✅ ${result.message}（${result.provider}）`;
       }
+      // 更新录音界面指示器
+      if (indicator) {
+        indicator.classList.add('valid');
+        indicator.title = `API 有效（${result.provider}）`;
+        if (indicatorText) indicatorText.textContent = 'API 正常';
+      }
       // 隐藏全局提醒
       hideApiWarning();
     } else {
@@ -6121,6 +6182,12 @@ async function checkApiStatus() {
         banner.style.color = '#FF3B30';
         banner.innerHTML = `❌ ${result.message}<br><span style="font-size:11px; opacity:0.7;">请检查 API Key 是否正确，或去 ${result.provider === 'deepseek' ? 'DeepSeek' : '豆包'} 官网重新获取</span>`;
       }
+      // 更新录音界面指示器
+      if (indicator) {
+        indicator.classList.add('invalid');
+        indicator.title = `API 无效：${result.message}`;
+        if (indicatorText) indicatorText.textContent = 'API 异常';
+      }
       // 显示全局提醒
       showApiWarning(result.message);
     }
@@ -6132,6 +6199,12 @@ async function checkApiStatus() {
       banner.style.border = '1px solid rgba(255, 149, 0, 0.3)';
       banner.style.color = '#ff9500';
       banner.innerHTML = `⚠️ 检查失败: ${e.message}`;
+    }
+    // 更新录音界面指示器
+    if (indicator) {
+      indicator.classList.add('invalid');
+      indicator.title = `检查失败：${e.message}`;
+      if (indicatorText) indicatorText.textContent = '检查失败';
     }
   } finally {
     if (btn) {
