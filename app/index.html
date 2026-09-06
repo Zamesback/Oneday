@@ -3617,7 +3617,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
         <div class="plog-section">
           <div class="plog-weekly-badge">
             <span class="pulse"></span>
-            本周灵感池 · 已从碎碎念中提炼 4 个主题
+            <span id="plog-weekly-text">本周灵感池 · 已从碎碎念中提炼 0 个主题</span>
           </div>
           <div class="plog-grid" id="plog-grid"></div>
         </div>
@@ -3880,6 +3880,16 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
               <input type="password" id="set-apiKey" placeholder="sk-...">
             </div>
           </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">API 状态</div>
+              <div class="settings-desc" id="api-status-desc">点击右侧按钮检查 API Key 是否有效</div>
+            </div>
+            <div class="settings-control">
+              <button class="settings-btn" onclick="checkApiStatus()" id="api-check-btn">检查 API</button>
+            </div>
+          </div>
+          <div id="api-status-banner" style="display:none; margin:12px 0; padding:12px 16px; border-radius:8px; font-size:13px;"></div>
           <div class="settings-item">
             <div>
               <div class="settings-label">AI 风格</div>
@@ -4647,6 +4657,21 @@ function renderPlogTopics() {
   if (!grid) return;
   
   const inspirations = _data?.inspirations || [];
+  const count = inspirations.length;
+  
+  // 动态更新标题
+  const subtitle = document.getElementById('inspirations-subtitle');
+  if (subtitle) {
+    subtitle.textContent = `PLOG IDEAS · 本周 ${count} 个可出主题`;
+  }
+  const weeklyText = document.getElementById('plog-weekly-text');
+  if (weeklyText) {
+    if (count > 0) {
+      weeklyText.textContent = `本周灵感池 · 已从碎碎念中提炼 ${count} 个主题`;
+    } else {
+      weeklyText.textContent = '本周灵感池 · 跟 AI 聊聊，它会帮你收集灵感';
+    }
+  }
   
   if (inspirations.length === 0) {
     grid.innerHTML = '<div class="empty" style="grid-column:1/-1; text-align:center; padding:60px 20px;"><p style="font-size:16px; color:rgba(255,255,255,0.5); margin-bottom:12px;">还没有灵感</p><p style="font-size:13px; color:rgba(255,255,255,0.3);">跟 AI 聊聊你的想法，它会帮你收集灵感</p></div>';
@@ -6026,11 +6051,111 @@ async function saveSettings() {
     body: JSON.stringify(settings)
   });
   showToast('设置已保存');
+  // 保存设置后自动检查 API 状态
+  if (settings.apiKey && settings.apiProvider !== 'mock') {
+    setTimeout(() => checkApiStatus(), 500);
+  }
 }
 
 async function testNotification() {
   await fetch(API_BASE + '/notify/test', { method: 'POST' });
   showToast('已发送测试通知');
+}
+
+// 检查 API Key 状态
+async function checkApiStatus() {
+  const btn = document.getElementById('api-check-btn');
+  const desc = document.getElementById('api-status-desc');
+  const banner = document.getElementById('api-status-banner');
+  
+  if (btn) {
+    btn.textContent = '检查中...';
+    btn.disabled = true;
+  }
+  
+  try {
+    const res = await fetch(API_BASE + '/check-api');
+    const result = await res.json();
+    
+    if (result.valid) {
+      // API 有效
+      if (desc) desc.textContent = '✅ API Key 有效';
+      if (banner) {
+        banner.style.display = 'block';
+        banner.style.background = 'rgba(52, 199, 89, 0.1)';
+        banner.style.border = '1px solid rgba(52, 199, 89, 0.3)';
+        banner.style.color = '#34c759';
+        banner.innerHTML = `✅ ${result.message}（${result.provider}）`;
+      }
+      // 隐藏全局提醒
+      hideApiWarning();
+    } else {
+      // API 无效
+      if (desc) desc.textContent = '❌ API Key 无效';
+      if (banner) {
+        banner.style.display = 'block';
+        banner.style.background = 'rgba(255, 59, 48, 0.1)';
+        banner.style.border = '1px solid rgba(255, 59, 48, 0.3)';
+        banner.style.color = '#FF3B30';
+        banner.innerHTML = `❌ ${result.message}<br><span style="font-size:11px; opacity:0.7;">请检查 API Key 是否正确，或去 ${result.provider === 'deepseek' ? 'DeepSeek' : '豆包'} 官网重新获取</span>`;
+      }
+      // 显示全局提醒
+      showApiWarning(result.message);
+    }
+  } catch (e) {
+    if (desc) desc.textContent = '检查失败';
+    if (banner) {
+      banner.style.display = 'block';
+      banner.style.background = 'rgba(255, 149, 0, 0.1)';
+      banner.style.border = '1px solid rgba(255, 149, 0, 0.3)';
+      banner.style.color = '#ff9500';
+      banner.innerHTML = `⚠️ 检查失败: ${e.message}`;
+    }
+  } finally {
+    if (btn) {
+      btn.textContent = '重新检查';
+      btn.disabled = false;
+    }
+  }
+}
+
+// 显示全局 API 警告
+function showApiWarning(message) {
+  // 检查是否已经有警告条
+  let warning = document.getElementById('global-api-warning');
+  if (!warning) {
+    warning = document.createElement('div');
+    warning.id = 'global-api-warning';
+    warning.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(90deg, #FF3B30, #ff6b6b);
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 99999;
+      box-shadow: 0 2px 10px rgba(255, 59, 48, 0.3);
+      cursor: pointer;
+    `;
+    warning.onclick = () => {
+      navigate('settings');
+    };
+    document.body.appendChild(warning);
+  }
+  warning.innerHTML = `⚠️ API 服务暂时不可用: ${message}（点击去设置）`;
+  warning.style.display = 'block';
+}
+
+// 隐藏全局 API 警告
+function hideApiWarning() {
+  const warning = document.getElementById('global-api-warning');
+  if (warning) {
+    warning.style.display = 'none';
+  }
 }
 
 // ===== 抽屉 =====
@@ -6054,6 +6179,9 @@ async function init() {
       setTimeout(() => {
         document.getElementById('welcome-overlay').classList.add('show');
       }, 500);
+    } else {
+      // 已配置 API，自动检查 API 状态
+      setTimeout(() => checkApiStatus(), 1000);
     }
     
     // 处理 URL hash 路由

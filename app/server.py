@@ -551,6 +551,97 @@ def call_real_ai(system_prompt, user_prompt):
         print(f"调用真实 AI 失败: {e}")
         return None
 
+def check_api_key():
+    """检查 API Key 是否有效
+    返回: {'valid': bool, 'message': str, 'provider': str}
+    """
+    settings = load_settings()
+    provider = settings.get('apiProvider', 'mock')
+    api_key = settings.get('apiKey', '')
+    
+    if not api_key or provider == 'mock':
+        return {
+            'valid': False,
+            'message': '未配置 API Key',
+            'provider': provider,
+            'checked_at': datetime.datetime.now().isoformat()
+        }
+    
+    try:
+        import urllib.request
+        import json
+        
+        if provider == 'deepseek':
+            url = 'https://api.deepseek.com/v1/chat/completions'
+            model = 'deepseek-chat'
+        elif provider == 'doubao':
+            url = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions'
+            model = settings.get('model', 'doubao-pro-32k')
+        else:
+            return {
+                'valid': False,
+                'message': f'不支持的提供商: {provider}',
+                'provider': provider,
+                'checked_at': datetime.datetime.now().isoformat()
+            }
+        
+        # 用最小的请求来测试 API Key
+        payload = {
+            'model': model,
+            'messages': [
+                {'role': 'user', 'content': 'hi'}
+            ],
+            'max_tokens': 1
+        }
+        
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {api_key}'
+            }
+        )
+        
+        with urllib.request.urlopen(req, timeout=15) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            if 'choices' in result:
+                return {
+                    'valid': True,
+                    'message': 'API Key 有效',
+                    'provider': provider,
+                    'checked_at': datetime.datetime.now().isoformat()
+                }
+            else:
+                return {
+                    'valid': False,
+                    'message': f'API 返回异常: {json.dumps(result, ensure_ascii=False)[:100]}',
+                    'provider': provider,
+                    'checked_at': datetime.datetime.now().isoformat()
+                }
+                
+    except urllib.error.HTTPError as e:
+        error_msg = f'HTTP {e.code}'
+        try:
+            error_data = json.loads(e.read().decode('utf-8'))
+            if 'error' in error_data:
+                error_msg = error_data['error'].get('message', error_msg)
+        except:
+            pass
+        return {
+            'valid': False,
+            'message': error_msg,
+            'provider': provider,
+            'checked_at': datetime.datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            'valid': False,
+            'message': f'检查失败: {str(e)}',
+            'provider': provider,
+            'checked_at': datetime.datetime.now().isoformat()
+        }
+
 def parse_ai_response(raw_response):
     """解析 AI 返回的 JSON，容错处理"""
     if isinstance(raw_response, dict):
@@ -1514,6 +1605,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         if path == '/api/settings':
             self.send_json(load_settings())
+            return
+
+        # API Key 自检
+        if path == '/api/check-api':
+            result = check_api_key()
+            # 保存检查结果到 settings
+            settings = load_settings()
+            settings['apiStatus'] = result
+            save_settings(settings)
+            self.send_json(result)
             return
 
         # 卡片统计
