@@ -442,6 +442,16 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
 - 如果用户只是闲聊，没有具体信息，extracted 里的数组就为空
 - 情绪判断要基于用户的语气和内容
 - 你是鼓励型的伙伴，多给正面反馈，但不要虚假
+
+## 人名识别一致性规则（非常重要）
+- 用户可能多次提到同一个人，但语音识别可能把名字识别成不同的字（比如"王燕"和"王艳"）
+- **你必须根据上下文判断是否是同一个人**：如果是同一个人，即使字不一样，也要用同一个名字
+- 判断依据：
+  1. 发音相同或非常相似
+  2. 身份、关系、上下文一致
+  3. 用户在同一段对话中多次提到
+- 如果不确定是不是同一个人，可以先用用户第一次提到的写法，后续由用户在「朋友」模块中手动修正
+- **绝对不要因为语音识别的字不一样，就把同一个人识别成多个人！**
 """
 
 def build_ai_context(user_message, history):
@@ -993,25 +1003,51 @@ def save_extracted_info(extracted):
         existing_names = [f.get('name') for f in friends]
         for friend in extracted['friends']:
             if isinstance(friend, dict) and friend.get('name'):
-                if friend['name'] not in existing_names:
-                    friends.insert(0, {
-                        'id': gen_id('friend'),
-                        'name': friend['name'],
-                        'identity': friend.get('identity', ''),
-                        'relationship': friend.get('relationship', ''),
-                        'notes': '',
-                        'status': 'draft',
-                        'mention_count': 1,
-                        'source': 'ai_extract',
-                        'date': datetime.datetime.now().isoformat()
-                    })
-                    saved['friends'] += 1
-                else:
-                    # 已存在，增加提及次数
+                friend_name = friend['name']
+                # 先精确匹配
+                if friend_name in existing_names:
                     for f in friends:
-                        if f.get('name') == friend['name']:
+                        if f.get('name') == friend_name:
                             f['mention_count'] = f.get('mention_count', 0) + 1
                             break
+                else:
+                    # 模糊匹配：检查是否有相似的名字（同音不同字的情况）
+                    # 规则：名字长度相同，且第一个字相同，很可能是同一个人
+                    matched_friend = None
+                    for f in friends:
+                        existing_name = f.get('name', '')
+                        if (len(existing_name) == len(friend_name) and 
+                            len(friend_name) >= 2 and 
+                            existing_name[0] == friend_name[0]):
+                            # 进一步检查：至少有一个字相同（除了第一个字）
+                            common_chars = set(existing_name[1:]) & set(friend_name[1:])
+                            if common_chars or len(friend_name) == 2:
+                                matched_friend = f
+                                print(f"[朋友] 模糊匹配：'{friend_name}' 匹配到已存在的 '{existing_name}'，增加提及次数")
+                                break
+                    
+                    if matched_friend:
+                        # 模糊匹配到已存在的朋友，增加提及次数
+                        matched_friend['mention_count'] = matched_friend.get('mention_count', 0) + 1
+                        # 如果身份或关系更详细，更新
+                        if friend.get('identity') and not matched_friend.get('identity'):
+                            matched_friend['identity'] = friend['identity']
+                        if friend.get('relationship') and not matched_friend.get('relationship'):
+                            matched_friend['relationship'] = friend['relationship']
+                    else:
+                        # 没有匹配到，创建新的朋友
+                        friends.insert(0, {
+                            'id': gen_id('friend'),
+                            'name': friend_name,
+                            'identity': friend.get('identity', ''),
+                            'relationship': friend.get('relationship', ''),
+                            'notes': '',
+                            'status': 'draft',
+                            'mention_count': 1,
+                            'source': 'ai_extract',
+                            'date': datetime.datetime.now().isoformat()
+                        })
+                        saved['friends'] += 1
         save_module('friends', friends)
     
     # 保存运动

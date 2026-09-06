@@ -2463,6 +2463,33 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   font-family: var(--serif);
   margin-bottom: 8px;
 }
+.friends-detail-name-section {
+  margin-bottom: 8px;
+}
+.friends-detail-name-input {
+  font-size: 28px;
+  font-weight: 900;
+  font-family: var(--serif);
+  border: none;
+  border-bottom: 2px dashed transparent;
+  background: transparent;
+  color: inherit;
+  padding: 4px 0;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.friends-detail-name-input:hover,
+.friends-detail-name-input:focus {
+  border-bottom-color: var(--red);
+}
+.friends-detail-name-hint {
+  font-size: 10px;
+  color: var(--gray-400);
+  font-family: var(--mono);
+  margin-top: 2px;
+  opacity: 0.7;
+}
 .friends-detail-meta {
   display: flex;
   gap: 8px;
@@ -5273,7 +5300,10 @@ function openFriendDrawer(id) {
   
   detailContent.innerHTML = `
     <div class="friends-detail-header">
-      <div class="friends-detail-name">${f.name || ''}</div>
+      <div class="friends-detail-name-section">
+        <input class="friends-detail-name-input" id="fd-name" value="${f.name || ''}" placeholder="姓名">
+        <div class="friends-detail-name-hint">点击可修改姓名（语音识别可能有误差）</div>
+      </div>
       <div class="friends-detail-meta">
         <span class="friends-detail-tag relationship">${f.relationship || '未分类'}</span>
         <span class="friends-detail-tag mention">提及 ${f.mention_count || 0} 次</span>
@@ -5310,8 +5340,11 @@ function openFriendDrawer(id) {
 
 // 保存朋友详情（右侧面板）
 async function saveFriendDetail(id) {
+  const newName = document.getElementById('fd-name').value.trim();
+  if (!newName) { showToast('姓名不能为空'); return; }
+  
   const data = {
-    name: _data.friends.find(f => f.id === id)?.name || '',
+    name: newName,
     identity: document.getElementById('fd-identity').value.trim(),
     relationship: document.getElementById('fd-relationship').value.trim(),
     contact: document.getElementById('fd-contact').value.trim(),
