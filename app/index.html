@@ -5796,6 +5796,7 @@ function startVoiceRecording() {
       _voiceRecognition.interimResults = true;
       
       let finalTranscript = '';
+      let lastInterimTranscript = '';
       
       _voiceRecognition.onresult = function(event) {
         let interimTranscript = '';
@@ -5807,6 +5808,7 @@ function startVoiceRecording() {
             interimTranscript += transcript;
           }
         }
+        lastInterimTranscript = interimTranscript;
         if (interimTranscript || finalTranscript) {
           showVoiceReply('「' + finalTranscript + interimTranscript + '」', '你说的');
         }
@@ -5827,7 +5829,7 @@ function startVoiceRecording() {
         }
       };
       
-      _voiceRecognition._finalTranscript = () => finalTranscript;
+      _voiceRecognition._finalTranscript = () => finalTranscript + lastInterimTranscript;
       _voiceRecognition.start();
     } else {
       showVoiceReply('当前浏览器不支持语音识别。推荐使用 Chrome 或 Edge 浏览器。', '');
@@ -5852,6 +5854,7 @@ function stopVoiceRecording() {
   if (_voiceRecognition && _voiceRecognition._finalTranscript) {
     transcript = _voiceRecognition._finalTranscript();
   }
+  console.log('[录音] 停止录音，识别到的文字:', transcript);
   
   if (_voiceRecognition) {
     try { _voiceRecognition.stop(); } catch (e) {}
@@ -5862,8 +5865,10 @@ function stopVoiceRecording() {
   setVoiceStatus('thinking', 'AI 正在思考...');
   
   if (transcript && transcript.trim()) {
+    console.log('[录音] 调用 sendVoiceMessage');
     sendVoiceMessage(transcript.trim());
   } else {
+    console.warn('[录音] 没有识别到文字');
     showVoiceReply('没有听到你说什么，再试一次吧。', 'OneDay');
     setVoiceStatus('', '待机中');
   }
@@ -5892,8 +5897,8 @@ async function sendVoiceMessage(message) {
     
     const result = await res.json();
     console.log('[AI对话] 响应内容:', result);
-    await loadData();
     
+    // 先显示回复，再加载数据（避免loadData出错导致回复不显示）
     if (result.reply) {
       console.log('[AI对话] 显示回复:', result.reply);
       showVoiceReply(result.reply, 'OneDay');
@@ -5903,6 +5908,14 @@ async function sendVoiceMessage(message) {
     }
     if (result.extracted) {
       showExtractedTags(result.extracted);
+    }
+    
+    // 加载最新数据（用try-catch包裹，避免出错影响回复显示）
+    try {
+      await loadData();
+      console.log('[AI对话] 数据加载完成');
+    } catch (e) {
+      console.error('[AI对话] loadData出错:', e);
     }
   } catch (e) {
     console.error('[AI对话] 发送失败:', e);
