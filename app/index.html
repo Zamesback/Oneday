@@ -5757,6 +5757,10 @@ function drawGraph() {
 // ===== AI 对话 · 声波界面（干掉打字） =====
 let _voiceRecording = false;
 let _voiceRecognition = null;
+let _voiceFinalTranscript = '';      // 全局保存已识别的文字，避免重启丢失
+let _voiceLastInterimTranscript = ''; // 全局保存最后一段临时结果
+let _voiceRestartCount = 0;           // 重启计数器，避免无限重启
+const VOICE_MAX_RESTARTS = 50;        // 最大重启次数（约25分钟）
 let _waveAnimFrame = null;
 let _waveBars = [];
 let _waveTime = 0;
@@ -5854,6 +5858,9 @@ function resetMicButton() {
 function startVoiceRecording() {
   if (_voiceRecording) return;
   _voiceRecording = true;
+  _voiceFinalTranscript = '';           // 重置全局已识别文字
+  _voiceLastInterimTranscript = '';     // 重置全局临时结果
+  _voiceRestartCount = 0;               // 重置重启计数器
   playStartRecordingSound();
   const btn = document.getElementById('voice-mic-btn');
   if (btn) {
@@ -5873,28 +5880,26 @@ function startVoiceRecording() {
       _voiceRecognition.continuous = true;
       _voiceRecognition.interimResults = true;
       
-      let finalTranscript = '';
-      let lastInterimTranscript = '';
-      
       _voiceRecognition.onresult = function(event) {
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript;
+            _voiceFinalTranscript += transcript;  // 使用全局变量
           } else {
             interimTranscript += transcript;
           }
         }
-        lastInterimTranscript = interimTranscript;
-        if (interimTranscript || finalTranscript) {
-          showVoiceReply('「' + finalTranscript + interimTranscript + '」', '你说的');
+        _voiceLastInterimTranscript = interimTranscript;  // 使用全局变量
+        if (interimTranscript || _voiceFinalTranscript) {
+          showVoiceReply('「' + _voiceFinalTranscript + interimTranscript + '」', '你说的');
         }
       };
       
       _voiceRecognition.onerror = function(event) {
         console.warn('语音识别错误:', event.error);
-        if (event.error === 'no-speech') return;
+        if (event.error === 'no-speech') return;  // no-speech 不停止，让 onend 自动重启
+        if (event.error === 'aborted') return;     // 主动停止的，不处理
         showVoiceReply('语音识别暂时不可用，请检查浏览器麦克风权限。', '');
         setVoiceStatus('', '待机中');
         resetMicButton();
@@ -5902,12 +5907,32 @@ function startVoiceRecording() {
       };
       
       _voiceRecognition.onend = function() {
-        if (_voiceRecording) {
-          try { _voiceRecognition.start(); } catch (e) {}
+        if (!_voiceRecording) return;
+        
+        // 检查重启次数，避免无限重启
+        if (_voiceRestartCount >= VOICE_MAX_RESTARTS) {
+          console.warn('[录音] 达到最大重启次数，自动停止');
+          showVoiceReply('录音时间较长，已自动保存。可以继续点击录音按钮开始新的对话。', 'OneDay');
+          stopVoiceRecording();
+          return;
         }
+        
+        _voiceRestartCount++;
+        console.log(`[录音] 语音识别自动重启 (${_voiceRestartCount}/${VOICE_MAX_RESTARTS})，已识别文字保留`);
+        
+        // 延迟一小段时间再重启，避免频繁重启
+        setTimeout(() => {
+          if (_voiceRecording && _voiceRecognition) {
+            try { 
+              _voiceRecognition.start(); 
+            } catch (e) {
+              console.warn('[录音] 重启失败:', e);
+            }
+          }
+        }, 100);
       };
       
-      _voiceRecognition._finalTranscript = () => finalTranscript + lastInterimTranscript;
+      _voiceRecognition._finalTranscript = () => _voiceFinalTranscript + _voiceLastInterimTranscript;
       _voiceRecognition.start();
     } else {
       showVoiceReply('当前浏览器不支持语音识别。推荐使用 Chrome 或 Edge 浏览器。', '');
@@ -5929,16 +5954,20 @@ function stopVoiceRecording() {
   _voiceRecording = false;
   playStopRecordingSound();
   
-  let transcript = '';
-  if (_voiceRecognition && _voiceRecognition._finalTranscript) {
-    transcript = _voiceRecognition._finalTranscript();
-  }
+  // 直接从全局变量获取文字，确保即使语音识别对象销毁了也能获取到
+  let transcript = _voiceFinalTranscript + _voiceLastInterimTranscript;
   console.log('[录音] 停止录音，识别到的文字:', transcript);
+  console.log('[录音] 重启次数:', _voiceRestartCount);
   
   if (_voiceRecognition) {
     try { _voiceRecognition.stop(); } catch (e) {}
     _voiceRecognition = null;
   }
+  
+  // 重置全局变量
+  _voiceFinalTranscript = '';
+  _voiceLastInterimTranscript = '';
+  _voiceRestartCount = 0;
   
   resetMicButton();
   setVoiceStatus('thinking', 'AI 正在思考...');
