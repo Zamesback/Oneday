@@ -1,0 +1,12 @@
+{
+  "userName": "",
+  "morningTime": "07:30",
+  "eveningTime": "22:00",
+  "exerciseReminderTime": "20:00",
+  "notificationsEnabled": true,
+  "apiProvider": "deepseek",
+  "apiKey": "sk-4b6a80ef6f4f44eea9169f17dc08113b",
+  "aiStyle": "encouraging",
+  "weatherApiKey": "",
+  "weatherCity": "上海"
+}

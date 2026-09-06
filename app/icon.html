@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OneDay Icon</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1024px;
+    height: 1024px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+  .icon {
+    width: 1024px;
+    height: 1024px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+    border-radius: 224px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 120px rgba(255,59,48,0.15);
+  }
+  .icon::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,59,48,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .icon::after {
+    content: '';
+    position: absolute;
+    bottom: -150px;
+    left: -150px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,59,48,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .circle {
+    width: 520px;
+    height: 520px;
+    border: 8px solid #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .circle::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 8px;
+    height: 130px;
+    background: #FF3B30;
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(-30deg);
+    border-radius: 4px;
+  }
+  .circle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    background: #FF3B30;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .hand-hour {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    width: 10px;
+    height: 140px;
+    background: #fff;
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(0deg);
+    border-radius: 5px;
+    z-index: 2;
+  }
+  .hand-minute {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    width: 8px;
+    height: 200px;
+    background: #fff;
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(90deg);
+    border-radius: 4px;
+    z-index: 2;
+  }
+  .text {
+    margin-top: 80px;
+    text-align: center;
+    z-index: 1;
+  }
+  .text .oneday {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+    font-size: 120px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+  .text .chinese {
+    font-family: "Noto Serif SC", "Songti SC", serif;
+    font-size: 56px;
+    font-weight: 900;
+    color: #FF3B30;
+    margin-top: 16px;
+    letter-spacing: 12px;
+  }
+  .dot-grid {
+    position: absolute;
+    bottom: 80px;
+    display: flex;
+    gap: 16px;
+    z-index: 1;
+  }
+  .dot-grid .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+  }
+  .dot-grid .dot.active {
+    background: #FF3B30;
+  }
+</style>
+</head>
+<body>
+  <div class="icon">
+    <div class="circle">
+      <div class="hand-hour"></div>
+      <div class="hand-minute"></div>
+    </div>
+    <div class="text">
+      <div class="oneday">OneDay</div>
+      <div class="chinese">一日</div>
+    </div>
+    <div class="dot-grid">
+      <div class="dot"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+</body>
+</html>

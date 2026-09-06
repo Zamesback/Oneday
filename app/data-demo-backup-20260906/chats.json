@@ -1,0 +1,1252 @@
+[
+  {
+    "id": "chat_1788605412641_539",
+    "role": "assistant",
+    "content": "明天做PPT，下周四内部review，9月25号商飞评审，都记下了。跟王总吃饭，小李帮忙，挺好的。AI助手的点子不错，有空可以聊聊。今天跑了5公里，状态很棒，继续保持！",
+    "extracted": {
+      "todos": [
+        {
+          "title": "做PPT",
+          "due_date": "2026-09-06",
+          "priority": "medium"
+        },
+        {
+          "title": "内部review",
+          "due_date": "2026-09-10",
+          "priority": "high"
+        },
+        {
+          "title": "商飞评审会",
+          "due_date": "2026-09-25",
+          "priority": "high"
+        }
+      ],
+      "projects": [],
+      "inspirations": [
+        "AI助手的点子"
+      ],
+      "friends": [
+        {
+          "name": "王总",
+          "identity": "客户",
+          "relationship": "客户"
+        },
+        {
+          "name": "小李",
+          "identity": "同事",
+          "relationship": "同事"
+        }
+      ],
+      "exercise": {
+        "status": "done",
+        "detail": "跑了5公里"
+      },
+      "mood": "happy"
+    },
+    "saved": {
+      "todos": 3,
+      "projects": 0,
+      "inspirations": 1,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:50:12.641864"
+  },
+  {
+    "id": "chat_1788605412641_701",
+    "role": "user",
+    "content": "明天要做PPT，下周四内部review，9月25号商飞评审。跟客户王总吃饭，同事小李帮忙。想到一个AI助手的点子。今天跑了5公里。",
+    "timestamp": "2026-09-05T18:50:12.641858"
+  },
+  {
+    "id": "chat_1788605361021_723",
+    "role": "assistant",
+    "content": "明白了，你明天要做PPT，下周四内部review，9月25号商飞评审会要用。听起来是个重要的项目，加油！我会帮你记着这几个时间点，到时候提醒你。\n\n记得预留足够时间准备PPT，可以先列个大纲。",
+    "extracted": {
+      "todos": [
+        {
+          "title": "做PPT",
+          "due_date": "2026-09-06",
+          "priority": "high"
+        },
+        {
+          "title": "PPT内部review",
+          "due_date": "2026-09-10",
+          "priority": "high"
+        },
+        {
+          "title": "商飞评审会",
+          "due_date": "2026-09-25",
+          "priority": "high"
+        }
+      ],
+      "projects": [
+        {
+          "name": "商飞相关项目",
+          "stage": "跟进中",
+          "notes": "9月25日评审会"
+        }
+      ],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 3,
+      "projects": 1,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:49:21.021345"
+  },
+  {
+    "id": "chat_1788605361021_470",
+    "role": "user",
+    "content": "我明天要做一个PPT，PPT下周四会review，内部review。然后这个PPT最终会用到9月25号的商飞评审会上。",
+    "timestamp": "2026-09-05T18:49:21.021336"
+  },
+  {
+    "id": "chat_1788605311371_689",
+    "role": "assistant",
+    "content": "听起来这个PPT挺重要的，明天先做起来，下周四内部review一下，然后9月25号用在商飞评审会上。加油，一步步来，肯定没问题的！\n\n记得把PPT内容提前准备好，review前可以找同事先看看，确保质量。",
+    "extracted": {
+      "todos": [
+        {
+          "title": "做PPT",
+          "due_date": "2026-09-06",
+          "priority": "high"
+        },
+        {
+          "title": "PPT内部review",
+          "due_date": "2026-09-10",
+          "priority": "high"
+        },
+        {
+          "title": "商飞评审会",
+          "due_date": "2026-09-25",
+          "priority": "high"
+        }
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 3,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:48:31.371964"
+  },
+  {
+    "id": "chat_1788605311371_345",
+    "role": "user",
+    "content": "我明天要做一个PPT，PPT下周四会review，内部review。然后这个PPT最终会用到9月25号的商飞评审会上。",
+    "timestamp": "2026-09-05T18:48:31.371957"
+  },
+  {
+    "id": "chat_1788605008485_818",
+    "role": "assistant",
+    "content": "是啊，天气好心情也跟着好起来啦！有什么特别想做的吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "happy"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:43:28.485790"
+  },
+  {
+    "id": "chat_1788605008485_307",
+    "role": "user",
+    "content": "今天天气真好，心情不错。",
+    "timestamp": "2026-09-05T18:43:28.485773"
+  },
+  {
+    "id": "chat_1788605007693_779",
+    "role": "assistant",
+    "content": "王总那边的会开得顺利就好，商飞项目有进展真是太好了！明天写周报、下周一分享，都是要紧事，别忘了提前准备。你那个AI语音助手的点子挺有意思的，说不定能派上大用场。小李帮你解决了问题，回头可以请他喝杯咖啡。今天跑了5公里，状态不错嘛，继续保持！\n\n周报和分享的内容可以提前规划一下，确保重点突出。",
+    "extracted": {
+      "todos": [
+        {
+          "title": "写项目周报",
+          "due_date": "2026-09-06",
+          "priority": "medium"
+        },
+        {
+          "title": "给团队做分享",
+          "due_date": "2026-09-07",
+          "priority": "medium"
+        }
+      ],
+      "projects": [
+        {
+          "name": "商飞相关项目",
+          "stage": "跟进中",
+          "notes": "今天与客户王总开会，项目有进展"
+        }
+      ],
+      "inspirations": [
+        "AI语音助手点子"
+      ],
+      "friends": [
+        {
+          "name": "王总",
+          "identity": "客户",
+          "relationship": "客户"
+        },
+        {
+          "name": "小李",
+          "identity": "同事",
+          "relationship": "同事"
+        }
+      ],
+      "exercise": {
+        "status": "done",
+        "detail": "跑了5公里"
+      },
+      "mood": "happy"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 1,
+      "inspirations": 1,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:43:27.693728"
+  },
+  {
+    "id": "chat_1788605007693_984",
+    "role": "user",
+    "content": "今天跟客户王总开了个会，商飞项目有进展了。明天要写项目周报，下周一要给团队做分享。突然想到一个点子，可以做个AI语音助手。同事小李今天帮我解决了个技术问题，挺感谢他的。今天跑了5公里，感觉不错。",
+    "timestamp": "2026-09-05T18:43:27.693717"
+  },
+  {
+    "id": "chat_1788604970921_826",
+    "role": "assistant",
+    "content": "收到，PPT确实重要，既要内部review又要用在大评审上。我帮你记着时间点，明天做PPT，下周四内部review，9月25号商飞评审会。加油，一步步来！\n\n建议把PPT内容尽早完成，留出时间给内部review修改，确保9月25日评审会顺利。",
+    "extracted": {
+      "todos": [
+        {
+          "title": "做PPT",
+          "due_date": "2026-09-06",
+          "priority": "high"
+        },
+        {
+          "title": "内部review PPT",
+          "due_date": "2026-09-10",
+          "priority": "high"
+        },
+        {
+          "title": "商飞评审会（使用PPT）",
+          "due_date": "2026-09-25",
+          "priority": "high"
+        }
+      ],
+      "projects": [
+        {
+          "name": "商飞相关项目",
+          "stage": "跟进中",
+          "notes": "9月25日有评审会"
+        }
+      ],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 3,
+      "projects": 1,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:42:50.921507"
+  },
+  {
+    "id": "chat_1788604970921_936",
+    "role": "user",
+    "content": "我明天要做一个PPT，PPT下周四会review，内部review。然后这个PPT最终会用到9月25号的商飞评审会上。",
+    "timestamp": "2026-09-05T18:42:50.921498"
+  },
+  {
+    "id": "chat_1788604831783_615",
+    "role": "assistant",
+    "content": "好的，明天做PPT，后天写报告，我记下了。加油！",
+    "extracted": {
+      "todos": [
+        {
+          "title": "做PPT",
+          "due_date": "2026-09-06",
+          "priority": "medium"
+        },
+        {
+          "title": "写报告",
+          "due_date": "2026-09-07",
+          "priority": "medium"
+        }
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:40:31.783669"
+  },
+  {
+    "id": "chat_1788604831783_350",
+    "role": "user",
+    "content": "明天要做PPT，后天写报告。",
+    "timestamp": "2026-09-05T18:40:31.783658"
+  },
+  {
+    "id": "chat_1788604830709_642",
+    "role": "assistant",
+    "content": "哇，今天收获满满啊！跟王总吃饭聊合作，这顿饭吃得值！小李帮你改PPT也真是给力，记得好好谢谢他。还跑了5公里，太自律了吧！那个每日打卡的点子挺有意思的，可以记下来以后慢慢想。今天心情不错吧？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [
+        "每日打卡功能"
+      ],
+      "friends": [
+        {
+          "name": "王总",
+          "identity": "客户",
+          "relationship": "合作对象"
+        },
+        {
+          "name": "小李",
+          "identity": "同事",
+          "relationship": "同事"
+        }
+      ],
+      "exercise": {
+        "status": "done",
+        "detail": "跑了5公里"
+      },
+      "mood": "happy"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 1,
+      "friends": 1,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:40:30.709220"
+  },
+  {
+    "id": "chat_1788604830709_294",
+    "role": "user",
+    "content": "今天跟客户王总吃了个饭，聊了聊合作的事情。同事小李帮我改了PPT，挺感谢他的。突然想到一个点子，可以做个每日打卡功能。今天跑了5公里，感觉不错。",
+    "timestamp": "2026-09-05T18:40:30.709213"
+  },
+  {
+    "id": "chat_1788604813343_574",
+    "role": "assistant",
+    "content": "好的，明天做PPT，下周四内部评审，最终在9月25号的商飞评审会上用。这个时间线挺清晰的，一步步来，肯定能准备好。加油！\n\n建议提前准备PPT内容，并安排好内部review的时间。",
+    "extracted": {
+      "todos": [
+        {
+          "title": "做PPT",
+          "due_date": "2026-09-06",
+          "priority": "high"
+        },
+        {
+          "title": "内部review PPT",
+          "due_date": "2026-09-10",
+          "priority": "high"
+        }
+      ],
+      "projects": [
+        {
+          "name": "商飞相关项目",
+          "stage": "跟进中",
+          "notes": "9月25日有评审会"
+        }
+      ],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 1,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:40:13.343241"
+  },
+  {
+    "id": "chat_1788604813343_891",
+    "role": "user",
+    "content": "我明天要做一个PPT，PPT下周四会review，内部review。然后这个PPT最终会用到9月25号的商飞评审会上。",
+    "timestamp": "2026-09-05T18:40:13.343231"
+  },
+  {
+    "id": "chat_1788604678728_219",
+    "role": "assistant",
+    "content": "听起来这个PPT挺重要的，明天要做的话，今天得好好准备一下。你提到它最终要用在9月25号的商飞最终评审会上，那这个PPT的质量就很关键了。需要我帮你理理思路或者准备点材料吗？另外，明天做PPT，我会帮你记着，别太累着自己。\n\n建议今晚先整理一下PPT的大纲和要点，明天可以高效完成。如果有需要帮助的地方，随时告诉我。",
+    "extracted": {
+      "todos": [
+        {
+          "title": "做PPT（用于下周四会议，最终用于9月25号商飞评审）",
+          "due_date": "2026-09-06",
+          "priority": "high"
+        }
+      ],
+      "projects": [
+        {
+          "name": "商飞相关项目",
+          "stage": "跟进中",
+          "notes": "9月25号有最终评审会，需要准备PPT"
+        }
+      ],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 1,
+      "projects": 1,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:37:58.728996"
+  },
+  {
+    "id": "chat_1788604678728_765",
+    "role": "user",
+    "content": "我想跟你说的是，我明天要做一个PPT，这个PPT适用于下周四的一个会议，这个会议是双非的会议，然后这个商飞的会议室，我们内部去准备这个PPT的review会啊，那这个PPT最终会用在9月25号的商飞最终评审会。",
+    "timestamp": "2026-09-05T18:37:58.728986"
+  },
+  {
+    "id": "chat_1788604652031_439",
+    "role": "assistant",
+    "content": "在的在的，我一直都在呢！有什么想聊的或者需要帮忙的，随时跟我说哦！",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:37:32.031314"
+  },
+  {
+    "id": "chat_1788604652031_763",
+    "role": "user",
+    "content": "OK，你现在在的吧。",
+    "timestamp": "2026-09-05T18:37:32.031286"
+  },
+  {
+    "id": "chat_1788604543065_103",
+    "role": "assistant",
+    "content": "在的在的，我一直都在哦！有什么想聊的，或者需要我帮忙的吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:35:43.065294"
+  },
+  {
+    "id": "chat_1788604543065_363",
+    "role": "user",
+    "content": "Hello你好，你现在在嘛？",
+    "timestamp": "2026-09-05T18:35:43.065266"
+  },
+  {
+    "id": "chat_1788604230333_394",
+    "role": "assistant",
+    "content": "在的在的！我刚刚有点卡顿，不好意思哈。你明天要做PPT、后天要写报告，我都记着呢。别太累了，今晚早点休息，明天才有精神干活。需要我帮你理理PPT思路吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:30:30.333971"
+  },
+  {
+    "id": "chat_1788604230333_849",
+    "role": "user",
+    "content": "不是你回答我一下吗？你在不在。",
+    "timestamp": "2026-09-05T18:30:30.333960"
+  },
+  {
+    "id": "chat_1788604219391_984",
+    "role": "assistant",
+    "content": "Hello Hello！听起来你今天心情不错呀～有什么新鲜事想跟我分享吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "happy"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:30:19.391970"
+  },
+  {
+    "id": "chat_1788604219391_416",
+    "role": "user",
+    "content": "Hello Hello。",
+    "timestamp": "2026-09-05T18:30:19.391947"
+  },
+  {
+    "id": "chat_1788603922013_567",
+    "role": "assistant",
+    "content": "收到，下周三的项目汇报和周四的客户会议都记下了，提前准备，加油！",
+    "extracted": {
+      "todos": [
+        {
+          "title": "项目汇报",
+          "due_date": "2026-09-09",
+          "priority": "high"
+        },
+        {
+          "title": "跟客户开会",
+          "due_date": "2026-09-10",
+          "priority": "high"
+        }
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:25:22.013749"
+  },
+  {
+    "id": "chat_1788603922013_209",
+    "role": "user",
+    "content": "我下周三要做项目汇报，周四跟客户开会",
+    "timestamp": "2026-09-05T18:25:22.013745"
+  },
+  {
+    "id": "chat_1788603833671_626",
+    "role": "assistant",
+    "content": "收到，下周三项目汇报、下周四客户会议，都记下来啦。需要我帮你准备汇报材料或者提醒你吗？",
+    "extracted": {
+      "todos": [
+        {
+          "title": "项目汇报",
+          "due_date": "2026-09-09",
+          "priority": "high"
+        },
+        {
+          "title": "与客户开会",
+          "due_date": "2026-09-10",
+          "priority": "high"
+        }
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:23:53.671241"
+  },
+  {
+    "id": "chat_1788603833671_177",
+    "role": "user",
+    "content": "我下周三要做项目汇报，下周四要跟客户开会",
+    "timestamp": "2026-09-05T18:23:53.671231"
+  },
+  {
+    "id": "chat_1788603767660_694",
+    "role": "assistant",
+    "content": "你好呀！今天过得怎么样？有什么想聊的或者需要帮忙的吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:22:47.660484"
+  },
+  {
+    "id": "chat_1788603767660_680",
+    "role": "user",
+    "content": "你好",
+    "timestamp": "2026-09-05T18:22:47.660473"
+  },
+  {
+    "id": "chat_1788603765590_501",
+    "role": "assistant",
+    "content": "下周三去南京呀，是出差还是去玩？需要我帮你记一下，到时候提醒你吗？",
+    "extracted": {
+      "todos": [
+        {
+          "title": "去南京",
+          "due_date": "2026-09-09",
+          "priority": "medium"
+        }
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 1,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:22:45.590720"
+  },
+  {
+    "id": "chat_1788603765590_144",
+    "role": "user",
+    "content": "我下周三要去一下南京。",
+    "timestamp": "2026-09-05T18:22:45.590709"
+  },
+  {
+    "id": "chat_1788603755653_613",
+    "role": "assistant",
+    "content": "在呢在呢！我一直都在哦。有什么想聊的，或者需要我帮忙的吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:22:35.653723"
+  },
+  {
+    "id": "chat_1788603755653_522",
+    "role": "user",
+    "content": "你还在吗？",
+    "timestamp": "2026-09-05T18:22:35.653710"
+  },
+  {
+    "id": "chat_1788603457060_154",
+    "role": "assistant",
+    "content": "听起来你今天确实挺忙的，不过收获也不少啊！跟产品部开会推进新APP上线，还见了客户王总，感觉合作有戏，真不错。而且你还坚持跑了5公里，状态保持得真好，给你点赞！那个每日打卡的点子我也觉得很棒，很有创意，可以考虑跟团队分享一下。周末好好休息一下，看看书放松放松。下周的安排也很清晰，季度总结和技术对齐都挺重要的。别给自己太大压力，一步步来，你肯定能搞定的！\n\n明天周六可以好好休息，放松一下，为下周的工作充电。",
+    "extracted": {
+      "todos": [
+        {
+          "title": "写季度总结报告",
+          "due_date": "2026-09-07",
+          "priority": "medium"
+        },
+        {
+          "title": "跟技术部对齐需求",
+          "due_date": "2026-09-08",
+          "priority": "high"
+        }
+      ],
+      "projects": [
+        {
+          "name": "新版APP上线",
+          "stage": "跟进中",
+          "notes": "下周三上线，压力大"
+        }
+      ],
+      "inspirations": [
+        "在APP里加每日打卡功能，用户打卡获得积分"
+      ],
+      "friends": [
+        {
+          "name": "李雷",
+          "identity": "产品部同事",
+          "relationship": "同事"
+        },
+        {
+          "name": "王总",
+          "identity": "客户",
+          "relationship": "客户"
+        }
+      ],
+      "exercise": {
+        "status": "done",
+        "detail": "跑了5公里"
+      },
+      "mood": "tired"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 1,
+      "inspirations": 1,
+      "friends": 2,
+      "exercise": 1
+    },
+    "timestamp": "2026-09-05T18:17:37.060739"
+  },
+  {
+    "id": "chat_1788603457060_929",
+    "role": "user",
+    "content": "嘿，今天好累啊。上午跟产品部的李雷开了个会，讨论我们的新版APP上线计划，这个项目下周三要上线，压力好大。下午见了个客户王总，聊了聊合作的事情，感觉有戏。对了，我突然想到一个点子，我们可以在APP里加个每日打卡的功能，用户每天打卡可以获得积分，这个想法我觉得挺不错的。哦对了，今天下班去跑了5公里，感觉状态还可以。明天周六我想在家休息一下，看看书。下周一要写季度总结报告，下周二要跟技术部对齐需求。你说我这一周是不是安排得挺满的？",
+    "timestamp": "2026-09-05T18:17:37.060735"
+  },
+  {
+    "id": "chat_1788603243162_138",
+    "role": "assistant",
+    "content": "好的，明天做PPT，后天写报告，都记下啦！别忘了你之前还有给王艳看PPT的任务呢，加油！",
+    "extracted": {
+      "todos": [
+        {
+          "title": "做PPT",
+          "due_date": "2026-09-06",
+          "priority": "medium"
+        },
+        {
+          "title": "写报告",
+          "due_date": "2026-09-07",
+          "priority": "medium"
+        }
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:14:03.162592"
+  },
+  {
+    "id": "chat_1788603243162_647",
+    "role": "user",
+    "content": "我明天要做PPT，后天要写报告",
+    "timestamp": "2026-09-05T18:14:03.162582"
+  },
+  {
+    "id": "chat_1788603145865_651",
+    "role": "assistant",
+    "content": "明天做PPT，后天写报告，安排得挺紧凑的。需要我帮你规划一下时间吗？",
+    "extracted": {
+      "todos": [
+        "明天做PPT",
+        "后天写报告"
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:12:25.865839"
+  },
+  {
+    "id": "chat_1788603145865_369",
+    "role": "user",
+    "content": "我明天要做PPT，后天要写报告",
+    "timestamp": "2026-09-05T18:12:25.865830"
+  },
+  {
+    "id": "chat_1788603089108_967",
+    "role": "assistant",
+    "content": "明天做PPT，后天写报告，安排得挺紧凑的。要不要今晚先列个提纲，明天做起来会快些？加油！\n\n建议今晚简单规划PPT结构，提高明天效率。",
+    "extracted": {
+      "todos": [
+        "做PPT",
+        "写报告"
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:11:29.108390"
+  },
+  {
+    "id": "chat_1788603089108_113",
+    "role": "user",
+    "content": "我明天要做PPT，后天要写报告",
+    "timestamp": "2026-09-05T18:11:29.108381"
+  },
+  {
+    "id": "chat_1788603036700_200",
+    "role": "assistant",
+    "content": "明天做PPT，后天写报告，听起来安排得挺紧凑的。需要我帮你把PPT的要点理一理吗？或者写报告的时候有什么想先讨论的吗？",
+    "extracted": {
+      "todos": [
+        "做PPT（明天）",
+        "写报告（后天）"
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:10:36.700796"
+  },
+  {
+    "id": "chat_1788603036700_438",
+    "role": "user",
+    "content": "我明天要做PPT，后天要写报告",
+    "timestamp": "2026-09-05T18:10:36.700780"
+  },
+  {
+    "id": "chat_1788602886827_249",
+    "role": "assistant",
+    "content": "好的，明白了。明天要做PPT，一个是今天说的，还有一个是关于商飞的，周二要review。我记住了，别担心，明天我会提醒你的。\n\n今天先好好休息，明天再专注做PPT。如果需要，我可以帮你整理思路。",
+    "extracted": {
+      "todos": [
+        "做PPT（明天）",
+        "做商飞PPT（周二review）"
+      ],
+      "projects": [
+        {
+          "name": "商飞相关项目",
+          "stage": "跟进中",
+          "notes": "需要做PPT，周二review"
+        }
+      ],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 1,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:08:06.827915"
+  },
+  {
+    "id": "chat_1788602886827_484",
+    "role": "user",
+    "content": "我继续说我说是明天做PPT，你别寄到今天的带班，还有我明天要做另外一个PPT是周二要review，这个PPT是关于商飞的。",
+    "timestamp": "2026-09-05T18:08:06.827904"
+  },
+  {
+    "id": "chat_1788602772896_995",
+    "role": "assistant",
+    "content": "能听到能听到！明天做 PPT，后天给王艳看，收到啦。今天好好休息，明天加油！\n\n记得提前确认PPT内容和格式要求，祝顺利！",
+    "extracted": {
+      "todos": [
+        "做PPT",
+        "给王艳看PPT"
+      ],
+      "projects": [],
+      "inspirations": [],
+      "friends": [
+        {
+          "name": "王艳",
+          "identity": "未知",
+          "relationship": "未知"
+        }
+      ],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 2,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 1,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:06:12.896066"
+  },
+  {
+    "id": "chat_1788602772896_616",
+    "role": "user",
+    "content": "Hello Hello。你能听到我说话吗？能听到，给我点回复。我明天要做一个PPT后天要给王艳看。",
+    "timestamp": "2026-09-05T18:06:12.896050"
+  },
+  {
+    "id": "chat_1788602714705_958",
+    "role": "assistant",
+    "content": "你好呀！今天过得怎么样？有什么想聊的或者需要帮忙的吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "neutral"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:05:14.705075"
+  },
+  {
+    "id": "chat_1788602714704_514",
+    "role": "user",
+    "content": "你好",
+    "timestamp": "2026-09-05T18:05:14.705036"
+  },
+  {
+    "id": "chat_1788602515902_343",
+    "role": "assistant",
+    "content": "是啊，天气好的时候心情也会跟着变好呢！今天有什么计划吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "happy"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T18:01:55.902677"
+  },
+  {
+    "id": "chat_1788602515902_125",
+    "role": "user",
+    "content": "你好，今天天气不错",
+    "timestamp": "2026-09-05T18:01:55.902655"
+  },
+  {
+    "id": "chat_1788602319331_203",
+    "role": "assistant",
+    "content": "是啊，天气好的时候心情也会跟着变好呢！你今天有什么计划吗？",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": {
+        "status": "none",
+        "detail": ""
+      },
+      "mood": "happy"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T17:58:39.331135"
+  },
+  {
+    "id": "chat_1788602319331_476",
+    "role": "user",
+    "content": "你好，今天天气不错",
+    "timestamp": "2026-09-05T17:58:39.331100"
+  },
+  {
+    "id": "chat_1788602237758_647",
+    "role": "assistant",
+    "content": "嗯，我在听。\n\n\n我都记着呢。",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": null,
+      "mood": "neutral",
+      "summary": "识别到 0 个待办, 0 个灵感, 0 个人名"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T17:57:17.758811"
+  },
+  {
+    "id": "chat_1788602237758_480",
+    "role": "user",
+    "content": "你好，今天天气不错",
+    "timestamp": "2026-09-05T17:57:17.758797"
+  },
+  {
+    "id": "chat_1788602104378_768",
+    "role": "assistant",
+    "content": "嗯，我在听。\n\n\n我都记着呢。",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": null,
+      "mood": "neutral",
+      "summary": "识别到 0 个待办, 0 个灵感, 0 个人名"
+    },
+    "saved": {
+      "todos": 0,
+      "projects": 0,
+      "inspirations": 0,
+      "friends": 0,
+      "exercise": 0
+    },
+    "timestamp": "2026-09-05T17:55:04.378008"
+  },
+  {
+    "id": "chat_1788602104377_823",
+    "role": "user",
+    "content": "今天玩了一天，鬼武者。",
+    "timestamp": "2026-09-05T17:55:04.377989"
+  },
+  {
+    "id": "chat_1788530428096_393",
+    "role": "assistant",
+    "content": "，今天辛苦了。说说今天做了什么，有什么想法？",
+    "type": "evening_prompt",
+    "timestamp": "2026-09-04T22:00:28.096921"
+  },
+  {
+    "id": "chat_1788444041015_226",
+    "role": "assistant",
+    "content": "晚上好，。今天过得怎么样？跟我聊聊吧。",
+    "type": "evening_prompt",
+    "timestamp": "2026-09-03T22:00:41.015165"
+  },
+  {
+    "id": "chat_1788357621322_968",
+    "role": "assistant",
+    "content": "一天结束了，。有什么想跟我说的吗？",
+    "type": "evening_prompt",
+    "timestamp": "2026-09-02T22:00:21.322531"
+  },
+  {
+    "id": "chat_1788348790420_957",
+    "role": "assistant",
+    "content": "嗯，我在听。\n\n\n慢慢来，不着急。",
+    "extracted": {
+      "todos": [],
+      "projects": [],
+      "inspirations": [],
+      "friends": [],
+      "exercise": null,
+      "mood": "neutral",
+      "summary": "识别到 0 个待办, 0 个灵感, 0 个人名"
+    },
+    "timestamp": "2026-09-02T19:33:10.420422"
+  },
+  {
+    "id": "chat_1788348790420_675",
+    "role": "user",
+    "content": "那。",
+    "timestamp": "2026-09-02T19:33:10.420401"
+  },
+  {
+    "id": "chat_1788271208897_803",
+    "role": "assistant",
+    "content": "晚上好。今天有什么收获，有什么遗憾？跟我说说。",
+    "type": "evening_prompt",
+    "timestamp": "2026-09-01T22:00:08.897978"
+  },
+  {
+    "id": "chat_1788184852142_672",
+    "role": "assistant",
+    "content": "晚上好，。今天过得怎么样？跟我聊聊吧。",
+    "type": "evening_prompt",
+    "timestamp": "2026-08-31T22:00:52.142743"
+  }
+]

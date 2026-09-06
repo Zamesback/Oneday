@@ -3135,6 +3135,146 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 }
 .plog-divider::before, .plog-divider::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
 
+/* ===== 第一次使用欢迎页 ===== */
+.welcome-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.92);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  backdrop-filter: blur(10px);
+}
+.welcome-overlay.show { display: flex; }
+.welcome-modal {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 60px 50px;
+  max-width: 520px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.welcome-modal::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(255,59,48,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.welcome-icon {
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+.welcome-title {
+  font-family: -apple-system, "SF Pro Display", sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+.welcome-title .red { color: #FF3B30; }
+.welcome-subtitle {
+  font-family: "Noto Serif SC", serif;
+  font-size: 18px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 28px;
+  letter-spacing: 2px;
+  position: relative;
+  z-index: 1;
+}
+.welcome-desc {
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 36px;
+  position: relative;
+  z-index: 1;
+}
+.welcome-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 36px;
+  position: relative;
+  z-index: 1;
+}
+.welcome-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.step-num {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+.step-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  white-space: nowrap;
+}
+.step-arrow {
+  color: rgba(255,255,255,0.3);
+  font-size: 16px;
+}
+.welcome-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+.welcome-btn {
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+.welcome-btn.primary {
+  background: #FF3B30;
+  color: #fff;
+}
+.welcome-btn.primary:hover {
+  background: #ff5248;
+  transform: translateY(-2px);
+}
+.welcome-btn.secondary {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.welcome-btn.secondary:hover {
+  background: rgba(255,255,255,0.15);
+}
+.welcome-tip {
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  position: relative;
+  z-index: 1;
+}
+
 /* ===== plog 大纲 + 录制弹窗 ===== */
 .plog-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
@@ -3805,6 +3945,48 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   <span class="drawer-close" onclick="closeDrawer()">×</span>
   <div class="drawer-title" id="drawer-title">详情</div>
   <div id="drawer-content"></div>
+</div>
+
+<!-- 第一次使用欢迎页 -->
+<div class="welcome-overlay" id="welcome-overlay">
+  <div class="welcome-modal">
+    <div class="welcome-icon">
+      <svg viewBox="0 0 100 100" width="80" height="80">
+        <circle cx="50" cy="45" r="32" fill="none" stroke="#fff" stroke-width="4"/>
+        <line x1="50" y1="45" x2="50" y2="22" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+        <line x1="50" y1="45" x2="68" y2="45" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="50" cy="45" r="4" fill="#FF3B30"/>
+      </svg>
+    </div>
+    <div class="welcome-title">OneDay <span class="red">一日</span></div>
+    <div class="welcome-subtitle">不用打字，只要闲聊</div>
+    <div class="welcome-desc">
+      每天花 5-10 分钟跟 AI 说说话，<br>
+      它会帮你记录待办、项目、灵感、朋友、运动，<br>
+      每个清晨为你生成一张专属的卡片。
+    </div>
+    <div class="welcome-steps">
+      <div class="welcome-step">
+        <div class="step-num">1</div>
+        <div class="step-text">配置 AI API</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="welcome-step">
+        <div class="step-num">2</div>
+        <div class="step-text">开始闲聊</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="welcome-step">
+        <div class="step-num">3</div>
+        <div class="step-text">享受 OneDay</div>
+      </div>
+    </div>
+    <div class="welcome-buttons">
+      <button class="welcome-btn primary" onclick="startWelcomeSetup()">开始配置</button>
+      <button class="welcome-btn secondary" onclick="skipWelcome()">稍后再说</button>
+    </div>
+    <div class="welcome-tip">💡 推荐使用 DeepSeek API，便宜又好用</div>
+  </div>
 </div>
 
 <!-- Toast -->
@@ -5770,6 +5952,14 @@ async function init() {
   initTheme();
   await loadData();
   if (_data) {
+    // 第一次使用检测：如果没有配置 API，显示欢迎页
+    const settings = _data.settings || {};
+    if (!settings.apiKey || settings.apiKey.trim() === '') {
+      setTimeout(() => {
+        document.getElementById('welcome-overlay').classList.add('show');
+      }, 500);
+    }
+    
     // 处理 URL hash 路由
     const hash = window.location.hash.replace('#', '');
     if (hash && document.getElementById('view-' + hash)) {
@@ -5783,6 +5973,18 @@ async function init() {
       if (_currentView !== 'chat') renderView(_currentView);
     }, 30000);
   }
+}
+
+// 欢迎页 - 开始配置
+function startWelcomeSetup() {
+  document.getElementById('welcome-overlay').classList.remove('show');
+  navigate('settings');
+  showToast('请在设置页面配置你的 AI API Key');
+}
+
+// 欢迎页 - 稍后再说
+function skipWelcome() {
+  document.getElementById('welcome-overlay').classList.remove('show');
 }
 
 init();

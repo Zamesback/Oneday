@@ -1,0 +1,277 @@
+[
+  {
+    "id": "card_demo_1",
+    "date": "2026-09-01",
+    "wallpaper": "wallpaper_1",
+    "quote": "新的一天，旧的自己，但可以有新的开始。",
+    "mood": "calm",
+    "todos_completed": 2,
+    "todos_total": 5,
+    "highlights": [
+      "今天完成了第1件重要的事"
+    ],
+    "exercise": false,
+    "created_at": "2026-09-01T22:00:00",
+    "completed_todos": [
+      "完成路演PPT最终版",
+      "和投资人喝咖啡聊了30分钟",
+      "团队复盘会议"
+    ]
+  },
+  {
+    "id": "card_demo_2",
+    "date": "2026-09-02",
+    "wallpaper": "wallpaper_2",
+    "quote": "今天也要好好的。",
+    "mood": "happy",
+    "todos_completed": 2,
+    "todos_total": 4,
+    "highlights": [
+      "今天完成了第2件重要的事"
+    ],
+    "exercise": false,
+    "created_at": "2026-09-02T22:00:00",
+    "completed_todos": [
+      "产品跑通了核心流程",
+      "修复了3个bug",
+      "写了技术文档"
+    ]
+  },
+  {
+    "id": "card_demo_3",
+    "date": "2026-09-03",
+    "wallpaper": "wallpaper_3",
+    "quote": "慢慢来，比较快。",
+    "mood": "calm",
+    "todos_completed": 4,
+    "todos_total": 4,
+    "highlights": [],
+    "exercise": false,
+    "created_at": "2026-09-03T22:00:00",
+    "completed_todos": [
+      "设计稿改了3版",
+      "和开发对齐了需求",
+      "晚上去了音乐节"
+    ]
+  },
+  {
+    "id": "card_demo_4",
+    "date": "2026-09-04",
+    "wallpaper": "wallpaper_0",
+    "quote": "认真生活的人，运气不会太差。",
+    "mood": "excited",
+    "todos_completed": 4,
+    "todos_total": 3,
+    "highlights": [],
+    "exercise": false,
+    "created_at": "2026-09-04T22:00:00",
+    "completed_todos": [
+      "客户会议很顺利",
+      "周五约了老同事打球",
+      "完成了本周周报"
+    ]
+  },
+  {
+    "id": "card_demo_5",
+    "date": "2026-09-05",
+    "wallpaper": "wallpaper_1",
+    "quote": "不用急，你已经在走了。",
+    "mood": "tired",
+    "todos_completed": 5,
+    "todos_total": 6,
+    "highlights": [
+      "今天完成了第5件重要的事",
+      "和朋友聊了聊第5个话题"
+    ],
+    "exercise": false,
+    "created_at": "2026-09-05T22:00:00",
+    "completed_todos": [
+      "睡到自然醒",
+      "看了一部电影",
+      "做了一顿好吃的"
+    ]
+  },
+  {
+    "id": "card_demo_6",
+    "date": "2026-09-06",
+    "wallpaper": "wallpaper_2",
+    "quote": "复杂世界里，一个就够了。",
+    "mood": "neutral",
+    "todos_completed": 1,
+    "todos_total": 6,
+    "highlights": [
+      "今天完成了第6件重要的事"
+    ],
+    "exercise": true,
+    "created_at": "2026-09-06T22:00:00",
+    "completed_todos": [
+      "和朋友吃了火锅",
+      "聊了很多过去的事",
+      "散步了1小时"
+    ]
+  },
+  {
+    "id": "card_demo_7",
+    "date": "2026-09-07",
+    "wallpaper": "wallpaper_3",
+    "quote": "认真生活的人，运气不会太差。",
+    "mood": "excited",
+    "todos_completed": 5,
+    "todos_total": 3,
+    "highlights": [
+      "今天完成了第7件重要的事",
+      "和朋友聊了聊第7个话题"
+    ],
+    "exercise": false,
+    "created_at": "2026-09-07T22:00:00",
+    "completed_todos": [
+      "新的一周计划制定完成",
+      "回复了所有邮件",
+      "开了周会"
+    ]
+  },
+  {
+    "id": "card_demo_8",
+    "date": "2026-09-08",
+    "wallpaper": "wallpaper_0",
+    "quote": "复杂世界里，一个就够了。",
+    "mood": "neutral",
+    "todos_completed": 5,
+    "todos_total": 5,
+    "highlights": [],
+    "exercise": false,
+    "created_at": "2026-09-08T22:00:00",
+    "completed_todos": [
+      "和西门子的沟通有了突破",
+      "准备了下周的方案",
+      "完成了合同初稿"
+    ]
+  },
+  {
+    "id": "card_demo_9",
+    "date": "2026-09-09",
+    "wallpaper": "wallpaper_1",
+    "quote": "不用急，你已经在走了。",
+    "mood": "excited",
+    "todos_completed": 2,
+    "todos_total": 4,
+    "highlights": [
+      "今天完成了第9件重要的事",
+      "和朋友聊了聊第9个话题"
+    ],
+    "exercise": false,
+    "created_at": "2026-09-09T22:00:00",
+    "completed_todos": [
+      "在咖啡馆想了很多",
+      "写了3页笔记",
+      "看完了一本书"
+    ]
+  },
+  {
+    "id": "card_demo_10",
+    "date": "2026-09-10",
+    "wallpaper": "wallpaper_2",
+    "quote": "今天也要好好的。",
+    "mood": "calm",
+    "todos_completed": 2,
+    "todos_total": 5,
+    "highlights": [],
+    "exercise": false,
+    "created_at": "2026-09-10T22:00:00",
+    "completed_todos": [
+      "跑了10公里",
+      "做了拉伸",
+      "状态很好"
+    ]
+  },
+  {
+    "id": "card_demo_11",
+    "date": "2026-09-11",
+    "wallpaper": "wallpaper_3",
+    "quote": "复杂世界里，一个就够了。",
+    "mood": "neutral",
+    "todos_completed": 5,
+    "todos_total": 5,
+    "highlights": [],
+    "exercise": false,
+    "created_at": "2026-09-11T22:00:00",
+    "completed_todos": [
+      "困扰很久的架构问题有了答案",
+      "写了技术方案",
+      "和团队讨论了"
+    ]
+  },
+  {
+    "id": "card_demo_12",
+    "date": "2026-09-12",
+    "wallpaper": "wallpaper_0",
+    "quote": "认真生活的人，运气不会太差。",
+    "mood": "calm",
+    "todos_completed": 4,
+    "todos_total": 4,
+    "highlights": [],
+    "exercise": true,
+    "created_at": "2026-09-12T22:00:00",
+    "completed_todos": [
+      "和妈妈打了电话",
+      "聊了很久",
+      "想家了"
+    ]
+  },
+  {
+    "id": "card_demo_13",
+    "date": "2026-09-13",
+    "wallpaper": "wallpaper_1",
+    "quote": "复杂世界里，一个就够了。",
+    "mood": "calm",
+    "todos_completed": 1,
+    "todos_total": 2,
+    "highlights": [
+      "今天完成了第13件重要的事"
+    ],
+    "exercise": true,
+    "created_at": "2026-09-13T22:00:00",
+    "completed_todos": [
+      "看了一场很棒的电影",
+      "哭了好几次",
+      "写了影评"
+    ]
+  },
+  {
+    "id": "card_demo_14",
+    "date": "2026-09-14",
+    "wallpaper": "wallpaper_2",
+    "quote": "一天一事，一事一得。",
+    "mood": "calm",
+    "todos_completed": 5,
+    "todos_total": 3,
+    "highlights": [
+      "今天完成了第14件重要的事",
+      "和朋友聊了聊第14个话题"
+    ],
+    "exercise": false,
+    "created_at": "2026-09-14T22:00:00",
+    "completed_todos": [
+      "想到了3个新产品idea",
+      "记了满满一页",
+      "和朋友讨论了"
+    ]
+  },
+  {
+    "id": "card_demo_15",
+    "date": "2026-09-15",
+    "wallpaper": "wallpaper_3",
+    "quote": "认真生活的人，运气不会太差。",
+    "mood": "excited",
+    "todos_completed": 5,
+    "todos_total": 5,
+    "highlights": [],
+    "exercise": true,
+    "created_at": "2026-09-15T22:00:00",
+    "completed_todos": [
+      "贝克休斯的合同终于签下来了",
+      "完成合同最终审核",
+      "团队庆祝午餐"
+    ]
+  }
+]

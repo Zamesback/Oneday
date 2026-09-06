@@ -1,0 +1,126 @@
+[
+  {
+    "id": "friend_1788604830708_906",
+    "name": "小李",
+    "identity": "同事",
+    "relationship": "同事",
+    "notes": "",
+    "status": "draft",
+    "mention_count": 3,
+    "source": "ai_extract",
+    "date": "2026-09-05T18:40:30.708345"
+  },
+  {
+    "id": "friend_1788603457059_806",
+    "name": "王总",
+    "identity": "客户",
+    "relationship": "客户",
+    "notes": "",
+    "status": "draft",
+    "mention_count": 4,
+    "source": "ai_extract",
+    "date": "2026-09-05T18:17:37.059928"
+  },
+  {
+    "id": "friend_1788603457059_328",
+    "name": "李雷",
+    "identity": "产品部同事",
+    "relationship": "同事",
+    "notes": "",
+    "status": "draft",
+    "mention_count": 1,
+    "source": "ai_extract",
+    "date": "2026-09-05T18:17:37.059920"
+  },
+  {
+    "id": "friend_1788602772888_399",
+    "name": "王艳",
+    "identity": "未知",
+    "relationship": "未知",
+    "notes": "",
+    "status": "draft",
+    "mention_count": 1,
+    "source": "ai_extract",
+    "date": "2026-09-05T18:06:12.888899"
+  },
+  {
+    "id": "f1",
+    "name": "阿杰",
+    "identity": "创业者",
+    "relationship": "朋友",
+    "notes": "一起创业的伙伴",
+    "status": "confirmed",
+    "mention_count": 15,
+    "source": "manual"
+  },
+  {
+    "id": "f2",
+    "name": "小林",
+    "identity": "设计师",
+    "relationship": "同事",
+    "notes": "设计部的同事，经常一起讨论方案",
+    "status": "confirmed",
+    "mention_count": 12,
+    "source": "manual"
+  },
+  {
+    "id": "f3",
+    "name": "老张",
+    "identity": "客户",
+    "relationship": "客户",
+    "notes": "重要客户，负责采购",
+    "status": "confirmed",
+    "mention_count": 8,
+    "source": "manual"
+  },
+  {
+    "id": "f4",
+    "name": "小雨",
+    "identity": "学生",
+    "relationship": "朋友",
+    "notes": "正在准备考试",
+    "status": "confirmed",
+    "mention_count": 6,
+    "source": "manual"
+  },
+  {
+    "id": "f5",
+    "name": "Sunny Wang",
+    "identity": "采购经理",
+    "relationship": "客户",
+    "notes": "贝克休斯采购",
+    "status": "confirmed",
+    "mention_count": 5,
+    "source": "manual"
+  },
+  {
+    "id": "f6",
+    "name": "昂际航电",
+    "identity": "客户公司",
+    "relationship": "客户",
+    "notes": "已成交客户，三个工程师在工作",
+    "status": "confirmed",
+    "mention_count": 4,
+    "source": "manual"
+  },
+  {
+    "id": "f7",
+    "name": "西门子中国",
+    "identity": "客户公司",
+    "relationship": "客户",
+    "notes": "正在联系的客户",
+    "status": "draft",
+    "mention_count": 3,
+    "source": "ai_extract"
+  },
+  {
+    "id": "f8",
+    "name": "贝克休斯",
+    "identity": "客户公司",
+    "relationship": "客户",
+    "notes": "上周接触的客户",
+    "status": "draft",
+    "mention_count": 2,
+    "source": "ai_extract"
+  }
+]

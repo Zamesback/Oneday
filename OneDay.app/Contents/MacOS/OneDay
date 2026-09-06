@@ -1,0 +1,25 @@
+#!/bin/bash
+# OneDay 一日 - macOS 应用启动器
+
+# 获取应用所在目录
+APP_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+cd "$APP_DIR/app"
+
+# 检查是否已经在运行
+if lsof -ti:8765 > /dev/null 2>&1; then
+    open "http://localhost:8765/"
+    exit 0
+fi
+
+# 启动服务器（后台运行）
+nohup python3 server.py > /tmp/oneday-server.log 2>&1 &
+SERVER_PID=$!
+
+# 等待服务器启动
+sleep 2
+
+# 打开浏览器
+open "http://localhost:8765/"
+
+# 退出启动器，服务器继续在后台运行
+exit 0
