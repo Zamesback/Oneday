@@ -1839,6 +1839,61 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 update_friend_mention(name, context)
             self.send_json({'extracted': names, 'status': 'ok'})
             return
+        
+        # 合并两个朋友
+        if path == '/api/friends/merge':
+            idA = data.get('idA', '')
+            idB = data.get('idB', '')
+            if not idA or not idB:
+                self.send_json({'success': False, 'message': '缺少参数 idA 或 idB'}, 400)
+                return
+            if idA == idB:
+                self.send_json({'success': False, 'message': '不能合并同一个人'}, 400)
+                return
+            
+            friends = load_module('friends')
+            friendA = next((f for f in friends if f.get('id') == idA), None)
+            friendB = next((f for f in friends if f.get('id') == idB), None)
+            
+            if not friendA or not friendB:
+                self.send_json({'success': False, 'message': '找不到要合并的朋友'}, 404)
+                return
+            
+            # 合并逻辑：保留提及次数多的那个作为主记录
+            if friendA.get('mention_count', 0) >= friendB.get('mention_count', 0):
+                primary = friendA
+                secondary = friendB
+            else:
+                primary = friendB
+                secondary = friendA
+            
+            # 合并字段
+            primary['mention_count'] = primary.get('mention_count', 0) + secondary.get('mention_count', 0)
+            # 身份取非空的那个，优先取主记录的
+            if not primary.get('identity') and secondary.get('identity'):
+                primary['identity'] = secondary['identity']
+            # 关系取非空的那个
+            if not primary.get('relationship') and secondary.get('relationship'):
+                primary['relationship'] = secondary['relationship']
+            # 备注合并
+            if secondary.get('notes'):
+                if primary.get('notes'):
+                    primary['notes'] = primary['notes'] + '\n' + secondary['notes']
+                else:
+                    primary['notes'] = secondary['notes']
+            # 联系方式取非空的那个
+            if not primary.get('contact') and secondary.get('contact'):
+                primary['contact'] = secondary['contact']
+            # 状态设为已确认
+            primary['status'] = 'confirmed'
+            
+            # 删除被合并的记录
+            friends = [f for f in friends if f.get('id') != secondary['id']]
+            save_module('friends', friends)
+            
+            print(f"[朋友合并] 已合并 '{primary['name']}' 和 '{secondary['name']}'，总提及次数: {primary['mention_count']}")
+            self.send_json({'success': True, 'friends': friends, 'merged': secondary['name'], 'into': primary['name']})
+            return
 
         # 通用模块 POST（创建）
         for module_name, config in MODULES.items():

@@ -333,6 +333,94 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 .toast.show { display: block; animation: slideUp 0.3s ease; }
 @keyframes slideUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
+/* 朋友合并确认弹窗 */
+.merge-confirm-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); z-index: 3000;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.merge-confirm-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.merge-confirm-modal {
+  background: #fff; border-radius: 16px; width: 420px; max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
+  animation: scaleIn 0.25s ease;
+}
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+.merge-confirm-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px; border-bottom: 1px solid #f0f0f0;
+}
+.merge-confirm-title {
+  font-size: 18px; font-weight: 900; font-family: var(--serif);
+}
+.merge-confirm-close {
+  font-size: 24px; cursor: pointer; color: #999; line-height: 1;
+  transition: color 0.2s;
+}
+.merge-confirm-close:hover { color: var(--red); }
+.merge-confirm-body {
+  padding: 24px;
+}
+.merge-confirm-nodes {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin-bottom: 16px;
+}
+.merge-node {
+  text-align: center; flex: 1;
+}
+.merge-node-avatar {
+  width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px;
+  background: var(--red); display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 18px; font-weight: 900; font-family: var(--mono);
+}
+.merge-node-name {
+  font-size: 14px; font-weight: 700; margin-bottom: 4px;
+}
+.merge-node-meta {
+  font-size: 11px; color: #999; font-family: var(--mono);
+}
+.merge-plus {
+  font-size: 24px; font-weight: 900; color: var(--red);
+}
+.merge-confirm-arrow {
+  text-align: center; font-size: 20px; color: var(--red); margin-bottom: 12px;
+}
+.merge-result {
+  background: #fafafa; border-radius: 12px; padding: 16px; text-align: center;
+  border: 2px dashed var(--red);
+}
+.merge-result-label {
+  font-size: 11px; color: var(--red); font-family: var(--mono); font-weight: 700;
+  margin-bottom: 8px; letter-spacing: 1px;
+}
+.merge-result-name {
+  font-size: 20px; font-weight: 900; font-family: var(--serif); margin-bottom: 4px;
+}
+.merge-result-meta {
+  font-size: 12px; color: #666; font-family: var(--mono);
+}
+.merge-confirm-tip {
+  margin-top: 16px; font-size: 11px; color: #999; font-family: var(--mono);
+  line-height: 1.6; text-align: center;
+}
+.merge-confirm-actions {
+  display: flex; gap: 12px; padding: 16px 24px 24px;
+}
+.merge-btn-cancel, .merge-btn-confirm {
+  flex: 1; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; border: none; font-family: var(--mono);
+}
+.merge-btn-cancel {
+  background: #f0f0f0; color: #666;
+}
+.merge-btn-cancel:hover { background: #e0e0e0; }
+.merge-btn-confirm {
+  background: var(--red); color: #fff;
+}
+.merge-btn-confirm:hover { background: #e0352b; transform: translateY(-1px); }
+
 /* 空状态 */
 .empty {
   text-align: center; padding: 60px 20px; color: var(--gray-500);
@@ -4171,6 +4259,44 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 
 <div class="toast" id="toast"></div>
 
+<!-- 朋友合并确认弹窗 -->
+<div class="merge-confirm-overlay" id="merge-confirm-overlay" onclick="if(event.target===this)closeMergeConfirm()">
+  <div class="merge-confirm-modal">
+    <div class="merge-confirm-header">
+      <div class="merge-confirm-title">合并人物</div>
+      <div class="merge-confirm-close" onclick="closeMergeConfirm()">×</div>
+    </div>
+    <div class="merge-confirm-body">
+      <div class="merge-confirm-nodes">
+        <div class="merge-node">
+          <div class="merge-node-avatar" id="merge-node-a-avatar"></div>
+          <div class="merge-node-name" id="merge-node-a-name"></div>
+          <div class="merge-node-meta" id="merge-node-a-meta"></div>
+        </div>
+        <div class="merge-plus">+</div>
+        <div class="merge-node">
+          <div class="merge-node-avatar" id="merge-node-b-avatar"></div>
+          <div class="merge-node-name" id="merge-node-b-name"></div>
+          <div class="merge-node-meta" id="merge-node-b-meta"></div>
+        </div>
+      </div>
+      <div class="merge-confirm-arrow">↓</div>
+      <div class="merge-result">
+        <div class="merge-result-label">合并后</div>
+        <div class="merge-result-name" id="merge-result-name"></div>
+        <div class="merge-result-meta" id="merge-result-meta"></div>
+      </div>
+      <div class="merge-confirm-tip">
+        ⚠️ 合并后不可撤销，提及次数会相加，身份和关系会取更详细的信息。
+      </div>
+    </div>
+    <div class="merge-confirm-actions">
+      <button class="merge-btn-cancel" onclick="closeMergeConfirm()">取消</button>
+      <button class="merge-btn-confirm" onclick="confirmMerge()">确认合并</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 音效系统 ===== -->
 <script>
 // Web Audio API 音效生成器
@@ -5415,6 +5541,73 @@ async function deleteFriend(id) {
   showToast('已删除');
 }
 
+// ===== 朋友合并功能 =====
+let _mergeNodeA = null;
+let _mergeNodeB = null;
+
+function showMergeConfirmDialog(nodeA, nodeB) {
+  _mergeNodeA = nodeA;
+  _mergeNodeB = nodeB;
+  
+  // 填充节点A信息
+  document.getElementById('merge-node-a-avatar').textContent = nodeA.name.substring(0, 2);
+  document.getElementById('merge-node-a-name').textContent = nodeA.name;
+  document.getElementById('merge-node-a-meta').textContent = `提及 ${nodeA.mentionCount} 次 · ${nodeA.relationship || '未分类'}`;
+  
+  // 填充节点B信息
+  document.getElementById('merge-node-b-avatar').textContent = nodeB.name.substring(0, 2);
+  document.getElementById('merge-node-b-name').textContent = nodeB.name;
+  document.getElementById('merge-node-b-meta').textContent = `提及 ${nodeB.mentionCount} 次 · ${nodeB.relationship || '未分类'}`;
+  
+  // 计算合并结果
+  const totalMentions = nodeA.mentionCount + nodeB.mentionCount;
+  // 名字取提及次数多的那个
+  const resultName = nodeA.mentionCount >= nodeB.mentionCount ? nodeA.name : nodeB.name;
+  // 关系取非空的那个
+  const resultRel = nodeA.relationship || nodeB.relationship || '未分类';
+  
+  document.getElementById('merge-result-name').textContent = resultName;
+  document.getElementById('merge-result-meta').textContent = `提及 ${totalMentions} 次 · ${resultRel}`;
+  
+  // 显示弹窗
+  document.getElementById('merge-confirm-overlay').classList.add('active');
+}
+
+function closeMergeConfirm() {
+  document.getElementById('merge-confirm-overlay').classList.remove('active');
+  _mergeNodeA = null;
+  _mergeNodeB = null;
+}
+
+async function confirmMerge() {
+  if (!_mergeNodeA || !_mergeNodeB) return;
+  
+  const idA = _mergeNodeA.id;
+  const idB = _mergeNodeB.id;
+  
+  // 调用后端合并接口
+  try {
+    const res = await fetch(API_BASE + '/friends/merge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idA, idB })
+    });
+    const result = await res.json();
+    
+    if (result.success) {
+      // 更新本地数据
+      _data.friends = result.friends;
+      closeMergeConfirm();
+      renderFriends();
+      showToast(`已合并「${_mergeNodeA.name}」和「${_mergeNodeB.name}」`);
+    } else {
+      showToast('合并失败: ' + (result.message || '未知错误'));
+    }
+  } catch (e) {
+    showToast('合并失败: ' + e.message);
+  }
+}
+
 // ===== 关系图谱（灵动版 - Canvas力导向） =====
 let graphState = {
   nodes: [],
@@ -5432,6 +5625,7 @@ let graphState = {
   hoverNode: null,
   animFrame: null,
   time: 0,
+  mergeCandidate: null,  // 合并候选：{nodeA, nodeB, distance}
 };
 
 function initGraphCanvas() {
@@ -5534,8 +5728,14 @@ function onGraphMouseMove(e) {
 }
 
 function onGraphMouseUp() {
+  // 如果有合并候选，显示合并确认弹窗
+  if (graphState.mergeCandidate && graphState.dragNode) {
+    const { nodeA, nodeB } = graphState.mergeCandidate;
+    showMergeConfirmDialog(nodeA, nodeB);
+  }
   graphState.dragNode = null;
   graphState.isDragging = false;
+  graphState.mergeCandidate = null;
 }
 
 function onGraphMouseLeave() {
@@ -5694,6 +5894,38 @@ function updateGraphPhysics() {
     n.x += n.vx;
     n.y += n.vy;
   });
+  
+  // 碰撞检测：拖拽节点时，检测是否与其他节点碰撞
+  if (graphState.dragNode) {
+    const dragNode = graphState.dragNode;
+    let closestNode = null;
+    let closestDist = Infinity;
+    
+    for (const node of nodes) {
+      if (node === dragNode) continue;
+      const dx = dragNode.x - node.x;
+      const dy = dragNode.y - node.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const mergeThreshold = dragNode.radius + node.radius + 15;
+      
+      if (dist < mergeThreshold && dist < closestDist) {
+        closestDist = dist;
+        closestNode = node;
+      }
+    }
+    
+    if (closestNode) {
+      graphState.mergeCandidate = {
+        nodeA: dragNode,
+        nodeB: closestNode,
+        distance: closestDist,
+      };
+    } else {
+      graphState.mergeCandidate = null;
+    }
+  } else {
+    graphState.mergeCandidate = null;
+  }
 }
 
 function drawGraph() {
@@ -5738,10 +5970,40 @@ function drawGraph() {
     }
   });
   
+  // 合并候选视觉反馈
+  if (graphState.mergeCandidate) {
+    const { nodeA, nodeB } = graphState.mergeCandidate;
+    const pulse = 0.5 + Math.sin(graphState.time * 8) * 0.5;
+    
+    // 画两个节点之间的连接线（脉冲效果）
+    ctx.beginPath();
+    ctx.moveTo(nodeA.x, nodeA.y);
+    ctx.lineTo(nodeB.x, nodeB.y);
+    ctx.strokeStyle = `rgba(255,59,48,${0.5 + pulse * 0.5})`;
+    ctx.lineWidth = 3 + pulse * 2;
+    ctx.setLineDash([8, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // 画两个节点的高亮光环
+    [nodeA, nodeB].forEach(n => {
+      const glowSize = n.radius + 10 + pulse * 8;
+      const gradient = ctx.createRadialGradient(n.x, n.y, n.radius, n.x, n.y, glowSize);
+      gradient.addColorStop(0, `rgba(255,59,48,${0.4 + pulse * 0.3})`);
+      gradient.addColorStop(1, 'rgba(255,59,48,0)');
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, glowSize, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    });
+  }
+  
   // 画节点
   graphState.nodes.forEach(n => {
     const isHover = n === hoverNode;
     const isRelated = !hoverNode || hoverRelated.has(n.id);
+    const isMergeCandidate = graphState.mergeCandidate && 
+      (n === graphState.mergeCandidate.nodeA || n === graphState.mergeCandidate.nodeB);
     const alpha = isRelated ? 1 : 0.3;
     
     // 节点光晕（高频提及）
@@ -5775,8 +6037,14 @@ function drawGraph() {
     ctx.globalAlpha = 1;
     
     // 边框
-    ctx.strokeStyle = isHover ? '#000' : `rgba(0,0,0,${alpha * 0.8})`;
-    ctx.lineWidth = isHover ? 3 : 2;
+    if (isMergeCandidate) {
+      const pulse = 0.5 + Math.sin(graphState.time * 8) * 0.5;
+      ctx.strokeStyle = '#ff3b30';
+      ctx.lineWidth = 3 + pulse * 2;
+    } else {
+      ctx.strokeStyle = isHover ? '#000' : `rgba(0,0,0,${alpha * 0.8})`;
+      ctx.lineWidth = isHover ? 3 : 2;
+    }
     ctx.stroke();
     
     // 名字（2个字）
@@ -5800,6 +6068,38 @@ function drawGraph() {
       ctx.fillText(n.mentionCount + '次', n.x, n.y - n.radius - 8);
     }
   });
+  
+  // 合并提示（屏幕坐标，不受缩放影响）
+  if (graphState.mergeCandidate) {
+    const { nodeA, nodeB } = graphState.mergeCandidate;
+    const midX = (nodeA.x + nodeB.x) / 2 * graphState.scale + graphState.offsetX;
+    const midY = (nodeA.y + nodeB.y) / 2 * graphState.scale + graphState.offsetY - 50;
+    
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    
+    // 提示背景
+    const text = `松开合并「${nodeA.name}」和「${nodeB.name}」`;
+    ctx.font = 'bold 13px monospace';
+    const textWidth = ctx.measureText(text).width;
+    const bgX = midX - textWidth/2 - 16;
+    const bgY = midY - 14;
+    const bgW = textWidth + 32;
+    const bgH = 28;
+    
+    ctx.beginPath();
+    ctx.roundRect(bgX, bgY, bgW, bgH, 14);
+    ctx.fillStyle = '#ff3b30';
+    ctx.fill();
+    
+    // 提示文字
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, midX, midY);
+    
+    ctx.restore();
+  }
   
   ctx.restore();
 }
