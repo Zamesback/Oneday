@@ -4127,8 +4127,85 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 
 <div class="toast" id="toast"></div>
 
+<!-- ===== 音效系统 ===== -->
+<script>
+// Web Audio API 音效生成器
+let _audioContext = null;
+
+function getAudioContext() {
+  if (!_audioContext) {
+    try {
+      _audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.warn('Web Audio API 不支持');
+      return null;
+    }
+  }
+  // 恢复被暂停的 AudioContext（浏览器自动暂停策略）
+  if (_audioContext.state === 'suspended') {
+    _audioContext.resume();
+  }
+  return _audioContext;
+}
+
+// 播放一个音调
+function playTone(frequency, duration, type = 'sine', volume = 0.15, startTime = 0) {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  
+  const oscillator = ctx.createOscillator();
+  const gainNode = ctx.createGain();
+  
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, ctx.currentTime + startTime);
+  
+  // 音量包络：淡入淡出，避免爆音
+  gainNode.gain.setValueAtTime(0, ctx.currentTime + startTime);
+  gainNode.gain.linearRampToValueAtTime(volume, ctx.currentTime + startTime + 0.01);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(ctx.destination);
+  
+  oscillator.start(ctx.currentTime + startTime);
+  oscillator.stop(ctx.currentTime + startTime + duration);
+}
+
+// 开始录制音效：上升的双音，表示开始
+function playStartRecordingSound() {
+  try {
+    playTone(523.25, 0.12, 'sine', 0.12, 0);      // C5
+    playTone(659.25, 0.15, 'sine', 0.12, 0.08);   // E5
+  } catch (e) {
+    console.warn('播放开始录制音效失败', e);
+  }
+}
+
+// 停止录制音效：下降的双音，表示结束
+function playStopRecordingSound() {
+  try {
+    playTone(659.25, 0.12, 'sine', 0.12, 0);      // E5
+    playTone(523.25, 0.15, 'sine', 0.12, 0.08);   // C5
+  } catch (e) {
+    console.warn('播放停止录制音效失败', e);
+  }
+}
+
+// AI 回复音效：轻快的三音提示音，表示有新消息
+function playAiReplySound() {
+  try {
+    playTone(783.99, 0.1, 'sine', 0.1, 0);        // G5
+    playTone(987.77, 0.1, 'sine', 0.1, 0.08);     // B5
+    playTone(1174.66, 0.15, 'sine', 0.1, 0.16);   // D6
+  } catch (e) {
+    console.warn('播放AI回复音效失败', e);
+  }
+}
+</script>
+
 <script>
 // ===== OneDay 前端核心 =====
+
 const API_BASE = 'http://localhost:8765/api';
 let _data = null;
 let _currentView = 'splash';
@@ -5777,6 +5854,7 @@ function resetMicButton() {
 function startVoiceRecording() {
   if (_voiceRecording) return;
   _voiceRecording = true;
+  playStartRecordingSound();
   const btn = document.getElementById('voice-mic-btn');
   if (btn) {
     btn.classList.add('recording');
@@ -5849,6 +5927,7 @@ function startVoiceRecording() {
 function stopVoiceRecording() {
   if (!_voiceRecording) return;
   _voiceRecording = false;
+  playStopRecordingSound();
   
   let transcript = '';
   if (_voiceRecognition && _voiceRecognition._finalTranscript) {
@@ -5902,6 +5981,7 @@ async function sendVoiceMessage(message) {
     if (result.reply) {
       console.log('[AI对话] 显示回复:', result.reply);
       showVoiceReply(result.reply, 'OneDay');
+      playAiReplySound();
     } else {
       console.warn('[AI对话] result.reply 为空！');
       showVoiceReply('（AI 没有返回回复内容，请检查 API 配置）', 'OneDay');
