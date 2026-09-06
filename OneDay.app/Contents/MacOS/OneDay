@@ -1,25 +1,30 @@
 #!/bin/bash
 # OneDay 一日 - macOS 应用启动器
+# 通过终端启动服务器，避免 macOS 权限问题
 
-# 获取应用所在目录
+# 获取项目根目录（.app 所在目录）
 APP_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
-cd "$APP_DIR/app"
+SERVER_DIR="$APP_DIR/app"
 
 # 检查是否已经在运行
 if lsof -ti:8765 > /dev/null 2>&1; then
+    # 已经在运行，直接打开浏览器
     open "http://localhost:8765/"
     exit 0
 fi
 
-# 启动服务器（后台运行）
-nohup python3 server.py > /tmp/oneday-server.log 2>&1 &
-SERVER_PID=$!
+# 通过终端启动服务器（避免 macOS 沙箱权限问题）
+osascript <<EOF
+tell application "Terminal"
+    activate
+    do script "cd '$SERVER_DIR' && echo '========================================' && echo '  OneDay 一日 启动中...' && echo '========================================' && echo '' && echo '  🌅 欢迎使用 OneDay' && echo '  📅 今天是你的 Day One' && echo '' && echo '  前端地址: http://localhost:8765' && echo '  数据目录: $SERVER_DIR/data' && echo '  关闭此窗口或按 Ctrl+C 停止服务' && echo '' && echo '========================================' && echo '' && python3 server.py"
+end tell
+EOF
 
 # 等待服务器启动
-sleep 2
+sleep 3
 
 # 打开浏览器
 open "http://localhost:8765/"
 
-# 退出启动器，服务器继续在后台运行
 exit 0

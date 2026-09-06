@@ -3104,6 +3104,43 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   transform: rotate(0deg) translateY(-4px);
   box-shadow: 0 12px 28px rgba(0,0,0,0.12); border-color: var(--red);
 }
+.plog-topic-delete {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+  font-family: var(--mono);
+}
+.plog-topic-delete:hover {
+  background: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+  transform: scale(1.1);
+}
+.dark-mode .plog-topic-delete {
+  background: #1a1a1a;
+  border-color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.6);
+}
+.dark-mode .plog-topic-delete:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--white);
+}
 .plog-topic-num {
   font-size: 10px; color: var(--gray-500); letter-spacing: 2px;
   margin-bottom: 12px; display: flex; justify-content: space-between;
@@ -4608,20 +4645,46 @@ const plogTopics = [
 function renderPlogTopics() {
   const grid = document.getElementById('plog-grid');
   if (!grid) return;
-  grid.innerHTML = plogTopics.map(t => `
-    <div class="plog-topic" style="--rotation:${t.rotation};" onclick="openPlogOutline('${t.id}')">
-      <div class="plog-topic-num">
-        <span>${t.num}</span>
-        <span class="tag">可升级</span>
+  
+  const inspirations = _data?.inspirations || [];
+  
+  if (inspirations.length === 0) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1; text-align:center; padding:60px 20px;"><p style="font-size:16px; color:rgba(255,255,255,0.5); margin-bottom:12px;">还没有灵感</p><p style="font-size:13px; color:rgba(255,255,255,0.3);">跟 AI 聊聊你的想法，它会帮你收集灵感</p></div>';
+    return;
+  }
+  
+  grid.innerHTML = inspirations.map((insp, index) => {
+    const num = String(index + 1).padStart(2, '0');
+    const rotation = (index % 2 === 0 ? -1 : 0.5) + 'deg';
+    const content = insp.content || insp.text || insp.title || '未命名灵感';
+    const source = insp.source === 'ai_extract' ? 'AI 提取' : '手动添加';
+    const date = insp.date ? insp.date.substring(0, 10) : '';
+    
+    return `
+      <div class="plog-topic" style="--rotation:${rotation};" onclick="openPlogOutline('${insp.id}')">
+        <button class="plog-topic-delete" onclick="event.stopPropagation(); deleteInspiration('${insp.id}')" title="删除">×</button>
+        <div class="plog-topic-num">
+          <span>${num}</span>
+          <span class="tag">可升级</span>
+        </div>
+        <div class="plog-topic-title">${content.substring(0, 30)}${content.length > 30 ? '...' : ''}</div>
+        <div class="plog-topic-desc">${content.length > 50 ? content.substring(0, 50) + '...' : content}</div>
+        <div class="plog-topic-source">
+          <span class="from"><span class="dot"></span>${source}${date ? ' · ' + date : ''}</span>
+          <span class="upgrade">升级为 plog →</span>
+        </div>
       </div>
-      <div class="plog-topic-title">${t.title}</div>
-      <div class="plog-topic-desc">${t.desc}</div>
-      <div class="plog-topic-source">
-        <span class="from"><span class="dot"></span>${t.source}</span>
-        <span class="upgrade">升级为 plog →</span>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+}
+
+// 删除灵感
+async function deleteInspiration(id) {
+  if (!confirm('确定删除这个灵感？')) return;
+  await apiDelete('inspirations', id);
+  _data.inspirations = (_data.inspirations || []).filter(i => i.id !== id);
+  renderPlogTopics();
+  showToast('已删除');
 }
 
 let currentPlogTopic = null;
@@ -4630,7 +4693,25 @@ let plogTimer = null;
 let plogSeconds = 0;
 
 function openPlogOutline(id) {
-  const topic = plogTopics.find(t => t.id === id);
+  // 先从硬编码的 plogTopics 查找（向后兼容）
+  let topic = plogTopics.find(t => t.id === id);
+  
+  // 如果没找到，从用户的灵感数据中查找
+  if (!topic && _data?.inspirations) {
+    const insp = _data.inspirations.find(i => i.id === id);
+    if (insp) {
+      const content = insp.content || insp.text || insp.title || '未命名灵感';
+      topic = {
+        id: insp.id,
+        num: 'IDEA · ' + String((_data.inspirations.indexOf(insp) + 1)).padStart(2, '0'),
+        title: content.substring(0, 20),
+        desc: content,
+        source: insp.source === 'ai_extract' ? 'AI 提取' : '手动添加',
+        outline: generatePlogOutline(content)
+      };
+    }
+  }
+  
   if (!topic) return;
   currentPlogTopic = topic;
   const overlay = document.getElementById('plog-overlay');
@@ -4655,6 +4736,21 @@ function openPlogOutline(id) {
   overlay.classList.add('show');
   
   setTimeout(() => renderPlogOutline(topic), 900);
+}
+
+// 根据灵感内容动态生成 plog 大纲
+function generatePlogOutline(content) {
+  return {
+    hook: `你有没有想过，「${content.substring(0, 15)}」这件事，其实藏着你没发现的自己？`,
+    intro: `今天，我想跟你聊聊「${content.substring(0, 20)}」。这个想法在我脑子里转了很久，今天终于想把它说清楚。`,
+    points: [
+      `从「${content.substring(0, 10)}」开始：为什么这个想法会出现`,
+      `深入思考：这个想法背后真正想说的是什么`,
+      `行动建议：如果要把这个想法变成现实，第一步可以做什么`
+    ],
+    emotion: `最打动我的，是想到这个想法时，心里那种"啊，原来是这样"的感觉。`,
+    ending: `想法不在远方，就在你开口说"我想到了"的那一刻。`
+  };
 }
 
 function renderPlogOutline(topic) {
