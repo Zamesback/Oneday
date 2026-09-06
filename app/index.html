@@ -1439,12 +1439,14 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 .chat-voice-center {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   position: relative; z-index: 2; padding: 20px 48px;
+  overflow: hidden; min-height: 0;
 }
 /* 声波可视化 - 电子化科幻风格 */
 .voice-wave-container {
-  width: 100%; max-width: 800px; height: 280px;
+  width: 100%; max-width: 800px; height: 200px;
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  margin-bottom: 48px; position: relative;
+  margin-bottom: 32px; position: relative;
+  flex-shrink: 0;
 }
 /* 声波中心光晕 */
 .voice-wave-container::before {
@@ -1481,15 +1483,29 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 }
 /* AI 回复文字区域 */
 .voice-reply-area {
-  width: 100%; max-width: 640px; min-height: 120px;
-  text-align: center; margin-bottom: 32px;
+  width: 100%; max-width: 640px; min-height: 120px; max-height: 220px;
+  text-align: center; margin-bottom: 24px;
+  position: relative; overflow: hidden;
+  flex-shrink: 1; min-height: 0;
+}
+/* 底部渐变消失效果 */
+.voice-reply-area::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 40px; pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, var(--black) 100%);
+  z-index: 2;
 }
 .voice-reply-text {
   font-size: 18px; line-height: 1.9; font-family: var(--serif);
   color: rgba(255,255,255,0.9); white-space: pre-wrap;
   animation: fadeInUp 0.5s ease;
   transition: color 0.3s ease, font-size 0.3s ease;
+  max-height: 180px; overflow-y: auto;
+  padding: 0 10px 30px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.voice-reply-text::-webkit-scrollbar { display: none; }
 .voice-reply-text .red { color: var(--red); }
 /* 用户说的话：白色、正常字号 */
 .voice-reply-text.user-msg {
@@ -1528,6 +1544,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 .voice-extracted {
   display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
   margin-top: 20px;
+  flex-shrink: 0;
 }
 .voice-extracted-tag {
   padding: 5px 12px; font-size: 10px; font-family: var(--mono);
@@ -5965,6 +5982,11 @@ function showVoiceReply(text, meta) {
     let html = text.replace(/\n/g, '<br>');
     html = html.replace(/(OneDay|一日|One Day)/gi, '<span class="red">$1</span>');
     replyText.innerHTML = html;
+    
+    // 自动滚动到底部（显示最新的文字）
+    requestAnimationFrame(() => {
+      replyText.scrollTop = replyText.scrollHeight;
+    });
     
     // 根据说话人设置不同的样式
     const isUser = meta && (meta.includes('你说') || meta.includes('用户') || meta.includes('YOU'));
