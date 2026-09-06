@@ -5760,7 +5760,8 @@ let _voiceRecognition = null;
 let _voiceFinalTranscript = '';      // 全局保存已识别的文字，避免重启丢失
 let _voiceLastInterimTranscript = ''; // 全局保存最后一段临时结果
 let _voiceRestartCount = 0;           // 重启计数器，避免无限重启
-const VOICE_MAX_RESTARTS = 50;        // 最大重启次数（约25分钟）
+const VOICE_MAX_RESTARTS = 120;       // 最大重启次数（约60分钟，延长录音时间）
+let _voiceStartTime = null;            // 录音开始时间，用于显示时长
 let _waveAnimFrame = null;
 let _waveBars = [];
 let _waveTime = 0;
@@ -5861,6 +5862,7 @@ function startVoiceRecording() {
   _voiceFinalTranscript = '';           // 重置全局已识别文字
   _voiceLastInterimTranscript = '';     // 重置全局临时结果
   _voiceRestartCount = 0;               // 重置重启计数器
+  _voiceStartTime = Date.now();         // 记录录音开始时间
   playStartRecordingSound();
   const btn = document.getElementById('voice-mic-btn');
   if (btn) {
@@ -5911,14 +5913,18 @@ function startVoiceRecording() {
         
         // 检查重启次数，避免无限重启
         if (_voiceRestartCount >= VOICE_MAX_RESTARTS) {
-          console.warn('[录音] 达到最大重启次数，自动停止');
-          showVoiceReply('录音时间较长，已自动保存。可以继续点击录音按钮开始新的对话。', 'OneDay');
+          const duration = Math.round((Date.now() - _voiceStartTime) / 1000);
+          const minutes = Math.floor(duration / 60);
+          const seconds = duration % 60;
+          console.warn(`[录音] 达到最大重启次数，自动停止。录音时长: ${minutes}分${seconds}秒`);
+          showVoiceReply(`⏰ 录音已持续 ${minutes}分${seconds}秒，已自动保存并发送给 OneDay。\n\n可以继续点击录音按钮开始新的对话～`, 'OneDay');
           stopVoiceRecording();
           return;
         }
         
         _voiceRestartCount++;
-        console.log(`[录音] 语音识别自动重启 (${_voiceRestartCount}/${VOICE_MAX_RESTARTS})，已识别文字保留`);
+        const duration = Math.round((Date.now() - _voiceStartTime) / 1000);
+        console.log(`[录音] 语音识别自动重启 (${_voiceRestartCount}/${VOICE_MAX_RESTARTS})，已录音 ${duration}秒，文字已保留`);
         
         // 延迟一小段时间再重启，避免频繁重启
         setTimeout(() => {
@@ -5954,10 +5960,20 @@ function stopVoiceRecording() {
   _voiceRecording = false;
   playStopRecordingSound();
   
+  // 计算录音时长
+  let durationStr = '';
+  if (_voiceStartTime) {
+    const duration = Math.round((Date.now() - _voiceStartTime) / 1000);
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+    durationStr = `${minutes}分${seconds}秒`;
+  }
+  
   // 直接从全局变量获取文字，确保即使语音识别对象销毁了也能获取到
   let transcript = _voiceFinalTranscript + _voiceLastInterimTranscript;
-  console.log('[录音] 停止录音，识别到的文字:', transcript);
+  console.log('[录音] 停止录音，录音时长:', durationStr);
   console.log('[录音] 重启次数:', _voiceRestartCount);
+  console.log('[录音] 识别到的文字:', transcript);
   
   if (_voiceRecognition) {
     try { _voiceRecognition.stop(); } catch (e) {}
@@ -5968,6 +5984,7 @@ function stopVoiceRecording() {
   _voiceFinalTranscript = '';
   _voiceLastInterimTranscript = '';
   _voiceRestartCount = 0;
+  _voiceStartTime = null;
   
   resetMicButton();
   setVoiceStatus('thinking', 'AI 正在思考...');
