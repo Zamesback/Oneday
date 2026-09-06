@@ -452,6 +452,18 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
   3. 用户在同一段对话中多次提到
 - 如果不确定是不是同一个人，可以先用用户第一次提到的写法，后续由用户在「朋友」模块中手动修正
 - **绝对不要因为语音识别的字不一样，就把同一个人识别成多个人！**
+
+## 信息去重规则（非常重要）
+- 用户可能反复提到同一件事，但其实是同一个待办/项目/灵感
+- **你必须根据上下文判断是否是同一件事**：如果是同一件事，不要重复创建！
+- 判断依据：
+  1. 内容描述的是同一件事（即使措辞不完全一样）
+  2. 时间、地点、人物等关键信息一致
+  3. 用户在同一段对话中多次提到同一件事
+- 待办事项去重：如果用户说"明天做PPT"，后来又说"PPT明天要交"，这是同一个待办，不要创建两个
+- 项目去重：如果用户反复提到同一个项目，不要重复创建
+- 灵感去重：如果用户反复提到同一个想法，不要重复创建
+- **绝对不要因为用户反复提到同一件事，就重复创建多条记录！**
 """
 
 def build_ai_context(user_message, history):
@@ -929,7 +941,7 @@ def save_extracted_info(extracted):
     """把 AI 提取的信息保存到对应模块"""
     saved = {'todos': 0, 'projects': 0, 'inspirations': 0, 'friends': 0, 'exercise': 0}
     
-    # 保存待办
+    # 保存待办（带去重）
     if extracted.get('todos'):
         todos = load_module('todos')
         for todo_item in extracted['todos']:
@@ -949,52 +961,91 @@ def save_extracted_info(extracted):
                 continue
             
             if title and len(title) > 1:
-                todos.insert(0, {
-                    'id': gen_id('todo'),
-                    'title': title,
-                    'priority': priority,
-                    'status': 'pending',
-                    'source': 'ai_extract',
-                    'due_date': due_date,
-                    'date': datetime.datetime.now().isoformat()
-                })
-                saved['todos'] += 1
+                # 去重检查：标题相同（忽略大小写空格）且截止日期相同 → 认为是重复
+                title_normalized = title.strip().lower()
+                is_duplicate = False
+                for existing_todo in todos:
+                    existing_title = existing_todo.get('title', '').strip().lower()
+                    existing_due = existing_todo.get('due_date', '')
+                    if (existing_title == title_normalized and 
+                        existing_due == due_date and 
+                        existing_todo.get('status') != 'done'):
+                        is_duplicate = True
+                        print(f"[待办去重] 跳过重复待办: '{title}' (截止: {due_date})")
+                        break
+                
+                if not is_duplicate:
+                    todos.insert(0, {
+                        'id': gen_id('todo'),
+                        'title': title,
+                        'priority': priority,
+                        'status': 'pending',
+                        'source': 'ai_extract',
+                        'due_date': due_date,
+                        'date': datetime.datetime.now().isoformat()
+                    })
+                    saved['todos'] += 1
         save_module('todos', todos)
     
-    # 保存项目
+    # 保存项目（带去重）
     if extracted.get('projects'):
         projects = load_module('projects')
         for proj in extracted['projects']:
             if isinstance(proj, dict) and proj.get('name'):
-                projects.insert(0, {
-                    'id': gen_id('project'),
-                    'name': proj['name'],
-                    'stage': proj.get('stage', '规划中'),
-                    'priority': 'medium',
-                    'customer': proj.get('customer', ''),
-                    'amount': proj.get('amount', ''),
-                    'deadline': proj.get('deadline', ''),
-                    'nextAction': proj.get('nextAction', ''),
-                    'notes': proj.get('notes', ''),
-                    'status': 'active',
-                    'source': 'ai_extract',
-                    'date': datetime.datetime.now().isoformat()
-                })
-                saved['projects'] += 1
+                # 去重检查：名称相同（忽略大小写空格）→ 认为是重复
+                name_normalized = proj['name'].strip().lower()
+                is_duplicate = False
+                for existing_proj in projects:
+                    existing_name = existing_proj.get('name', '').strip().lower()
+                    if existing_name == name_normalized and existing_proj.get('status') != 'done':
+                        is_duplicate = True
+                        print(f"[项目去重] 跳过重复项目: '{proj['name']}'")
+                        # 如果新阶段更详细，更新
+                        if proj.get('stage') and not existing_proj.get('stage'):
+                            existing_proj['stage'] = proj['stage']
+                        break
+                
+                if not is_duplicate:
+                    projects.insert(0, {
+                        'id': gen_id('project'),
+                        'name': proj['name'],
+                        'stage': proj.get('stage', '规划中'),
+                        'priority': 'medium',
+                        'customer': proj.get('customer', ''),
+                        'amount': proj.get('amount', ''),
+                        'deadline': proj.get('deadline', ''),
+                        'nextAction': proj.get('nextAction', ''),
+                        'notes': proj.get('notes', ''),
+                        'status': 'active',
+                        'source': 'ai_extract',
+                        'date': datetime.datetime.now().isoformat()
+                    })
+                    saved['projects'] += 1
         save_module('projects', projects)
     
-    # 保存灵感
+    # 保存灵感（带去重）
     if extracted.get('inspirations'):
         inspirations = load_module('inspirations')
         for insp_text in extracted['inspirations']:
             if insp_text and len(insp_text) > 1:
-                inspirations.insert(0, {
-                    'id': gen_id('insp'),
-                    'content': insp_text,
-                    'source': 'ai_extract',
-                    'date': datetime.datetime.now().isoformat()
-                })
-                saved['inspirations'] += 1
+                # 去重检查：内容相同（忽略大小写空格）→ 认为是重复
+                insp_normalized = insp_text.strip().lower()
+                is_duplicate = False
+                for existing_insp in inspirations:
+                    existing_content = existing_insp.get('content', '').strip().lower()
+                    if existing_content == insp_normalized:
+                        is_duplicate = True
+                        print(f"[灵感去重] 跳过重复灵感: '{insp_text}'")
+                        break
+                
+                if not is_duplicate:
+                    inspirations.insert(0, {
+                        'id': gen_id('insp'),
+                        'content': insp_text,
+                        'source': 'ai_extract',
+                        'date': datetime.datetime.now().isoformat()
+                    })
+                    saved['inspirations'] += 1
         save_module('inspirations', inspirations)
     
     # 保存朋友
