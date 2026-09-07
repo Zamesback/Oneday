@@ -6356,6 +6356,9 @@ let _voiceStartTime = null;            // 录音开始时间，用于显示时�
 let _waveAnimFrame = null;
 let _waveBars = [];
 let _waveTime = 0;
+let _voiceRestartFailCount = 0;       // 连续重启失败次数
+const VOICE_MAX_RESTART_FAILS = 5;    // 最大连续失败次数，超过后停止并提示
+let _voiceRestartTimer = null;        // 重启定时器
 
 function initVoiceWave() {
   const container = document.getElementById('voice-wave');
@@ -6490,13 +6493,33 @@ function startVoiceRecording() {
       };
       
       _voiceRecognition.onerror = function(event) {
-        console.warn('语音识别错误:', event.error);
-        if (event.error === 'no-speech') return;  // no-speech 不停止，让 onend 自动重启
+        console.warn('[录音] 语音识别错误:', event.error, event.message || '');
+        
         if (event.error === 'aborted') return;     // 主动停止的，不处理
-        showVoiceReply('语音识别暂时不可用，请检查浏览器麦克风权限。', '');
-        setVoiceStatus('', '待机中');
-        resetMicButton();
-        _voiceRecording = false;
+        
+        if (event.error === 'no-speech') {
+          // no-speech 是正常的（用户暂停说话），不停止，让 onend 自动重启
+          console.log('[录音] no-speech，等待 onend 自动重启');
+          return;
+        }
+        
+        if (event.error === 'network') {
+          // 网络错误，尝试重启
+          console.warn('[录音] 网络错误，尝试重启');
+          return;  // 让 onend 处理重启
+        }
+        
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          // 麦克风权限问题
+          showVoiceReply('麦克风权限被拒绝，请在浏览器设置中允许 OneDay 使用麦克风。', '');
+          setVoiceStatus('', '待机中');
+          resetMicButton();
+          _voiceRecording = false;
+          return;
+        }
+        
+        // 其他错误，记录日志但不停止，尝试让 onend 重启
+        console.warn('[录音] 未知错误，尝试重启:', event.error);
       };
       
       _voiceRecognition.onend = function() {
@@ -6517,16 +6540,45 @@ function startVoiceRecording() {
         const duration = Math.round((Date.now() - _voiceStartTime) / 1000);
         console.log(`[录音] 语音识别自动重启 (${_voiceRestartCount}/${VOICE_MAX_RESTARTS})，已录音 ${duration}秒，文字已保留`);
         
+        // 清除之前的重启定时器
+        if (_voiceRestartTimer) {
+          clearTimeout(_voiceRestartTimer);
+        }
+        
         // 延迟一小段时间再重启，避免频繁重启
-        setTimeout(() => {
+        _voiceRestartTimer = setTimeout(() => {
           if (_voiceRecording && _voiceRecognition) {
             try { 
-              _voiceRecognition.start(); 
+              _voiceRecognition.start();
+              _voiceRestartFailCount = 0;  // 重启成功，重置失败计数
+              console.log('[录音] 重启成功');
             } catch (e) {
-              console.warn('[录音] 重启失败:', e);
+              _voiceRestartFailCount++;
+              console.warn(`[录音] 重启失败 (${_voiceRestartFailCount}/${VOICE_MAX_RESTART_FAILS}):`, e);
+              
+              if (_voiceRestartFailCount >= VOICE_MAX_RESTART_FAILS) {
+                // 连续失败太多次，停止录音
+                console.error('[录音] 连续重启失败次数过多，停止录音');
+                showVoiceReply('⚠️ 语音识别连续重启失败，已自动保存当前录音。\n\n你可以点击录音按钮重新开始。', 'OneDay');
+                stopVoiceRecording();
+              } else {
+                // 延迟更长时间后重试
+                console.log(`[录音] ${_voiceRestartFailCount * 500}ms 后重试`);
+                setTimeout(() => {
+                  if (_voiceRecording && _voiceRecognition) {
+                    try {
+                      _voiceRecognition.start();
+                      _voiceRestartFailCount = 0;
+                      console.log('[录音] 重试重启成功');
+                    } catch (e2) {
+                      console.warn('[录音] 重试重启失败:', e2);
+                    }
+                  }
+                }, _voiceRestartFailCount * 500);
+              }
             }
           }
-        }, 100);
+        }, 150);  // 增加延迟到 150ms，给浏览器更多恢复时间
       };
       
       _voiceRecognition._finalTranscript = () => _voiceFinalTranscript + _voiceLastInterimTranscript;
@@ -6575,7 +6627,14 @@ function stopVoiceRecording() {
   _voiceFinalTranscript = '';
   _voiceLastInterimTranscript = '';
   _voiceRestartCount = 0;
+  _voiceRestartFailCount = 0;
   _voiceStartTime = null;
+  
+  // 清除重启定时器
+  if (_voiceRestartTimer) {
+    clearTimeout(_voiceRestartTimer);
+    _voiceRestartTimer = null;
+  }
   
   resetMicButton();
   setVoiceStatus('thinking', 'AI 正在思考...');
