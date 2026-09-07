@@ -6351,7 +6351,7 @@ let _voiceRecognition = null;
 let _voiceFinalTranscript = '';      // 全局保存已识别的文字，避免重启丢失
 let _voiceLastInterimTranscript = ''; // 全局保存最后一段临时结果
 let _voiceRestartCount = 0;           // 重启计数器，避免无限重启
-const VOICE_MAX_RESTARTS = 120;       // 最大重启次数（约60分钟，延长录音时间）
+const VOICE_MAX_RESTARTS = 240;       // 最大重启次数（约60分钟，延长录音时间）
 let _voiceStartTime = null;            // 录音开始时间，用于显示时长
 let _waveAnimFrame = null;
 let _waveBars = [];
@@ -6359,6 +6359,9 @@ let _waveTime = 0;
 let _voiceRestartFailCount = 0;       // 连续重启失败次数
 const VOICE_MAX_RESTART_FAILS = 5;    // 最大连续失败次数，超过后停止并提示
 let _voiceRestartTimer = null;        // 重启定时器
+let _voiceHeartbeatTimer = null;      // 心跳定时器
+let _voiceForceRestartTimer = null;   // 主动定时重启定时器
+const VOICE_FORCE_RESTART_INTERVAL = 25000;  // 每25秒主动重启一次（避免浏览器自动停止）
 
 function initVoiceWave() {
   const container = document.getElementById('voice-wave');
@@ -6583,6 +6586,36 @@ function startVoiceRecording() {
       
       _voiceRecognition._finalTranscript = () => _voiceFinalTranscript + _voiceLastInterimTranscript;
       _voiceRecognition.start();
+      
+      // 启动心跳监控（每10秒打印一次状态）
+      _voiceHeartbeatTimer = setInterval(() => {
+        if (_voiceRecording) {
+          const duration = Math.round((Date.now() - _voiceStartTime) / 1000);
+          const minutes = Math.floor(duration / 60);
+          const seconds = duration % 60;
+          console.log(`[录音心跳] 录音中... ${minutes}分${seconds}秒 | 重启次数: ${_voiceRestartCount} | 失败次数: ${_voiceRestartFailCount} | 已识别文字长度: ${_voiceFinalTranscript.length + _voiceLastInterimTranscript.length}`);
+        }
+      }, 10000);
+      
+      // 启动主动定时重启（每25秒主动重启一次，避免浏览器自动停止）
+      _voiceForceRestartTimer = setInterval(() => {
+        if (_voiceRecording && _voiceRecognition) {
+          console.log('[录音] 主动定时重启，保存当前文字...');
+          // 把临时结果保存到 final 中，避免丢失
+          if (_voiceLastInterimTranscript) {
+            _voiceFinalTranscript += _voiceLastInterimTranscript;
+            _voiceLastInterimTranscript = '';
+          }
+          try {
+            _voiceRecognition.stop();
+            // onend 会自动触发重启
+          } catch (e) {
+            console.warn('[录音] 主动停止失败:', e);
+          }
+        }
+      }, VOICE_FORCE_RESTART_INTERVAL);
+      
+      console.log('[录音] 心跳和主动定时重启已启动');
     } else {
       showVoiceReply('当前浏览器不支持语音识别。推荐使用 Chrome 或 Edge 浏览器。', '');
       setVoiceStatus('', '待机中');
@@ -6634,6 +6667,18 @@ function stopVoiceRecording() {
   if (_voiceRestartTimer) {
     clearTimeout(_voiceRestartTimer);
     _voiceRestartTimer = null;
+  }
+  
+  // 清除心跳定时器
+  if (_voiceHeartbeatTimer) {
+    clearInterval(_voiceHeartbeatTimer);
+    _voiceHeartbeatTimer = null;
+  }
+  
+  // 清除主动定时重启定时器
+  if (_voiceForceRestartTimer) {
+    clearInterval(_voiceForceRestartTimer);
+    _voiceForceRestartTimer = null;
   }
   
   resetMicButton();
