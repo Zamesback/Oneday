@@ -528,21 +528,38 @@ def make_https_request(url, headers, payload, timeout=30):
     3. 再失败则尝试跳过 SSL 验证（记录警告）
     """
     import urllib.request
+    import urllib.error
     import json
     import ssl
     
     data = json.dumps(payload).encode('utf-8')
     req = urllib.request.Request(url, data=data, headers=headers)
     
+    def is_ssl_error(e):
+        """判断是否是 SSL 证书相关错误"""
+        error_str = str(e).lower()
+        return (
+            'ssl' in error_str or 
+            'certificate' in error_str or 
+            'cert_verify' in error_str or
+            'cipher' in error_str
+        )
+    
     # 策略1：正常 SSL 验证
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
             return json.loads(response.read().decode('utf-8'))
-    except ssl.SSLCertVerificationError as e:
-        print(f"[SSL] 默认证书验证失败，尝试 certifi: {e}")
+    except (ssl.SSLCertVerificationError, urllib.error.URLError) as e:
+        if is_ssl_error(e):
+            print(f"[SSL] 默认证书验证失败，尝试 certifi: {e}")
+        else:
+            # 非 SSL 错误直接抛出
+            raise
     except Exception as e:
         # 非 SSL 错误直接抛出
-        raise
+        if not is_ssl_error(e):
+            raise
+        print(f"[SSL] 默认证书验证失败，尝试 certifi: {e}")
     
     # 策略2：使用 certifi 库的 CA 证书
     try:
@@ -552,10 +569,15 @@ def make_https_request(url, headers, payload, timeout=30):
             return json.loads(response.read().decode('utf-8'))
     except ImportError:
         print("[SSL] certifi 未安装，尝试跳过 SSL 验证")
-    except ssl.SSLCertVerificationError as e:
-        print(f"[SSL] certifi 证书验证也失败，尝试跳过 SSL: {e}")
+    except (ssl.SSLCertVerificationError, urllib.error.URLError) as e:
+        if is_ssl_error(e):
+            print(f"[SSL] certifi 证书验证也失败，尝试跳过 SSL: {e}")
+        else:
+            raise
     except Exception as e:
-        raise
+        if not is_ssl_error(e):
+            raise
+        print(f"[SSL] certifi 证书验证也失败，尝试跳过 SSL: {e}")
     
     # 策略3：跳过 SSL 验证（最后手段，记录警告）
     print("[SSL] 警告：跳过 SSL 证书验证，这可能不安全")
