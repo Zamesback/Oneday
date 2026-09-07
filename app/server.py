@@ -218,6 +218,61 @@ def generate_daily_card():
     save_module('cards', cards)
     return card
 
+def update_daily_card():
+    """更新当日卡片（重新收集当天的完成数据，更新已存在的卡片）"""
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    cards = load_module('cards')
+    
+    # 查找今天的卡片
+    today_card = None
+    today_index = -1
+    for i, card in enumerate(cards):
+        if card.get('date') == today:
+            today_card = card
+            today_index = i
+            break
+    
+    # 如果今天没有卡片，直接生成一个
+    if not today_card:
+        print(f"[卡片更新] 今天({today})没有卡片，直接生成")
+        return generate_daily_card()
+    
+    # 收集最新数据
+    todos = load_module('todos')
+    exercises = load_module('exercises')
+    chats = load_module('chats')
+    settings = load_settings()
+    
+    todos_today = [t for t in todos if (t.get('due_date') or t.get('date', '')).startswith(today)]
+    todos_completed = [t for t in todos_today if t.get('status') == 'done']
+    exercises_today = [e for e in exercises if e.get('date', '').startswith(today)]
+    
+    # 从今天的对话中提取亮点
+    highlights = []
+    today_start = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    for chat in chats:
+        if chat.get('timestamp', '') >= today_start and chat.get('role') == 'user' and len(chat.get('content', '')) > 10:
+            highlights.append(chat['content'][:50])
+            if len(highlights) >= 3:
+                break
+    
+    # 更新卡片数据
+    today_card['todos_completed'] = len(todos_completed)
+    today_card['todos_total'] = len(todos_today)
+    today_card['highlights'] = highlights
+    today_card['exercise'] = exercises_today[0].get('type', '') if exercises_today else ''
+    today_card['updated_at'] = datetime.datetime.now().isoformat()
+    
+    # 保留寄语（如果已经生成了 AI 寄语）
+    greeting = get_daily_greeting()
+    if greeting and greeting != get_daily_quote():
+        today_card['quote'] = greeting
+    
+    cards[today_index] = today_card
+    save_module('cards', cards)
+    print(f"[卡片更新] 今日卡片已更新，完成 {len(todos_completed)}/{len(todos_today)} 个待办")
+    return today_card
+
 def get_card_stats():
     """获取卡片统计信息"""
     cards = load_module('cards')
@@ -1618,6 +1673,17 @@ def scheduler_loop():
     scheduler_running = True
     print("[定时任务] 已启动")
     
+    # 启动时检查今天是否已有卡片，如果没有则立即生成
+    try:
+        today = datetime.date.today().isoformat()
+        cards = load_module('cards')
+        today_card = next((c for c in cards if c.get('date') == today), None)
+        if not today_card:
+            print(f"[定时任务] 启动时检测到今天({today})还没有卡片，立即生成")
+            generate_daily_card()
+    except Exception as e:
+        print(f"[定时任务] 启动时生成卡片失败: {e}")
+    
     while scheduler_running:
         try:
             settings = load_settings()
@@ -1638,8 +1704,10 @@ def scheduler_loop():
                         'timestamp': datetime.datetime.now().isoformat(),
                     })
                     save_module('chats', chats)
+                    # 生成当日卡片
+                    generate_daily_card()
                     last_morning_greet = today
-                    print(f"[定时任务] 早间问候已发送")
+                    print(f"[定时任务] 早间问候已发送，当日卡片已生成")
             
             # 晚间总结提示
             if settings.get('notificationsEnabled') and check_time(settings.get('eveningTime', '22:00')):
@@ -1655,8 +1723,10 @@ def scheduler_loop():
                         'timestamp': datetime.datetime.now().isoformat(),
                     })
                     save_module('chats', chats)
+                    # 更新当日卡片（包含当天的完成数据）
+                    update_daily_card()
                     last_evening_prompt = today
-                    print(f"[定时任务] 晚间提示已发送")
+                    print(f"[定时任务] 晚间提示已发送，当日卡片已更新")
             
             # 运动提醒
             if settings.get('notificationsEnabled') and check_time(settings.get('exerciseReminderTime', '20:00')):
