@@ -7326,9 +7326,10 @@ function openCardModal(cardId) {
       <div style="height:1px;background:linear-gradient(90deg,#ff453a 0%,rgba(255,255,255,0.15) 60%,transparent 100%);margin:12px 0;flex-shrink:0;"></div>
       <!-- 中间：核心大字（真正居中） -->
       <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-height:0;">
-        <div style="font-family:var(--serif);font-size:46px;font-weight:900;line-height:1.3;letter-spacing:1px;text-shadow:0 4px 12px rgba(0,0,0,0.8),0 8px 32px rgba(0,0,0,0.5);max-width:100%;word-break:break-word;">
-          <span style="color:#ff453a">${(card.quote || '把你的故事讲好，世界会听。').replace('。','')}</span>。
+        <div style="font-family:var(--serif);font-size:42px;font-weight:900;line-height:1.4;letter-spacing:1px;text-shadow:0 4px 12px rgba(0,0,0,0.8),0 8px 32px rgba(0,0,0,0.5);max-width:100%;word-break:break-word;color:#fff;">
+          ${card.quote || '把你的故事讲好，世界会听。'}
         </div>
+        <div style="width:40px;height:3px;background:#ff453a;margin-top:16px;box-shadow:0 0 12px rgba(255,69,58,0.6);"></div>
       </div>
       <!-- 底部：今日完成 -->
       <div style="flex-shrink:0;margin-top:20px;">

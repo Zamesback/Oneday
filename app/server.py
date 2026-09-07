@@ -263,10 +263,20 @@ def update_daily_card():
     today_card['exercise'] = exercises_today[0].get('type', '') if exercises_today else ''
     today_card['updated_at'] = datetime.datetime.now().isoformat()
     
-    # 保留寄语（如果已经生成了 AI 寄语）
-    greeting = get_daily_greeting()
-    if greeting and greeting != get_daily_quote():
-        today_card['quote'] = greeting
+    # 晚上更新卡片时，用 AI 生成当日总结，而不是复制开屏页的寄语
+    current_hour = datetime.datetime.now().hour
+    if current_hour >= 18:  # 晚上6点以后，生成当日总结
+        print(f"[卡片更新] 晚上时段，生成当日总结...")
+        daily_summary = generate_daily_summary_ai()
+        if daily_summary:
+            today_card['quote'] = daily_summary
+            today_card['summary_generated'] = True
+            print(f"[卡片更新] 当日总结已生成: {daily_summary[:30]}...")
+    else:
+        # 白天还是保留开屏页的寄语
+        greeting = get_daily_greeting()
+        if greeting and greeting != get_daily_quote():
+            today_card['quote'] = greeting
     
     cards[today_index] = today_card
     save_module('cards', cards)
@@ -1449,17 +1459,19 @@ def generate_morning_greeting_ai():
 待办：{', '.join([t.get('title','') for t in pending]) if pending else '无'}
 项目：{', '.join([p.get('name','') for p in active]) if active else '无'}"""
             
-            prompt = f"""你是 OneDay，用户的 AI 生活伙伴。现在是早上，请给用户生成一段温暖、个性化的早间问候寄语。
+            prompt = f"""你是 OneDay，用户最亲密的 AI 生活伙伴。现在是清晨，请给用户生成一段温暖、有情感共鸣的早间问候寄语。
 
 {context}
 
 要求：
-1. 称呼用户的名字
-2. 自然地结合今天的天气、节气或节日（如果有）
-3. 提到今天的待办或项目（自然地带过，不要罗列）
-4. 语气温暖、鼓励、有活力，像朋友一样
-5. 60-100字
-6. 只返回寄语文字，不要其他内容，不要加引号"""
+1. 称呼用户的名字，像老朋友一样自然
+2. 结合今天的天气、节气或节日，营造画面感（如果有）
+3. 今天的待办和项目只是背景，不要罗列，用一句话轻轻带过即可
+4. 重点是情感价值：给用户力量、温暖、陪伴感，让他觉得"有人懂我"
+5. 可以有一点诗意，但不要太鸡汤太空
+6. 语气真诚、温柔、有力量，像一个懂你的朋友在耳边说
+7. 50-80字，精炼有力
+8. 只返回寄语文字，不要其他内容，不要加引号"""
             
             result = call_real_ai("你是 OneDay，温暖的 AI 生活伙伴。", prompt)
             greeting = ''
@@ -1502,6 +1514,71 @@ def get_daily_greeting():
     
     # 如果今天还没生成，返回默认语录
     return get_daily_quote()
+
+def generate_daily_summary_ai():
+    """用 AI 生成当日总结（晚上用，回顾这一天）"""
+    settings = load_settings()
+    name = settings.get('userName', '')
+    
+    # 尝试真实 AI
+    if settings.get('apiKey') and settings.get('apiProvider') != 'mock':
+        try:
+            todos = load_module('todos')
+            today = datetime.date.today().isoformat()
+            todos_today = [t for t in todos if (t.get('due_date') or t.get('date', '')).startswith(today)]
+            todos_completed = [t for t in todos_today if t.get('status') == 'done']
+            
+            chats = load_module('chats')
+            today_start = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+            today_chats = [c for c in chats if c.get('timestamp', '') >= today_start and c.get('role') == 'user']
+            
+            # 提取今天的对话亮点
+            highlights = []
+            for chat in today_chats[:5]:
+                if len(chat.get('content', '')) > 10:
+                    highlights.append(chat['content'][:80])
+            
+            context = f"""用户称呼：{name}
+今天完成了 {len(todos_completed)}/{len(todos_today)} 个待办。
+完成的待办：{', '.join([t.get('title','') for t in todos_completed]) if todos_completed else '无'}
+今天的对话片段：
+{chr(10).join(['- ' + h for h in highlights]) if highlights else '（今天没有太多记录）'}"""
+            
+            prompt = f"""你是 OneDay，用户最亲密的 AI 生活伙伴。现在是晚上，这一天即将结束。请给用户生成一段简短、有温度的当日总结寄语。
+
+{context}
+
+要求：
+1. 这是对这一天的回顾和总结，不是早晨的鼓励
+2. 肯定用户今天的努力和完成的事情
+3. 如果今天有遗憾或没完成的，温柔地带过，给明天留希望
+4. 语气温暖、治愈、像睡前的一句悄悄话
+5. 精炼，30-50字，一句话或两句话
+6. 有情感共鸣，让人看完想收藏
+7. 只返回寄语文字，不要其他内容，不要加引号"""
+            
+            result = call_real_ai("你是 OneDay，温暖的 AI 生活伙伴，擅长用简短的话总结一天。", prompt)
+            summary = ''
+            if result and isinstance(result, str):
+                summary = result
+            elif result and isinstance(result, dict) and result.get('reply'):
+                summary = result['reply']
+            
+            if summary:
+                return summary
+        except Exception as e:
+            print(f"AI 当日总结生成失败: {e}")
+    
+    # 回退到模拟模式
+    summaries = [
+        "今天辛苦了，好好休息，明天又是新的一天。",
+        "这一天有收获也有遗憾，都值得被记住。",
+        "你认真过好了今天，这就够了。",
+        "把今天的故事收好，明天继续写下去。",
+        "一天结束了，你做得很好，晚安。",
+    ]
+    day_index = datetime.date.today().toordinal() % len(summaries)
+    return summaries[day_index]
 
 def generate_evening_prompt_ai():
     """用 AI 生成晚间总结提示"""
