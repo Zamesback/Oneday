@@ -631,13 +631,30 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   border-right: 1px solid rgba(255,255,255,0.2);
 }
 .splash-stat:last-child { border-right: none; }
+.splash-stat.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+.splash-stat.clickable:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+.splash-stat.clickable:hover .splash-stat-num {
+  color: var(--red);
+}
+.splash-stat.clickable:hover .splash-stat-label {
+  color: rgba(255,255,255,0.9);
+}
 .splash-stat-num {
   font-size: 44px; font-weight: 900; font-family: var(--mono); line-height: 1;
+  transition: color 0.2s;
 }
 .splash-stat-num.red { color: var(--red); }
 .splash-stat-label {
   font-size: 12px; color: rgba(255,255,255,0.6);
   letter-spacing: 3px; margin-top: 8px; font-family: var(--mono);
+  transition: color 0.2s;
 }
 /* CTA：已按 planner 要求放大 */
 .splash-cta {
@@ -4687,15 +4704,15 @@ function renderSplash() {
   const todayEx = exercises.filter(e => (e.date || '').startsWith(todayStr()) && e.status === 'done').length;
 
   document.getElementById('splash-stats').innerHTML = `
-    <div class="splash-stat">
+    <div class="splash-stat clickable" onclick="navigate('todos')" title="点击查看待办">
       <div class="splash-stat-num">${pending}</div>
       <div class="splash-stat-label">TODOS</div>
     </div>
-    <div class="splash-stat">
+    <div class="splash-stat clickable" onclick="navigate('projects')" title="点击查看重要事件">
       <div class="splash-stat-num red">${active}</div>
       <div class="splash-stat-label">DOING</div>
     </div>
-    <div class="splash-stat">
+    <div class="splash-stat clickable" onclick="navigate('todos')" title="点击查看今日运动">
       <div class="splash-stat-num">${todayEx > 0 ? '✓' : '—'}</div>
       <div class="splash-stat-label">RUN</div>
     </div>
