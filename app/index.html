@@ -6357,11 +6357,13 @@ let _waveAnimFrame = null;
 let _waveBars = [];
 let _waveTime = 0;
 let _voiceRestartFailCount = 0;       // 连续重启失败次数
-const VOICE_MAX_RESTART_FAILS = 5;    // 最大连续失败次数，超过后停止并提示
+const VOICE_MAX_RESTART_FAILS = 10;   // 最大连续失败次数，超过后停止并提示
 let _voiceRestartTimer = null;        // 重启定时器
 let _voiceHeartbeatTimer = null;      // 心跳定时器
 let _voiceForceRestartTimer = null;   // 主动定时重启定时器
 const VOICE_FORCE_RESTART_INTERVAL = 25000;  // 每25秒主动重启一次（避免浏览器自动停止）
+let _voiceLastResultTime = 0;         // 最后一次收到识别结果的时间
+let _voiceWatchdogTimer = null;       // 看门狗定时器
 
 function initVoiceWave() {
   const container = document.getElementById('voice-wave');
@@ -6480,6 +6482,7 @@ function startVoiceRecording() {
       _voiceRecognition.interimResults = true;
       
       _voiceRecognition.onresult = function(event) {
+        _voiceLastResultTime = Date.now();  // 更新最后收到结果的时间
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
@@ -6586,6 +6589,7 @@ function startVoiceRecording() {
       
       _voiceRecognition._finalTranscript = () => _voiceFinalTranscript + _voiceLastInterimTranscript;
       _voiceRecognition.start();
+      _voiceLastResultTime = Date.now();  // 初始化最后收到结果的时间
       
       // 启动心跳监控（每10秒打印一次状态）
       _voiceHeartbeatTimer = setInterval(() => {
@@ -6593,9 +6597,31 @@ function startVoiceRecording() {
           const duration = Math.round((Date.now() - _voiceStartTime) / 1000);
           const minutes = Math.floor(duration / 60);
           const seconds = duration % 60;
-          console.log(`[录音心跳] 录音中... ${minutes}分${seconds}秒 | 重启次数: ${_voiceRestartCount} | 失败次数: ${_voiceRestartFailCount} | 已识别文字长度: ${_voiceFinalTranscript.length + _voiceLastInterimTranscript.length}`);
+          const lastResultAgo = Math.round((Date.now() - _voiceLastResultTime) / 1000);
+          console.log(`[录音心跳] 录音中... ${minutes}分${seconds}秒 | 重启次数: ${_voiceRestartCount} | 失败次数: ${_voiceRestartFailCount} | 距上次结果: ${lastResultAgo}秒 | 已识别文字长度: ${_voiceFinalTranscript.length + _voiceLastInterimTranscript.length}`);
         }
       }, 10000);
+      
+      // 启动看门狗（每2秒检查一次，如果超过8秒没有收到结果，主动重启）
+      _voiceWatchdogTimer = setInterval(() => {
+        if (_voiceRecording && _voiceRecognition) {
+          const timeSinceLastResult = Date.now() - _voiceLastResultTime;
+          if (timeSinceLastResult > 8000) {
+            console.warn(`[录音看门狗] 已经 ${Math.round(timeSinceLastResult/1000)} 秒没有收到识别结果，主动重启`);
+            // 把临时结果保存到 final 中
+            if (_voiceLastInterimTranscript) {
+              _voiceFinalTranscript += _voiceLastInterimTranscript;
+              _voiceLastInterimTranscript = '';
+            }
+            try {
+              _voiceRecognition.stop();
+              // onend 会自动触发重启
+            } catch (e) {
+              console.warn('[录音看门狗] 停止失败:', e);
+            }
+          }
+        }
+      }, 2000);
       
       // 启动主动定时重启（每25秒主动重启一次，避免浏览器自动停止）
       _voiceForceRestartTimer = setInterval(() => {
@@ -6615,7 +6641,7 @@ function startVoiceRecording() {
         }
       }, VOICE_FORCE_RESTART_INTERVAL);
       
-      console.log('[录音] 心跳和主动定时重启已启动');
+      console.log('[录音] 心跳、看门狗和主动定时重启已启动');
     } else {
       showVoiceReply('当前浏览器不支持语音识别。推荐使用 Chrome 或 Edge 浏览器。', '');
       setVoiceStatus('', '待机中');
@@ -6679,6 +6705,12 @@ function stopVoiceRecording() {
   if (_voiceForceRestartTimer) {
     clearInterval(_voiceForceRestartTimer);
     _voiceForceRestartTimer = null;
+  }
+  
+  // 清除看门狗定时器
+  if (_voiceWatchdogTimer) {
+    clearInterval(_voiceWatchdogTimer);
+    _voiceWatchdogTimer = null;
   }
   
   resetMicButton();
