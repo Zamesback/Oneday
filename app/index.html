@@ -421,6 +421,108 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 }
 .merge-btn-confirm:hover { background: #e0352b; transform: translateY(-1px); }
 
+/* 待办编辑弹窗 */
+.todo-edit-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); z-index: 3000;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.todo-edit-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+.todo-edit-modal {
+  background: #fff; border-radius: 16px; width: 420px; max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
+  animation: scaleIn 0.25s ease;
+}
+.todo-edit-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px; border-bottom: 1px solid #f0f0f0;
+}
+.todo-edit-title {
+  font-size: 18px; font-weight: 900; font-family: var(--serif);
+}
+.todo-edit-close {
+  font-size: 24px; cursor: pointer; color: #999; line-height: 1;
+  transition: color 0.2s;
+}
+.todo-edit-close:hover { color: var(--red); }
+.todo-edit-body {
+  padding: 24px;
+}
+.todo-edit-field {
+  margin-bottom: 16px;
+}
+.todo-edit-field label {
+  display: block; font-size: 12px; font-weight: 700; color: #666;
+  margin-bottom: 6px; font-family: var(--mono); text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.todo-edit-field input[type="text"],
+.todo-edit-field input[type="date"],
+.todo-edit-field input[type="time"],
+.todo-edit-field select {
+  width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0;
+  border-radius: 8px; font-size: 14px; font-family: var(--mono);
+  transition: border-color 0.2s; box-sizing: border-box;
+}
+.todo-edit-field input:focus,
+.todo-edit-field select:focus {
+  outline: none; border-color: var(--red);
+}
+.todo-edit-field input[type="checkbox"] {
+  margin-right: 8px;
+}
+.todo-edit-row {
+  display: flex; gap: 12px;
+}
+.todo-edit-row .todo-edit-field {
+  flex: 1;
+}
+.todo-edit-actions {
+  display: flex; gap: 12px; padding: 16px 24px 24px;
+}
+.todo-edit-cancel, .todo-edit-save {
+  flex: 1; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; border: none; font-family: var(--mono);
+}
+.todo-edit-cancel {
+  background: #f0f0f0; color: #666;
+}
+.todo-edit-cancel:hover { background: #e0e0e0; }
+.todo-edit-save {
+  background: var(--red); color: #fff;
+}
+.todo-edit-save:hover { background: #e0352b; transform: translateY(-1px); }
+
+/* 待办时间标签 */
+.todo-time {
+  color: var(--red); font-weight: 700;
+}
+
+/* 深色模式下的待办编辑弹窗 */
+.dark-mode .todo-edit-modal {
+  background: #1a1a1a;
+}
+.dark-mode .todo-edit-header {
+  border-bottom-color: #333;
+}
+.dark-mode .todo-edit-title {
+  color: #fff;
+}
+.dark-mode .todo-edit-field label {
+  color: #999;
+}
+.dark-mode .todo-edit-field input[type="text"],
+.dark-mode .todo-edit-field input[type="date"],
+.dark-mode .todo-edit-field input[type="time"],
+.dark-mode .todo-edit-field select {
+  background: #2a2a2a; border-color: #444; color: #fff;
+}
+.dark-mode .todo-edit-cancel {
+  background: #333; color: #ccc;
+}
+.dark-mode .todo-edit-cancel:hover { background: #444; }
+
 /* 空状态 */
 .empty {
   text-align: center; padding: 60px 20px; color: var(--gray-500);
@@ -4297,6 +4399,50 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   </div>
 </div>
 
+<!-- 待办编辑弹窗 -->
+<div class="todo-edit-overlay" id="todo-edit-overlay" onclick="if(event.target===this)closeTodoEdit()">
+  <div class="todo-edit-modal">
+    <div class="todo-edit-header">
+      <div class="todo-edit-title">编辑待办</div>
+      <div class="todo-edit-close" onclick="closeTodoEdit()">×</div>
+    </div>
+    <div class="todo-edit-body">
+      <div class="todo-edit-field">
+        <label>待办内容</label>
+        <input type="text" id="todo-edit-title" placeholder="待办内容">
+      </div>
+      <div class="todo-edit-row">
+        <div class="todo-edit-field">
+          <label>日期</label>
+          <input type="date" id="todo-edit-date">
+        </div>
+        <div class="todo-edit-field">
+          <label>时间（可选）</label>
+          <input type="time" id="todo-edit-time">
+        </div>
+      </div>
+      <div class="todo-edit-field">
+        <label>优先级</label>
+        <select id="todo-edit-priority">
+          <option value="low">低</option>
+          <option value="medium">中</option>
+          <option value="high">高</option>
+        </select>
+      </div>
+      <div class="todo-edit-field">
+        <label>
+          <input type="checkbox" id="todo-edit-reminder"> 
+          提前 15 分钟推送提醒
+        </label>
+      </div>
+    </div>
+    <div class="todo-edit-actions">
+      <button class="todo-edit-cancel" onclick="closeTodoEdit()">取消</button>
+      <button class="todo-edit-save" onclick="saveTodoEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 音效系统 ===== -->
 <script>
 // Web Audio API 音效生成器
@@ -4721,12 +4867,13 @@ function renderTodoList() {
   list.innerHTML = sorted.map(t => `
     <div class="todo-item">
       <div class="todo-check ${t.status === 'done' ? 'checked' : ''}" onclick="toggleTodo('${t.id}')">${t.status === 'done' ? '✓' : ''}</div>
-      <div class="todo-content">
+      <div class="todo-content" onclick="openTodoEdit('${t.id}')">
         <div class="todo-title ${t.status === 'done' ? 'done' : ''}">${t.title || ''}</div>
         <div class="todo-meta">
           ${t.priority === 'high' ? '<span class="tag tag-red">高优先级</span>' : ''}
           ${t.source === 'ai_extract' ? '<span>AI 提取</span>' : '<span>手动</span>'}
           <span>${formatDate(t.due_date || t.date)}</span>
+          ${t.due_time ? `<span class="todo-time">⏰ ${t.due_time}</span>` : ''}
         </div>
       </div>
       <span class="todo-delete" onclick="deleteTodo('${t.id}')">删除</span>
@@ -4764,6 +4911,62 @@ async function deleteTodo(id) {
   await apiDelete('todos', id);
   _data.todos = _data.todos.filter(t => t.id !== id);
   renderTodos();
+}
+
+// 待办编辑功能
+let _editingTodoId = null;
+
+function openTodoEdit(id) {
+  const todo = _data.todos.find(t => t.id === id);
+  if (!todo) return;
+  
+  _editingTodoId = id;
+  document.getElementById('todo-edit-title').value = todo.title || '';
+  document.getElementById('todo-edit-date').value = todo.due_date || todayStr();
+  document.getElementById('todo-edit-time').value = todo.due_time || '';
+  document.getElementById('todo-edit-priority').value = todo.priority || 'medium';
+  document.getElementById('todo-edit-reminder').checked = todo.reminder_enabled !== false;
+  
+  document.getElementById('todo-edit-overlay').classList.add('active');
+}
+
+function closeTodoEdit() {
+  document.getElementById('todo-edit-overlay').classList.remove('active');
+  _editingTodoId = null;
+}
+
+async function saveTodoEdit() {
+  if (!_editingTodoId) return;
+  
+  const title = document.getElementById('todo-edit-title').value.trim();
+  const due_date = document.getElementById('todo-edit-date').value;
+  const due_time = document.getElementById('todo-edit-time').value;
+  const priority = document.getElementById('todo-edit-priority').value;
+  const reminder_enabled = document.getElementById('todo-edit-reminder').checked;
+  
+  if (!title) {
+    showToast('待办内容不能为空');
+    return;
+  }
+  
+  const todo = _data.todos.find(t => t.id === _editingTodoId);
+  if (todo) {
+    todo.title = title;
+    todo.due_date = due_date;
+    todo.due_time = due_time;
+    todo.priority = priority;
+    todo.reminder_enabled = reminder_enabled;
+    // 如果时间改了，重置提醒发送状态
+    todo.reminder_sent = false;
+    
+    await apiPut('todos', _editingTodoId, {
+      title, due_date, due_time, priority, reminder_enabled, reminder_sent: false
+    });
+  }
+  
+  closeTodoEdit();
+  renderTodos();
+  showToast('已保存');
 }
 
 // ===== 重要事件 =====

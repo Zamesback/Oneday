@@ -451,7 +451,7 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
 ## 你的核心能力
 1. **倾听与回应**：回应用户说的话，给予情感支持和建议
 2. **信息捕捉**：从用户的话中自动识别并提取以下信息：
-   - 待办事项（todos）：用户说要做什么、需要做什么、记得做什么、要参加什么会议、什么评审、什么截止日期、什么汇报。**只要是未来要做的事情，都应该识别成待办！**
+   - 待办事项（todos）：用户说要做什么、需要做什么、记得做什么、要参加什么会议、什么评审、什么截止日期、什么汇报。**只要是未来要做的事情，都应该识别成待办！** 同时识别具体时间（比如"上午10点"、"下午3点半"、"晚上8点"）
    - 重要事件/项目（projects）：用户提到的正在跟进的长期项目、目标、客户关系（注意：具体的会议、评审、截止日期应该识别成待办，不是项目）
    - 灵感（inspirations）：用户突然想到的想法、创意、点子
    - 朋友/人物（friends）：用户提到的人名、身份、关系
@@ -465,7 +465,7 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
   "reply": "你对用户说的话，自然温暖的回应",
   "extracted": {
     "todos": [
-      {"title": "待办内容", "due_date": "2026-09-06", "priority": "high/medium/low"}
+      {"title": "待办内容", "due_date": "2026-09-06", "due_time": "10:00", "priority": "high/medium/low"}
     ],
     "projects": [{"name": "项目名", "stage": "跟进中", "notes": "备注"}],
     "inspirations": ["灵感1", "灵感2"],
@@ -488,12 +488,26 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
 - priority 根据用户语气判断：紧急/重要=high，普通=medium，随便/low
 - 今天的日期是：{{TODAY}}
 
+## 待办时间识别规则（非常重要）
+- due_time 格式为 HH:MM（24小时制），比如 "09:30"、"14:00"、"20:30"
+- 用户说"上午10点"，due_time = "10:00"
+- 用户说"下午3点半"，due_time = "15:30"
+- 用户说"晚上8点"，due_time = "20:00"
+- 用户说"中午12点"，due_time = "12:00"
+- 用户说"早上9点"，due_time = "09:00"
+- 用户说"下午"但没说具体时间，due_time = "14:00"（默认下午2点）
+- 用户说"上午"但没说具体时间，due_time = "10:00"（默认上午10点）
+- 用户说"晚上"但没说具体时间，due_time = "20:00"（默认晚上8点）
+- 用户没有提到具体时间，due_time = ""（空字符串，表示没有具体时间）
+- **只要用户提到了时间，就一定要识别出来！** 会议、评审、汇报通常都有具体时间
+
 ## 重要规则
 - 只返回 JSON，不要返回其他任何文字
 - reply 要自然，不要说"我帮你记了..."这种机械的话，而是自然地回应
 - 提取信息要准确，不要过度提取，不要把闲聊内容当成待办
-- **【强制】todos 必须返回对象数组！每个待办必须是 {"title": "...", "due_date": "YYYY-MM-DD", "priority": "high/medium/low"} 格式，绝对不能返回纯字符串！**
+- **【强制】todos 必须返回对象数组！每个待办必须是 {"title": "...", "due_date": "YYYY-MM-DD", "due_time": "HH:MM", "priority": "high/medium/low"} 格式，绝对不能返回纯字符串！**
 - **待办一定要识别日期！** 用户说"明天/后天/下周"时，due_date 要对应到具体日期，不要都放今天；用户没说时间时，due_date 才是今天
+- **待办要识别时间！** 用户提到"上午10点"、"下午3点"、"晚上8点"等具体时间时，due_time 要对应到具体时间；用户没说时间时，due_time 为空字符串
 - 如果用户只是闲聊，没有具体信息，extracted 里的数组就为空
 - 情绪判断要基于用户的语气和内容
 - 你是鼓励型的伙伴，多给正面反馈，但不要虚假
@@ -865,6 +879,92 @@ def parse_due_date(date_str):
     # 默认返回今天
     return today.isoformat()
 
+def parse_due_time(time_str):
+    """解析待办的时间，支持中文时间表达（上午10点、下午3点半等）"""
+    if not time_str:
+        return ''
+    
+    time_str = str(time_str).strip()
+    
+    # 已经是 HH:MM 格式
+    try:
+        datetime.datetime.strptime(time_str, '%H:%M')
+        return time_str
+    except:
+        pass
+    
+    # 已经是 HH:MM:SS 格式
+    try:
+        t = datetime.datetime.strptime(time_str, '%H:%M:%S')
+        return t.strftime('%H:%M')
+    except:
+        pass
+    
+    import re
+    
+    # 解析"上午10点"、"下午3点半"、"晚上8点"等
+    time_str_lower = time_str.lower()
+    
+    # 提取小时和分钟
+    hour = None
+    minute = 0
+    period = None  # am/pm
+    
+    # 判断时段
+    if any(k in time_str_lower for k in ['上午', '早上', '早晨', 'am', '上午']):
+        period = 'am'
+    elif any(k in time_str_lower for k in ['下午', '午后', 'pm', '下午']):
+        period = 'pm'
+    elif any(k in time_str_lower for k in ['晚上', '夜晚', '傍晚', '夜里', '晚上']):
+        period = 'pm'
+    elif any(k in time_str_lower for k in ['中午', '正午', '中午']):
+        period = 'noon'
+    elif any(k in time_str_lower for k in ['凌晨', '清晨', '凌晨']):
+        period = 'am'
+    
+    # 提取数字
+    numbers = re.findall(r'(\d+(?:\.\d+)?)', time_str)
+    if numbers:
+        hour = int(float(numbers[0]))
+        if len(numbers) > 1:
+            minute = int(float(numbers[1]))
+    
+    # 处理"点半"
+    if '半' in time_str_lower:
+        minute = 30
+    
+    # 处理"一刻"、"三刻"
+    if '一刻' in time_str_lower:
+        minute = 15
+    elif '三刻' in time_str_lower:
+        minute = 45
+    
+    # 如果没有提取到小时，尝试默认值
+    if hour is None:
+        if period == 'am':
+            hour = 10  # 默认上午10点
+        elif period == 'pm':
+            # 判断是下午还是晚上
+            if any(k in time_str_lower for k in ['晚上', '夜晚', '傍晚', '夜里']):
+                hour = 20  # 默认晚上8点
+            else:
+                hour = 14  # 默认下午2点
+        elif period == 'noon':
+            hour = 12
+        else:
+            return ''  # 没有时间信息
+    
+    # 根据时段调整小时
+    if period == 'pm' and hour < 12:
+        hour += 12
+    elif period == 'am' and hour == 12:
+        hour = 0
+    elif period == 'noon':
+        hour = 12
+    
+    # 格式化
+    return f"{hour:02d}:{minute:02d}"
+
 def extract_date_from_text(text):
     """从待办字符串里提取日期信息（容错处理）"""
     if not text:
@@ -1027,28 +1127,32 @@ def save_extracted_info(extracted):
                 title = todo_item
                 # 从字符串里提取日期信息（容错处理）
                 due_date = extract_date_from_text(todo_item)
+                due_time = ''
                 priority = 'medium'
                 # 清理标题里的日期描述
                 title = clean_todo_title(title)
             elif isinstance(todo_item, dict):
                 title = todo_item.get('title', '')
                 due_date = parse_due_date(todo_item.get('due_date', ''))
+                due_time = parse_due_time(todo_item.get('due_time', ''))
                 priority = todo_item.get('priority', 'medium')
             else:
                 continue
             
             if title and len(title) > 1:
-                # 去重检查：标题相同（忽略大小写空格）且截止日期相同 → 认为是重复
+                # 去重检查：标题相同（忽略大小写空格）且截止日期相同且时间相同 → 认为是重复
                 title_normalized = title.strip().lower()
                 is_duplicate = False
                 for existing_todo in todos:
                     existing_title = existing_todo.get('title', '').strip().lower()
                     existing_due = existing_todo.get('due_date', '')
+                    existing_time = existing_todo.get('due_time', '')
                     if (existing_title == title_normalized and 
                         existing_due == due_date and 
+                        existing_time == due_time and
                         existing_todo.get('status') != 'done'):
                         is_duplicate = True
-                        print(f"[待办去重] 跳过重复待办: '{title}' (截止: {due_date})")
+                        print(f"[待办去重] 跳过重复待办: '{title}' (截止: {due_date} {due_time})")
                         break
                 
                 if not is_duplicate:
@@ -1059,6 +1163,8 @@ def save_extracted_info(extracted):
                         'status': 'pending',
                         'source': 'ai_extract',
                         'due_date': due_date,
+                        'due_time': due_time,
+                        'reminder_sent': False,
                         'date': datetime.datetime.now().isoformat()
                     })
                     saved['todos'] += 1
@@ -1739,6 +1845,42 @@ def scheduler_loop():
                         send_notification("OneDay 运动提醒", "今天还没运动哦，动一动吧。")
                         last_exercise_reminder = today
                         print(f"[定时任务] 运动提醒已发送")
+            
+            # 待办时间提醒（提前15分钟）
+            if settings.get('notificationsEnabled'):
+                todos = load_module('todos')
+                now = datetime.datetime.now()
+                today_str = today  # today 已经是字符串格式 YYYY-MM-DD
+                needs_save = False
+                
+                for todo in todos:
+                    # 只检查今天的、有具体时间的、未完成的、开启了提醒的待办
+                    if (todo.get('due_date') == today_str and 
+                        todo.get('due_time') and 
+                        todo.get('status') != 'done' and
+                        todo.get('reminder_enabled', True) and
+                        not todo.get('reminder_sent', False)):
+                        
+                        try:
+                            todo_time = datetime.datetime.strptime(todo['due_time'], '%H:%M').time()
+                            todo_datetime = datetime.datetime.combine(now.date(), todo_time)
+                            time_diff = (todo_datetime - now).total_seconds() / 60  # 分钟
+                            
+                            # 提前15分钟提醒（在0-15分钟之间）
+                            if 0 <= time_diff <= 15:
+                                title = todo.get('title', '待办')
+                                send_notification(
+                                    "OneDay 待办提醒",
+                                    f"「{title}」将在 {todo['due_time']} 开始，还有 {int(time_diff)} 分钟。"
+                                )
+                                todo['reminder_sent'] = True
+                                needs_save = True
+                                print(f"[定时任务] 待办提醒已发送: '{title}' ({todo['due_time']})")
+                        except Exception as e:
+                            print(f"[定时任务] 待办提醒解析失败: {e}")
+                
+                if needs_save:
+                    save_module('todos', todos)
         
         except Exception as e:
             print(f"[定时任务] 错误: {e}")
