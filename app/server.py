@@ -422,6 +422,12 @@ DEFAULT_SETTINGS = {
     'wallpaperMode': 'static',
     'notificationsEnabled': True,
     'userName': '',
+    # AI 生图配置
+    'imageApiKey': '',
+    'imageApiProvider': 'openai',
+    'imageModel': 'dall-e-3',
+    'imageSize': '1792x1024',
+    'autoGenerateWallpaper': True,
 }
 
 def load_settings():
@@ -1792,10 +1798,142 @@ WALLPAPER_GRADIENTS = [
     'linear-gradient(135deg, #f0f2f5 0%, #d9dee3 100%)',
 ]
 
-def get_daily_wallpaper():
-    """获取每日开屏页数据（AI寄语+天气+节气+渐变背景）"""
+def generate_daily_wallpaper_ai():
+    """用 AI 生成每日开屏页壁纸（根据用户状态+待办+天气+节气）"""
+    import os
+    import urllib.request
+    
+    settings = load_settings()
+    
+    # 检查是否配置了生图 API
+    if not settings.get('imageApiKey') or not settings.get('autoGenerateWallpaper', True):
+        print("[AI生图] 未配置生图 API 或未开启自动生成，跳过")
+        return None
+    
     today = datetime.date.today().isoformat()
-    # 基于日期选择固定的渐变，保证一天内不变
+    
+    # 检查今天是否已经生成过
+    generated_dir = os.path.join(BASE_DIR, 'assets', 'generated')
+    os.makedirs(generated_dir, exist_ok=True)
+    today_image = os.path.join(generated_dir, f'wallpaper-{today}.jpg')
+    
+    if os.path.exists(today_image):
+        print(f"[AI生图] 今天的壁纸已生成: {today_image}")
+        return f'assets/generated/wallpaper-{today}.jpg'
+    
+    # 收集上下文信息
+    name = settings.get('userName', '')
+    todos = load_module('todos')
+    pending = [t for t in todos if t.get('status') != 'done'][-5:]
+    projects = load_module('projects')
+    active = [p for p in projects if p.get('status') not in ('done', 'cancelled')][-3:]
+    
+    # 获取天气和节气
+    weather_text = get_weather_text()
+    date_context = get_date_context()
+    
+    # 构建节气/节日描述
+    term_desc = ''
+    if date_context.get('solar_term_is_today'):
+        term_desc = f"今天是{date_context['solar_term']}"
+    elif date_context.get('next_solar_term'):
+        term_desc = f"临近{date_context['next_solar_term']}"
+    
+    festival_desc = f"今天是{date_context['festival']}" if date_context.get('festival') else ''
+    
+    # 构建生图提示词
+    context = f"""用户：{name}
+日期：{date_context['date']} {date_context['weekday']}
+{term_desc}
+{festival_desc if festival_desc else ''}
+{weather_text if weather_text else ''}
+今日待办：{', '.join([t.get('title','') for t in pending]) if pending else '轻松的一天'}
+进行中项目：{', '.join([p.get('name','') for p in active]) if active else '无'}"""
+    
+    prompt = f"""Create a beautiful, artistic desktop wallpaper for a personal productivity app called "OneDay".
+
+{context}
+
+Style requirements:
+- Modern, young, energetic aesthetic (Nothing × One style)
+- Black, white, and red color palette (#000, #FFF, #FF3B30)
+- Cinematic, moody atmosphere with dramatic lighting
+- Abstract or semi-abstract composition, not literal illustration
+- High quality, 4K resolution, widescreen 16:9 aspect ratio
+- Should evoke emotion and match the user's current life state
+- Minimalist but impactful, with lots of negative space
+- Could include urban elements, nature, weather effects, or abstract shapes
+
+IMPORTANT: Do NOT include any text, words, or letters in the image. This is a pure visual wallpaper."""
+    
+    print(f"[AI生图] 开始生成今日壁纸...")
+    print(f"[AI生图] 提示词: {prompt[:200]}...")
+    
+    try:
+        # 调用 OpenAI DALL-E API
+        api_key = settings['imageApiKey']
+        model = settings.get('imageModel', 'dall-e-3')
+        size = settings.get('imageSize', '1792x1024')
+        
+        request_body = json.dumps({
+            'model': model,
+            'prompt': prompt,
+            'n': 1,
+            'size': size,
+            'quality': 'hd',
+        }).encode('utf-8')
+        
+        req = urllib.request.Request(
+            'https://api.openai.com/v1/images/generations',
+            data=request_body,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {api_key}',
+            },
+            method='POST'
+        )
+        
+        with urllib.request.urlopen(req, timeout=120) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            
+            if result.get('data') and len(result['data']) > 0:
+                image_url = result['data'][0]['url']
+                print(f"[AI生图] 图片生成成功，下载中...")
+                
+                # 下载图片
+                img_req = urllib.request.Request(image_url)
+                with urllib.request.urlopen(img_req, timeout=60) as img_response:
+                    image_data = img_response.read()
+                
+                # 保存图片
+                with open(today_image, 'wb') as f:
+                    f.write(image_data)
+                
+                print(f"[AI生图] 壁纸已保存: {today_image}")
+                return f'assets/generated/wallpaper-{today}.jpg'
+            else:
+                print(f"[AI生图] API 返回异常: {result}")
+                return None
+                
+    except Exception as e:
+        print(f"[AI生图] 生成失败: {e}")
+        return None
+
+def get_daily_wallpaper():
+    """获取每日开屏页数据（AI寄语+天气+节气+AI生成壁纸/渐变背景）"""
+    import os
+    
+    today = datetime.date.today().isoformat()
+    settings = load_settings()
+    
+    # 检查是否有 AI 生成的壁纸
+    ai_wallpaper = None
+    generated_image = os.path.join(BASE_DIR, 'assets', 'generated', f'wallpaper-{today}.jpg')
+    if os.path.exists(generated_image):
+        ai_wallpaper = f'assets/generated/wallpaper-{today}.jpg'
+        print(f"[开屏页] 使用 AI 生成的壁纸: {ai_wallpaper}")
+    
+    # 基于日期选择固定的渐变，保证一天内不变（作为回退）
     day_index = datetime.date.today().toordinal() % len(WALLPAPER_GRADIENTS)
     
     # 获取日期上下文（节气+节日）
@@ -1810,8 +1948,8 @@ def get_daily_wallpaper():
     return {
         'date': today,
         'weekday': date_context.get('weekday', ''),
-        'type': 'gradient',
-        'value': WALLPAPER_GRADIENTS[day_index],
+        'type': 'image' if ai_wallpaper else 'gradient',
+        'value': ai_wallpaper if ai_wallpaper else WALLPAPER_GRADIENTS[day_index],
         'quote': greeting,
         'weather': weather if weather.get('enabled') else None,
         'solar_term': {
@@ -1891,6 +2029,14 @@ def scheduler_loop():
                     save_module('chats', chats)
                     # 生成当日卡片
                     generate_daily_card()
+                    # 生成当日 AI 壁纸
+                    if settings.get('autoGenerateWallpaper', True) and settings.get('imageApiKey'):
+                        print(f"[定时任务] 开始生成今日 AI 壁纸...")
+                        wallpaper = generate_daily_wallpaper_ai()
+                        if wallpaper:
+                            print(f"[定时任务] 今日 AI 壁纸生成成功: {wallpaper}")
+                        else:
+                            print(f"[定时任务] 今日 AI 壁纸生成失败，使用预设壁纸")
                     last_morning_greet = today
                     print(f"[定时任务] 早间问候已发送，当日卡片已生成")
             
@@ -2034,6 +2180,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         if path == '/api/wallpaper':
             self.send_json(get_daily_wallpaper())
+            return
+        
+        # 手动触发生成今日壁纸
+        if path == '/api/wallpaper/generate':
+            result = generate_daily_wallpaper_ai()
+            if result:
+                self.send_json({'success': True, 'wallpaper': result})
+            else:
+                self.send_json({'success': False, 'error': '生成失败，请检查 API Key 配置'})
             return
 
         if path == '/api/settings':

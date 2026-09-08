@@ -4216,6 +4216,63 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
         </div>
 
         <div class="settings-section">
+          <h3>AI 生图配置</h3>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">自动生成开屏壁纸</div>
+              <div class="settings-desc">每天早上根据你的状态、待办、天气、节气生成专属开屏图</div>
+            </div>
+            <div class="settings-control">
+              <label class="toggle-switch">
+                <input type="checkbox" id="set-autoGenerateWallpaper">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">生图服务商</div>
+              <div class="settings-desc">选择 AI 生图服务商</div>
+            </div>
+            <div class="settings-control">
+              <select id="set-imageApiProvider">
+                <option value="openai">OpenAI (DALL-E)</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">生图 API Key</div>
+              <div class="settings-desc">OpenAI API Key，用于生成每日开屏壁纸</div>
+            </div>
+            <div class="settings-control">
+              <input type="password" id="set-imageApiKey" placeholder="sk-...">
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">生图模型</div>
+              <div class="settings-desc">选择生图模型</div>
+            </div>
+            <div class="settings-control">
+              <select id="set-imageModel">
+                <option value="dall-e-3">DALL-E 3</option>
+                <option value="dall-e-2">DALL-E 2</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-label">立即生成今日壁纸</div>
+              <div class="settings-desc">手动触发生成今日的 AI 开屏壁纸</div>
+            </div>
+            <div class="settings-control">
+              <button class="settings-btn" onclick="generateTodayWallpaper()">生成壁纸</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <h3>天气配置</h3>
           <div class="settings-item">
             <div>
@@ -4668,9 +4725,26 @@ function renderSplash() {
   const settings = _data.settings || {};
   const name = settings.userName || '';
 
-  // 每日独一无二的开屏壁纸（根据日期自动选择）
-  const dayIndex = (new Date().getDate() + new Date().getMonth()) % WALLPAPERS.length;
-  applyWallpaper(dayIndex);
+  // 优先使用 AI 生成的壁纸，如果没有则回退到预设壁纸
+  const splashBg = document.getElementById('splash-bg');
+  const wallpaperTag = document.getElementById('splash-wallpaper-tag');
+  
+  if (wp.type === 'image' && wp.value) {
+    // AI 生成的图片
+    splashBg.style.backgroundImage = `url('${wp.value}')`;
+    splashBg.style.background = '';
+    if (wallpaperTag) wallpaperTag.innerHTML = `<span class="dot"></span>AI GENERATED · 今日专属`;
+    console.log('[开屏页] 使用 AI 生成的壁纸:', wp.value);
+  } else if (wp.type === 'gradient' && wp.value) {
+    // 渐变背景
+    splashBg.style.backgroundImage = '';
+    splashBg.style.background = wp.value;
+    if (wallpaperTag) wallpaperTag.innerHTML = `<span class="dot"></span>GRADIENT · 渐变`;
+  } else {
+    // 回退到预设壁纸（根据日期选择）
+    const dayIndex = (new Date().getDate() + new Date().getMonth()) % WALLPAPERS.length;
+    applyWallpaper(dayIndex);
+  }
 
   // 日期（等宽 + 红色短线 + 呼吸红点）
   const now = new Date();
@@ -6982,6 +7056,11 @@ function renderSettings() {
   document.getElementById('set-aiStyle').value = s.aiStyle || 'encouraging';
   document.getElementById('set-weatherApiKey').value = s.weatherApiKey || '';
   document.getElementById('set-weatherCity').value = s.weatherCity || '上海';
+  // AI 生图配置
+  document.getElementById('set-autoGenerateWallpaper').checked = s.autoGenerateWallpaper !== false;
+  document.getElementById('set-imageApiProvider').value = s.imageApiProvider || 'openai';
+  document.getElementById('set-imageApiKey').value = s.imageApiKey || '';
+  document.getElementById('set-imageModel').value = s.imageModel || 'dall-e-3';
 }
 
 async function saveSettings() {
@@ -6996,6 +7075,11 @@ async function saveSettings() {
     aiStyle: document.getElementById('set-aiStyle').value,
     weatherApiKey: document.getElementById('set-weatherApiKey').value.trim(),
     weatherCity: document.getElementById('set-weatherCity').value,
+    // AI 生图配置
+    autoGenerateWallpaper: document.getElementById('set-autoGenerateWallpaper').checked,
+    imageApiProvider: document.getElementById('set-imageApiProvider').value,
+    imageApiKey: document.getElementById('set-imageApiKey').value.trim(),
+    imageModel: document.getElementById('set-imageModel').value,
   };
   _data.settings = settings;
   await fetch(API_BASE + '/settings', {
@@ -7013,6 +7097,35 @@ async function saveSettings() {
 async function testNotification() {
   await fetch(API_BASE + '/notify/test', { method: 'POST' });
   showToast('已发送测试通知');
+}
+
+// 手动生成今日 AI 壁纸
+async function generateTodayWallpaper() {
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = '生成中...';
+  btn.disabled = true;
+  
+  try {
+    const res = await fetch(API_BASE + '/wallpaper/generate', { method: 'POST' });
+    const result = await res.json();
+    
+    if (result.success) {
+      showToast('今日壁纸生成成功！');
+      // 重新加载数据并刷新开屏页
+      await loadData();
+      if (_currentView === 'splash') {
+        renderSplash();
+      }
+    } else {
+      showToast('生成失败：' + (result.error || '未知错误'));
+    }
+  } catch (e) {
+    showToast('生成失败：' + e.message);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
 }
 
 // 检查 API Key 状态
