@@ -2,7 +2,7 @@
 # OneDay 服务器看门狗
 # 每分钟检查一次服务器状态，如果挂了自动重启
 
-APP_DIR="/Users/zames/Desktop/OneDay 一日/app"
+APP_DIR="/Users/zames/Desktop/Project/OneDay 一日/app"
 LOG_FILE="/tmp/oneday-server.log"
 WATCHDOG_LOG="/tmp/oneday-watchdog.log"
 PORT=8765
