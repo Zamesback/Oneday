@@ -2218,7 +2218,21 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         # 通用模块 GET
         for module_name in MODULES:
             if path == f'/api/{module_name}':
-                self.send_json(load_module(module_name))
+                data = load_module(module_name)
+                # 卡片模块：检查是否有 AI 生成的壁纸
+                if module_name == 'cards':
+                    import os
+                    for card in data:
+                        date_str = card.get('date', '')
+                        if date_str:
+                            ai_wallpaper = os.path.join(BASE_DIR, 'assets', 'generated', f'wallpaper-{date_str}.jpg')
+                            if os.path.exists(ai_wallpaper):
+                                card['wallpaper'] = f'assets/generated/wallpaper-{date_str}.jpg'
+                                card['wallpaper_type'] = 'ai'
+                            else:
+                                # 回退到本地壁纸（由前端处理）
+                                card['wallpaper_type'] = 'local'
+                self.send_json(data)
                 return
 
         # 静态文件

@@ -7317,6 +7317,22 @@ const cardWallpapers = [
   'assets/wallpaper-arcade.jpg',
 ];
 
+// 根据日期获取卡片壁纸（优先使用 AI 生成的图片）
+function getCardWallpaper(dateStr) {
+  // 检查是否有 AI 生成的图片
+  const aiWallpaper = `assets/generated/wallpaper-${dateStr}.jpg`;
+  // 注意：前端无法直接检查文件是否存在，所以我们尝试使用 AI 图片
+  // 如果加载失败，浏览器会自动显示空白，我们通过 onerror 回退
+  return aiWallpaper;
+}
+
+// 卡片壁纸加载失败时回退到本地壁纸
+function fallbackCardWallpaper(imgElement, dateStr) {
+  const day = parseInt(dateStr.split('-')[2]);
+  const fallback = cardWallpapers[day % cardWallpapers.length];
+  imgElement.style.backgroundImage = `url('${fallback}')`;
+}
+
 async function loadCards() {
   try {
     const res = await fetch('/api/cards');
@@ -7375,7 +7391,8 @@ function renderCardsCalendar() {
     const isToday = isCurrentMonth && day === today.getDate();
     
     if (card) {
-      const wallpaper = cardWallpapers[day % cardWallpapers.length];
+      // 优先使用 AI 生成的壁纸，没有则回退到本地壁纸
+      const wallpaper = card.wallpaper || cardWallpapers[day % cardWallpapers.length];
       html += `
         <div class="cards-calendar-cell has-card ${isToday ? 'today' : ''}" onclick="openCardModal('${card.id}')">
           <div class="cell-card-bg" style="background-image: url('${wallpaper}'); background-size: cover; background-position: center;"></div>
@@ -7408,7 +7425,8 @@ function openCardModal(cardId) {
   const card = cardsData.find(c => c.id === cardId);
   if (!card) return;
   
-  const wallpaper = cardWallpapers[parseInt(card.date.split('-')[2]) % cardWallpapers.length];
+  // 优先使用 AI 生成的壁纸，没有则回退到本地壁纸
+  const wallpaper = card.wallpaper || cardWallpapers[parseInt(card.date.split('-')[2]) % cardWallpapers.length];
   const moodText = {
     'excited': '兴奋', 'happy': '开心', 'neutral': '平静',
     'tired': '疲惫', 'sad': '低落', 'anxious': '焦虑'
