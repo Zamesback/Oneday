@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>OneDay / 一日</title>
 <style>
 /* ===== OneDay - Nothing × One 混搭风格 ===== */
@@ -37,6 +37,10 @@ html, body {
   font-size: 14px;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
+  /* Android WebView 触控：去除点击高亮闪烁、消除 300ms 延迟 */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior-y: none;
 }
 /* 扫描线效果 */
 body::after {
@@ -4273,7 +4277,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
         <div class="page-header-demo">
           <div>
             <div class="page-title-demo">朋友<span class="red">图谱</span></div>
-            <div class="page-subtitle-demo" id="friends-subtitle">FRIENDS GRAPH · 8 PEOPLE · 拖拽节点 · 滚轮缩放</div>
+            <div class="page-subtitle-demo" id="friends-subtitle">FRIENDS GRAPH · 拖拽节点 · 双指缩放</div>
           </div>
         </div>
         <div class="friends-layout-demo">
@@ -6482,6 +6486,9 @@ function initGraphCanvas() {
 
 let graphPinchDist = 0;
 let graphPinchScale = 1;
+let graphTapStartX = 0;
+let graphTapStartY = 0;
+let graphTapNode = null;
 
 function onGraphTouchStart(e) {
   e.preventDefault();
@@ -6492,6 +6499,10 @@ function onGraphTouchStart(e) {
     const sy = t.clientY - rect.top;
     const wp = screenToWorld(sx, sy);
     const node = findNodeAt(wp.x, wp.y);
+    // 记录点击起点，用于区分「点击选中」与「拖拽」
+    graphTapStartX = sx;
+    graphTapStartY = sy;
+    graphTapNode = node || null;
     if (node) {
       graphState.dragNode = node;
       node.vx = 0;
@@ -6504,6 +6515,7 @@ function onGraphTouchStart(e) {
   } else if (e.touches.length === 2) {
     graphState.dragNode = null;
     graphState.isDragging = false;
+    graphTapNode = null;
     graphPinchDist = Math.hypot(
       e.touches[0].clientX - e.touches[1].clientX,
       e.touches[0].clientY - e.touches[1].clientY
@@ -6519,6 +6531,10 @@ function onGraphTouchMove(e) {
     const t = e.touches[0];
     const sx = t.clientX - rect.left;
     const sy = t.clientY - rect.top;
+    // 位移超过阈值 → 视为拖拽/平移，取消点击选中
+    if (graphTapNode && (Math.abs(sx - graphTapStartX) > 10 || Math.abs(sy - graphTapStartY) > 10)) {
+      graphTapNode = null;
+    }
     const wp = screenToWorld(sx, sy);
     if (graphState.dragNode) {
       graphState.dragNode.x = wp.x;
@@ -6531,6 +6547,7 @@ function onGraphTouchMove(e) {
       return;
     }
   } else if (e.touches.length === 2 && graphPinchDist > 0) {
+    graphTapNode = null;
     const d = Math.hypot(
       e.touches[0].clientX - e.touches[1].clientX,
       e.touches[0].clientY - e.touches[1].clientY
@@ -6549,12 +6566,21 @@ function onGraphTouchMove(e) {
 
 function onGraphTouchEnd(e) {
   if (e.touches.length === 0) {
+    // 轻点节点 → 选中并显示详情（等效桌面 click）
+    if (graphTapNode && !graphState.mergeCandidate) {
+      const tapped = graphTapNode;
+      graphTapNode = null;
+      graphState.dragNode = null;
+      openFriendDrawer(tapped.id);
+      return;
+    }
     if (graphState.mergeCandidate && graphState.dragNode) {
       const { nodeA, nodeB } = graphState.mergeCandidate;
       showMergeConfirmDialog(nodeA, nodeB);
     }
     graphState.dragNode = null;
     graphState.isDragging = false;
+    graphTapNode = null;
     graphPinchDist = 0;
     graphPinchScale = 1;
   } else if (e.touches.length === 1) {
@@ -6681,6 +6707,12 @@ function renderGraph() {
   const canvas = document.getElementById('graph-canvas');
   if (!canvas) {
     initGraphCanvas();
+  }
+  
+  // 副标题跟随真实人数
+  const subEl = document.getElementById('friends-subtitle');
+  if (subEl) {
+    subEl.textContent = `FRIENDS GRAPH · ${friends.length} PEOPLE · 拖拽节点 · 双指缩放`;
   }
   
   if (friends.length === 0) {
