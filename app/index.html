@@ -3773,9 +3773,66 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 .dark-mode .generating-text { color: #999; }
 .dark-mode .gen-line { background: #222; }
 
+/* ===== 桌面版标题栏（无边框窗口拖拽区 + 红绿灯）===== */
+.desktop-titlebar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: drag;
+  user-select: none;
+  cursor: default;
+  background: transparent;
+}
+.desktop-titlebar:hover {
+  background: rgba(0,0,0,0.06);
+}
+.dark-mode .desktop-titlebar:hover {
+  background: rgba(255,255,255,0.06);
+}
+.desktop-traffic-lights {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+.traffic-light {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: filter 0.15s;
+  border: none;
+}
+.traffic-light:hover { filter: brightness(0.85); }
+.traffic-close { background: #ff5f57; }
+.traffic-min  { background: #febc2e; }
+.traffic-max  { background: #28c840; }
+.desktop-title-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: rgba(128,128,128,0.8);
+  font-weight: 700;
+}
+.dark-mode .desktop-title-text { color: rgba(200,200,200,0.7); }
 </style>
 </head>
 <body>
+<!-- 桌面版标题栏（仅 ?desktop=1 时显示，无边框窗口拖拽区 + 红绿灯按钮） -->
+<div class="desktop-titlebar" id="desktop-titlebar" style="display:none;">
+  <div class="desktop-traffic-lights">
+    <div class="traffic-light traffic-close" id="tl-close" onclick="desktopClose()" title="关闭"></div>
+    <div class="traffic-light traffic-min" id="tl-min" onclick="desktopMinimize()" title="最小化"></div>
+    <div class="traffic-light traffic-max" id="tl-max" onclick="desktopFullscreen()" title="全屏"></div>
+  </div>
+  <div class="desktop-title-text">OneDay 一日</div>
+</div>
 <div class="app">
   <!-- 侧边栏 -->
   <aside class="sidebar">
@@ -4596,7 +4653,7 @@ function playAiReplySound() {
 <script>
 // ===== OneDay 前端核心 =====
 
-const API_BASE = 'http://localhost:8765/api';
+const API_BASE = `${location.protocol}//${location.host}/api`;
 let _data = null;
 let _currentView = 'splash';
 let _friendsTab = 'list';
@@ -6546,8 +6603,121 @@ function resetMicButton() {
   }
 }
 
+// ===== 桌面版（?desktop=1）：无边框窗口 + 原生语音桥接 =====
+const IS_DESKTOP = new URLSearchParams(location.search).get('desktop') === '1';
+const HAS_NATIVE_SPEECH = IS_DESKTOP && window.pywebview && window.pywebview.api;
+
+// 初始化桌面模式
+(function initDesktopMode() {
+  if (!IS_DESKTOP) return;
+  const bar = document.getElementById('desktop-titlebar');
+  if (bar) bar.style.display = 'flex';
+  document.body.classList.add('desktop-mode');
+  // 顶部留出拖拽区高度，避免内容顶到标题栏
+  const appEl = document.querySelector('.app');
+  if (appEl) appEl.style.paddingTop = '44px';
+  console.log('[桌面版] 桌面模式已启用');
+})();
+
+// 红绿灯按钮
+function desktopClose() {
+  if (window.pywebview?.api?.close) window.pywebview.api.close();
+}
+function desktopMinimize() {
+  if (window.pywebview?.api?.minimize) window.pywebview.api.minimize();
+}
+function desktopFullscreen() {
+  if (window.pywebview?.api?.toggle_fullscreen) window.pywebview.api.toggle_fullscreen();
+}
+
+// 桌面版原生语音识别
+async function startDesktopVoice() {
+  _voiceRecording = true;
+  _voiceFinalTranscript = '';
+  _voiceLastInterimTranscript = '';
+  _voiceRestartCount = 0;
+  _voiceStartTime = Date.now();
+  _voiceLastResultTime = Date.now();
+  playStartRecordingSound();
+  const btn = document.getElementById('voice-mic-btn');
+  if (btn) {
+    btn.classList.add('recording');
+    const icon = document.getElementById('mic-icon');
+    if (icon) icon.innerHTML = '<rect x="6" y="6" width="12" height="12" rx="2"/>';
+  }
+  setVoiceStatus('listening', '正在听... 点击结束');
+
+  try {
+    const res = await window.pywebview.api.start_listening();
+    console.log('[桌面录音] start_listening:', res);
+    if (!res || !res.ok) {
+      showVoiceReply('麦克风或语音识别不可用：' + (res?.reason || '未知原因') + '\n\n请检查 系统设置 > 隐私与安全性 > 麦克风/语音识别 权限。', 'OneDay');
+      setVoiceStatus('', '待机中');
+      resetMicButton();
+      _voiceRecording = false;
+      return;
+    }
+    // 桌面模式看门狗：如果 30 秒没有任何识别结果，自动停止
+    if (_voiceWatchdogTimer) clearInterval(_voiceWatchdogTimer);
+    _voiceWatchdogTimer = setInterval(() => {
+      if (!_voiceRecording) { clearInterval(_voiceWatchdogTimer); return; }
+      if (Date.now() - _voiceLastResultTime > 30000) {
+        console.log('[桌面录音] 看门狗：无识别结果 30 秒，自动停止');
+        stopVoiceRecording();
+      }
+    }, 5000);
+  } catch (e) {
+    console.error('[桌面录音] 启动失败:', e);
+    showVoiceReply('无法启动语音识别：' + e.message, 'OneDay');
+    setVoiceStatus('', '待机中');
+    resetMicButton();
+    _voiceRecording = false;
+  }
+}
+
+// 桌面版停止录音（异步获取最终文本）
+async function stopDesktopVoice() {
+  if (!_voiceRecording) return;
+  _voiceRecording = false;
+  playStopRecordingSound();
+  resetMicButton();
+  setVoiceStatus('thinking', 'AI 正在思考...');
+  if (_voiceWatchdogTimer) { clearInterval(_voiceWatchdogTimer); _voiceWatchdogTimer = null; }
+
+  try {
+    const res = await window.pywebview.api.stop_listening();
+    console.log('[桌面录音] stop_listening:', res);
+    const transcript = (res && res.text) ? res.text.trim() : '';
+    if (transcript) {
+      sendVoiceMessage(transcript);
+    } else {
+      console.warn('[桌面录音] 没有识别到文字');
+      showVoiceReply('没有听到你说什么，再试一次吧。', 'OneDay');
+      setVoiceStatus('', '待机中');
+    }
+  } catch (e) {
+    console.error('[桌面录音] 停止失败:', e);
+    showVoiceReply('录音结束异常，请重试。', 'OneDay');
+    setVoiceStatus('', '待机中');
+  }
+}
+
+// 桌面版部分识别结果回调（由 Python 端推送）
+window.__onedayPartialResult = function(text) {
+  if (!_voiceRecording || !text) return;
+  _voiceLastResultTime = Date.now();
+  _voiceLastInterimTranscript = text;
+  _voiceFinalTranscript = text; // 桌面原生识别每次返回累积文本
+  showVoiceReply('「' + text + '」', '你说的');
+};
+
 function startVoiceRecording() {
   if (_voiceRecording) return;
+  // 桌面版走原生语音识别桥接
+  if (HAS_NATIVE_SPEECH) {
+    startDesktopVoice();
+    return;
+  }
   _voiceRecording = true;
   _voiceFinalTranscript = '';           // 重置全局已识别文字
   _voiceLastInterimTranscript = '';     // 重置全局临时结果
@@ -6750,6 +6920,11 @@ function startVoiceRecording() {
 
 function stopVoiceRecording() {
   if (!_voiceRecording) return;
+  // 桌面版走原生语音识别桥接
+  if (HAS_NATIVE_SPEECH) {
+    stopDesktopVoice();
+    return;
+  }
   _voiceRecording = false;
   playStopRecordingSound();
   
@@ -7320,7 +7495,7 @@ const cardWallpapers = [
 // 根据日期获取卡片壁纸（优先使用 AI 生成的图片）
 function getCardWallpaper(dateStr) {
   // 检查是否有 AI 生成的图片
-  const aiWallpaper = `assets/generated/wallpaper-${dateStr}.jpg`;
+  const aiWallpaper = `/wallpapers/wallpaper-${dateStr}.jpg`;
   // 注意：前端无法直接检查文件是否存在，所以我们尝试使用 AI 图片
   // 如果加载失败，浏览器会自动显示空白，我们通过 onerror 回退
   return aiWallpaper;

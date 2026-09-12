@@ -18,10 +18,13 @@ import re
 import random
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-JSON_DIR = os.path.join(BASE_DIR, 'data')
+# 数据与壁纸目录支持环境变量覆盖（桌面版打包后 _MEIPASS 只读，须指向用户目录）
+JSON_DIR = os.environ.get('ONEDAY_DATA_DIR') or os.path.join(BASE_DIR, 'data')
+WALLPAPER_DIR = os.environ.get('ONEDAY_WALLPAPER_DIR') or os.path.join(BASE_DIR, 'assets', 'generated')
 PORT = 8765
 
 os.makedirs(JSON_DIR, exist_ok=True)
+os.makedirs(WALLPAPER_DIR, exist_ok=True)
 
 # ===== 数据存储层 =====
 
@@ -1813,13 +1816,13 @@ def generate_daily_wallpaper_ai():
     today = datetime.date.today().isoformat()
     
     # 检查今天是否已经生成过
-    generated_dir = os.path.join(BASE_DIR, 'assets', 'generated')
+    generated_dir = WALLPAPER_DIR
     os.makedirs(generated_dir, exist_ok=True)
     today_image = os.path.join(generated_dir, f'wallpaper-{today}.jpg')
     
     if os.path.exists(today_image):
         print(f"[AI生图] 今天的壁纸已生成: {today_image}")
-        return f'assets/generated/wallpaper-{today}.jpg'
+        return f'/wallpapers/wallpaper-{today}.jpg'
     
     # 收集上下文信息
     name = settings.get('userName', '')
@@ -1910,7 +1913,7 @@ IMPORTANT: Do NOT include any text, words, or letters in the image. This is a pu
                     f.write(image_data)
                 
                 print(f"[AI生图] 壁纸已保存: {today_image}")
-                return f'assets/generated/wallpaper-{today}.jpg'
+                return f'/wallpapers/wallpaper-{today}.jpg'
             else:
                 print(f"[AI生图] API 返回异常: {result}")
                 return None
@@ -1928,9 +1931,9 @@ def get_daily_wallpaper():
     
     # 检查是否有 AI 生成的壁纸
     ai_wallpaper = None
-    generated_image = os.path.join(BASE_DIR, 'assets', 'generated', f'wallpaper-{today}.jpg')
+    generated_image = os.path.join(WALLPAPER_DIR, f'wallpaper-{today}.jpg')
     if os.path.exists(generated_image):
-        ai_wallpaper = f'assets/generated/wallpaper-{today}.jpg'
+        ai_wallpaper = f'/wallpapers/wallpaper-{today}.jpg'
         print(f"[开屏页] 使用 AI 生成的壁纸: {ai_wallpaper}")
     
     # 基于日期选择固定的渐变，保证一天内不变（作为回退）
@@ -2170,6 +2173,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
+        # AI 生成的壁纸图片（可能位于用户数据目录，需单独路由）
+        if path.startswith('/wallpapers/'):
+            fname = os.path.basename(path)  # 防路径穿越
+            fpath = os.path.join(WALLPAPER_DIR, fname)
+            if os.path.exists(fpath) and fname.endswith(('.jpg', '.jpeg', '.png', '.webp')):
+                ext = fname.rsplit('.', 1)[-1].lower()
+                ctype = {'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'webp': 'image/webp'}.get(ext, 'application/octet-stream')
+                try:
+                    with open(fpath, 'rb') as f:
+                        body = f.read()
+                    self.send_response(200)
+                    self.send_header('Content-Type', ctype)
+                    self.send_header('Content-Length', str(len(body)))
+                    self.send_header('Cache-Control', 'no-cache')
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
+                except Exception as e:
+                    print(f"[壁纸] 读取失败 {fpath}: {e}")
+                    self.send_error(500)
+                    return
+            self.send_error(404)
+            return
+
         if path == '/api/health':
             self.send_json({'status': 'ok', 'version': '3.0', 'name': 'OneDay', 'time': datetime.datetime.now().isoformat()})
             return
@@ -2225,9 +2252,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     for card in data:
                         date_str = card.get('date', '')
                         if date_str:
-                            ai_wallpaper = os.path.join(BASE_DIR, 'assets', 'generated', f'wallpaper-{date_str}.jpg')
+                            ai_wallpaper = os.path.join(WALLPAPER_DIR, f'wallpaper-{date_str}.jpg')
                             if os.path.exists(ai_wallpaper):
-                                card['wallpaper'] = f'assets/generated/wallpaper-{date_str}.jpg'
+                                card['wallpaper'] = f'/wallpapers/wallpaper-{date_str}.jpg'
                                 card['wallpaper_type'] = 'ai'
                             else:
                                 # 回退到本地壁纸（由前端处理）
