@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.OneDay" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/oneday_black</item>
+        <item name="android:statusBarColor">@color/oneday_black</item>
+        <item name="android:navigationBarColor">@color/oneday_black</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

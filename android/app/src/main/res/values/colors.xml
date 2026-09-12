@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="oneday_black">#000000</color>
+    <color name="oneday_white">#FFFFFF</color>
+    <color name="oneday_red">#FF453A</color>
+</resources>

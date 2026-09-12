@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 前景：白色圆角卡片（每日卡片）+ 红色圆点（Nothing×One 风格） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 白色圆角卡片 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,30 h40 a8,8 0 0 1 8,8 v32 a8,8 0 0 1 -8,8 h-40 a8,8 0 0 1 -8,-8 v-32 a8,8 0 0 1 8,-8 z" />
+    <!-- 卡片内黑色装饰条 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M40,44 h20 a3,3 0 0 1 0,6 h-20 a3,3 0 0 1 0,-6 z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M40,56 h28 a3,3 0 0 1 0,6 h-28 a3,3 0 0 1 0,-6 z" />
+    <!-- 红色圆点 -->
+    <path
+        android:fillColor="#FF453A"
+        android:pathData="M74,40 m-6,0 a6,6 0 1 1 12,0 a6,6 0 1 1 -12,0" />
+</vector>
