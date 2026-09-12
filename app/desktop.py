@@ -252,8 +252,13 @@ class Api:
 
     def close(self):
         w = self._get_window()
-        if w:
-            w.destroy()
+        try:
+            if w:
+                w.destroy()
+        except Exception as e:
+            print('[窗口] destroy 异常:', e)
+        # pywebview 在 macOS 上 destroy 后事件循环可能不退出，延迟强制退出兜底
+        threading.Timer(0.8, lambda: os._exit(0)).start()
 
     # ---- 语音识别 ----
     def speech_available(self):
@@ -352,6 +357,10 @@ def main():
     window_holder['window'] = window
 
     webview.start()
+
+    # 兜底：正常退出路径（Cmd+Q / 全部窗口关闭）确保进程完全退出
+    # pywebview 在 macOS 上 start() 返回后 Cocoa 资源可能仍挂住
+    os._exit(0)
 
 
 if __name__ == '__main__':
