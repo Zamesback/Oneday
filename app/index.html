@@ -4290,30 +4290,33 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
           <div class="settings-item">
             <div>
               <div class="settings-label">生图服务商</div>
-              <div class="settings-desc">选择 AI 生图服务商</div>
+              <div class="settings-desc">「内置免费」零配置即用；填 Key 可升级更高画质、无水印</div>
             </div>
             <div class="settings-control">
               <select id="set-imageApiProvider">
+                <option value="free">内置免费（Pollinations，无需 Key）</option>
+                <option value="siliconflow">硅基流动 SiliconFlow（注册送额度）</option>
                 <option value="openai">OpenAI (DALL-E)</option>
               </select>
             </div>
           </div>
-          <div class="settings-item">
+          <div class="settings-item" id="row-imageApiKey">
             <div>
               <div class="settings-label">生图 API Key</div>
-              <div class="settings-desc">OpenAI API Key，用于生成每日开屏壁纸</div>
+              <div class="settings-desc">选「内置免费」则无需填写，直接可用；填 Key 可去水印、更高画质</div>
             </div>
             <div class="settings-control">
               <input type="password" id="set-imageApiKey" placeholder="sk-...">
             </div>
           </div>
-          <div class="settings-item">
+          <div class="settings-item" id="row-imageModel">
             <div>
               <div class="settings-label">生图模型</div>
               <div class="settings-desc">选择生图模型</div>
             </div>
             <div class="settings-control">
               <select id="set-imageModel">
+                <option value="flux">FLUX.1-schnell（硅基流动免费额度）</option>
                 <option value="dall-e-3">DALL-E 3</option>
                 <option value="dall-e-2">DALL-E 2</option>
               </select>
@@ -7234,10 +7237,24 @@ function renderSettings() {
   document.getElementById('set-weatherCity').value = s.weatherCity || '上海';
   // AI 生图配置
   document.getElementById('set-autoGenerateWallpaper').checked = s.autoGenerateWallpaper !== false;
-  document.getElementById('set-imageApiProvider').value = s.imageApiProvider || 'openai';
+  const imgProvider = s.imageApiProvider || (s.imageApiKey ? 'openai' : 'free');
+  document.getElementById('set-imageApiProvider').value = imgProvider;
   document.getElementById('set-imageApiKey').value = s.imageApiKey || '';
-  document.getElementById('set-imageModel').value = s.imageModel || 'dall-e-3';
+  document.getElementById('set-imageModel').value = s.imageModel || 'flux';
+  updateImageProviderUI(imgProvider);
 }
+
+// 生图服务商切换：免费模式隐藏 Key/模型配置
+function updateImageProviderUI(provider) {
+  const isFree = provider === 'free';
+  document.getElementById('row-imageApiKey').style.display = isFree ? 'none' : '';
+  document.getElementById('row-imageModel').style.display = isFree ? 'none' : '';
+}
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.id === 'set-imageApiProvider') {
+    updateImageProviderUI(e.target.value);
+  }
+});
 
 async function saveSettings() {
   const settings = {

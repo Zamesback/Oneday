@@ -427,8 +427,8 @@ DEFAULT_SETTINGS = {
     'userName': '',
     # AI 生图配置
     'imageApiKey': '',
-    'imageApiProvider': 'openai',
-    'imageModel': 'dall-e-3',
+    'imageApiProvider': 'free',
+    'imageModel': 'flux',
     'imageSize': '1792x1024',
     'autoGenerateWallpaper': True,
 }
@@ -1808,9 +1808,9 @@ def generate_daily_wallpaper_ai():
     
     settings = load_settings()
     
-    # 检查是否配置了生图 API
-    if not settings.get('imageApiKey') or not settings.get('autoGenerateWallpaper', True):
-        print("[AI生图] 未配置生图 API 或未开启自动生成，跳过")
+    # 检查是否开启自动生成
+    if not settings.get('autoGenerateWallpaper', True):
+        print("[AI生图] 未开启自动生成，跳过")
         return None
     
     today = datetime.date.today().isoformat()
@@ -1873,10 +1873,43 @@ IMPORTANT: Do NOT include any text, words, or letters in the image. This is a pu
     print(f"[AI生图] 提示词: {prompt[:200]}...")
     
     try:
-        # 调用 OpenAI DALL-E API
-        api_key = settings['imageApiKey']
-        model = settings.get('imageModel', 'dall-e-3')
-        size = settings.get('imageSize', '1792x1024')
+        api_key = settings.get('imageApiKey', '').strip()
+        if not api_key:
+            # ===== 零配置免费通道：Pollinations.ai（无需 key、无需注册）=====
+            import urllib.parse
+            seed = datetime.date.today().toordinal()  # 同一天固定种子，保证当天图一致
+            poll_url = (
+                f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}"
+                f"?width=1792&height=1024&model=flux&nologo=true&seed={seed}"
+            )
+            print(f"[AI生图] 使用免费生图源 Pollinations（零配置）...")
+            img_req = urllib.request.Request(
+                poll_url,
+                headers={
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36'
+                }
+            )
+            with urllib.request.urlopen(img_req, timeout=180) as img_response:
+                image_data = img_response.read()
+
+            # 保存图片
+            with open(today_image, 'wb') as f:
+                f.write(image_data)
+
+            print(f"[AI生图] 壁纸已保存（免费源）: {today_image}")
+            return f'/wallpapers/wallpaper-{today}.jpg'
+
+        # ===== 自定义 API 通道（OpenAI 兼容，如 DALL-E / 硅基流动 FLUX）=====
+        provider = settings.get('imageApiProvider', 'free')
+        model = settings.get('imageModel', 'flux')
+        # FLUX 系列（硅基流动）不支持超宽尺寸，用 1024x1024
+        size = '1024x1024' if provider == 'siliconflow' else settings.get('imageSize', '1792x1024')
+        
+        # 不同服务商的 OpenAI 兼容 endpoint
+        image_endpoint = {
+            'openai': 'https://api.openai.com/v1/images/generations',
+            'siliconflow': 'https://api.siliconflow.cn/v1/images/generations',
+        }.get(provider, 'https://api.openai.com/v1/images/generations')
         
         request_body = json.dumps({
             'model': model,
@@ -1887,7 +1920,7 @@ IMPORTANT: Do NOT include any text, words, or letters in the image. This is a pu
         }).encode('utf-8')
         
         req = urllib.request.Request(
-            'https://api.openai.com/v1/images/generations',
+            image_endpoint,
             data=request_body,
             headers={
                 'Content-Type': 'application/json',
@@ -2284,6 +2317,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             if 'settings' in data:
                 save_settings(data['settings'])
             self.send_json({'status': 'ok'})
+            return
+
+        # 手动触发生成今日壁纸（前端用 POST 调用）
+        if path == '/api/wallpaper/generate':
+            result = generate_daily_wallpaper_ai()
+            if result:
+                self.send_json({'success': True, 'wallpaper': result})
+            else:
+                self.send_json({'success': False, 'error': '生成失败，请检查配置或稍后重试'})
             return
 
         if path == '/api/settings':
