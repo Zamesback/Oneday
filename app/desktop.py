@@ -250,6 +250,18 @@ class Api:
         if w:
             w.toggle_fullscreen()
 
+    def resize(self, width, height):
+        """调整窗口大小（右下角拖拽手柄调用）"""
+        w = self._get_window()
+        if not w:
+            return {'ok': False}
+        try:
+            w.resize(int(width), int(height))
+            return {'ok': True}
+        except Exception as e:
+            print('[窗口] resize 异常:', e)
+            return {'ok': False, 'error': str(e)}
+
     def close(self):
         w = self._get_window()
         try:

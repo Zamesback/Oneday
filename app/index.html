@@ -3822,6 +3822,43 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   font-weight: 700;
 }
 .dark-mode .desktop-title-text { color: rgba(220,220,220,0.8); }
+
+/* ===== 桌面版右下角拖拽手柄（调整窗口大小）===== */
+.desktop-resize-handle {
+  position: fixed;
+  right: 0; bottom: 0;
+  width: 34px; height: 34px;
+  z-index: 99999;
+  cursor: nwse-resize;
+  -webkit-app-region: no-drag;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+.desktop-resize-handle:hover { opacity: 1; }
+.desktop-resize-handle::before {
+  content: '';
+  position: absolute;
+  right: 7px; bottom: 7px;
+  width: 17px; height: 17px;
+  border-right: 3px solid rgba(30,30,30,0.6);
+  border-bottom: 3px solid rgba(30,30,30,0.6);
+  border-radius: 0 0 3px 0;
+}
+.desktop-resize-handle::after {
+  content: '';
+  position: absolute;
+  right: 2px; bottom: 2px;
+  width: 11px; height: 11px;
+  border-right: 3px solid rgba(30,30,30,0.35);
+  border-bottom: 3px solid rgba(30,30,30,0.35);
+  border-radius: 0 0 2px 0;
+}
+.desktop-resize-handle:hover::before { border-color: #FF3B30; }
+.desktop-resize-handle:hover::after { border-color: rgba(255,59,48,0.6); }
+.dark-mode .desktop-resize-handle::before { border-color: rgba(255,255,255,0.6); }
+.dark-mode .desktop-resize-handle::after  { border-color: rgba(255,255,255,0.32); }
+.dark-mode .desktop-resize-handle:hover::before { border-color: #FF3B30; }
+.dark-mode .desktop-resize-handle:hover::after { border-color: rgba(255,59,48,0.6); }
 </style>
 </head>
 <body>
@@ -3834,6 +3871,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   </div>
   <div class="desktop-title-text">OneDay 一日</div>
 </div>
+<!-- 桌面版右下角拖拽手柄（调整窗口大小，仅 ?desktop=1 时显示） -->
+<div class="desktop-resize-handle" id="desktop-resize-handle" style="display:none;"></div>
 <div class="app">
   <!-- 侧边栏 -->
   <aside class="sidebar">
@@ -6620,7 +6659,47 @@ const HAS_NATIVE_SPEECH = IS_DESKTOP && window.pywebview && window.pywebview.api
   // 顶部留出拖拽区高度，避免内容顶到标题栏
   const appEl = document.querySelector('.app');
   if (appEl) appEl.style.paddingTop = '44px';
+  // 显示右下角拖拽手柄
+  const handle = document.getElementById('desktop-resize-handle');
+  if (handle) handle.style.display = 'block';
   console.log('[桌面版] 桌面模式已启用');
+})();
+
+// 右下角手柄拖动调整窗口大小
+(function initDesktopResize() {
+  if (!IS_DESKTOP) return;
+  const handle = document.getElementById('desktop-resize-handle');
+  if (!handle) return;
+  let dragging = false, startX = 0, startY = 0, startW = 0, startH = 0;
+  let lastCall = 0;
+
+  handle.addEventListener('mousedown', function(e) {
+    dragging = true;
+    startX = e.screenX; startY = e.screenY;
+    startW = window.outerWidth; startH = window.outerHeight;
+    document.body.style.cursor = 'nwse-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    const now = Date.now();
+    if (now - lastCall < 40) return; // 节流，避免桥接消息积压
+    lastCall = now;
+    const w = Math.max(1100, startW + (e.screenX - startX));
+    const h = Math.max(700, startH + (e.screenY - startY));
+    if (window.pywebview?.api?.resize) {
+      window.pywebview.api.resize(Math.round(w), Math.round(h));
+    }
+  });
+
+  window.addEventListener('mouseup', function() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
 })();
 
 // 红绿灯按钮
