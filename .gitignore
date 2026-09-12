@@ -41,3 +41,9 @@ app/data/*.json
 # 备份文件
 *.backup
 *.bak
+
+# PyInstaller spec（含本机绝对路径）
+app/*.spec
+
+# 生图缓存
+app/assets/generated/
