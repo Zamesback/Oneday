@@ -4849,9 +4849,9 @@ function renderSplash() {
   const wallpaperTag = document.getElementById('splash-wallpaper-tag');
   
   if (wp.type === 'image' && wp.value) {
-    // AI 生成的图片
+    // AI 生成的图片（先清可能残留的渐变，再设置图片，避免 shorthand 互相覆盖）
+    splashBg.style.background = 'none';
     splashBg.style.backgroundImage = `url('${wp.value}')`;
-    splashBg.style.background = '';
     if (wallpaperTag) wallpaperTag.innerHTML = `<span class="dot"></span>AI GENERATED · 今日专属`;
     console.log('[开屏页] 使用 AI 生成的壁纸:', wp.value);
   } else if (wp.type === 'gradient' && wp.value) {

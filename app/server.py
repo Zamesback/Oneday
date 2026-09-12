@@ -2281,7 +2281,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 data = load_module(module_name)
                 # 卡片模块：检查是否有 AI 生成的壁纸
                 if module_name == 'cards':
-                    import os
                     for card in data:
                         date_str = card.get('date', '')
                         if date_str:
