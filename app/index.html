@@ -669,6 +669,22 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   background: var(--red);
 }
 .splash-cta:hover::after { background: var(--white); }
+/* 开屏页右侧按钮组：开启新一天（次级）+ 有什么想说的（主 CTA） */
+.splash-actions {
+  display: flex; flex-direction: column; gap: 12px; align-items: stretch;
+}
+.splash-open-day {
+  padding: 12px 28px; background: transparent; color: rgba(255,255,255,0.95);
+  font-size: 14px; font-weight: 700; letter-spacing: 3px; cursor: pointer;
+  border: 1.5px solid rgba(255,255,255,0.6); font-family: var(--mono);
+  transition: all 0.2s; backdrop-filter: blur(6px);
+}
+.splash-open-day:hover {
+  border-color: var(--red); color: var(--red);
+}
+.splash-open-day:disabled {
+  opacity: 0.6; cursor: wait;
+}
 /* 开屏页四角像素角标 */
 .splash .px-corner { position: absolute; width: 16px; height: 16px; z-index: 3; }
 .splash .px-corner::before, .splash .px-corner::after {
@@ -3931,7 +3947,10 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
           </div>
           <div class="splash-bottom">
             <div class="splash-stats" id="splash-stats"></div>
-            <button class="splash-cta" onclick="navigate('chat')">有什么想说的 →</button>
+            <div class="splash-actions">
+              <button class="splash-open-day" id="open-day-btn" onclick="openNewDay()">开启新一天</button>
+              <button class="splash-cta" onclick="navigate('chat')">有什么想说的 →</button>
+            </div>
           </div>
         </div>
       </div>
@@ -7437,6 +7456,35 @@ async function generateTodayWallpaper() {
       if (_currentView === 'splash') {
         renderSplash();
       }
+    } else {
+      showToast('生成失败：' + (result.error || '未知错误'));
+    }
+  } catch (e) {
+    showToast('生成失败：' + e.message);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+// 开屏页「开启新一天」：生成今日开屏图（已生成则直接返回现有图，不重复生成）
+async function openNewDay() {
+  const btn = document.getElementById('open-day-btn');
+  const originalText = btn.textContent;
+  btn.textContent = '生成中…';
+  btn.disabled = true;
+  
+  try {
+    const res = await fetch(API_BASE + '/wallpaper/generate', { method: 'POST' });
+    const result = await res.json();
+    
+    if (result.success) {
+      // 刷新数据与开屏页（含壁纸）
+      await loadData();
+      if (_currentView === 'splash') {
+        renderSplash();
+      }
+      showToast('已为你开启新的一天');
     } else {
       showToast('生成失败：' + (result.error || '未知错误'));
     }
