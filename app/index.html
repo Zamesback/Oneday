@@ -6702,6 +6702,54 @@ const HAS_NATIVE_SPEECH = IS_DESKTOP && window.pywebview && window.pywebview.api
   });
 })();
 
+// 标题栏拖动移动窗口（WKWebView 不支持 -webkit-app-region: drag，用 JS 桥接原生 move）
+(function initDesktopDrag() {
+  if (!IS_DESKTOP) return;
+  const bar = document.getElementById('desktop-titlebar');
+  if (!bar) return;
+  let dragging = false, ready = false, startMX = 0, startMY = 0, startWX = 0, startWY = 0;
+  let lastCall = 0;
+
+  bar.addEventListener('mousedown', function(e) {
+    // 红绿灯按钮不触发拖动
+    if (e.target.closest('.desktop-traffic-lights')) return;
+    dragging = true; ready = false;
+    startMX = e.screenX; startMY = e.screenY;
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+    // 异步获取窗口真实坐标（比 window.screenX 可靠）
+    if (window.pywebview?.api?.get_position) {
+      window.pywebview.api.get_position().then(function(pos) {
+        if (pos && typeof pos.x === 'number') { startWX = pos.x; startWY = pos.y; }
+        else { startWX = window.screenX; startWY = window.screenY; }
+        ready = true;
+      }).catch(function() {
+        startWX = window.screenX; startWY = window.screenY; ready = true;
+      });
+    } else {
+      startWX = window.screenX; startWY = window.screenY; ready = true;
+    }
+  });
+
+  window.addEventListener('mousemove', function(e) {
+    if (!dragging || !ready) return;
+    const now = Date.now();
+    if (now - lastCall < 30) return; // 节流
+    lastCall = now;
+    const nx = startWX + (e.screenX - startMX);
+    const ny = startWY + (e.screenY - startMY);
+    if (window.pywebview?.api?.move) {
+      window.pywebview.api.move(Math.round(nx), Math.round(ny));
+    }
+  });
+
+  window.addEventListener('mouseup', function() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = '';
+  });
+})();
+
 // 红绿灯按钮
 function desktopClose() {
   if (window.pywebview?.api?.close) window.pywebview.api.close();

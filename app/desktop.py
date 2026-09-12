@@ -262,6 +262,29 @@ class Api:
             print('[窗口] resize 异常:', e)
             return {'ok': False, 'error': str(e)}
 
+    def move(self, x, y):
+        """移动窗口位置（标题栏拖拽调用，坐标相对主屏幕左上角，y 向下）"""
+        w = self._get_window()
+        if not w:
+            return {'ok': False}
+        try:
+            w.move(int(x), int(y))
+            return {'ok': True}
+        except Exception as e:
+            print('[窗口] move 异常:', e)
+            return {'ok': False, 'error': str(e)}
+
+    def get_position(self):
+        """获取窗口左上角屏幕坐标（标题栏拖拽起点用）"""
+        w = self._get_window()
+        if not w:
+            return {'x': 0, 'y': 0}
+        try:
+            return {'x': int(w.x), 'y': int(w.y)}
+        except Exception as e:
+            print('[窗口] get_position 异常:', e)
+            return {'x': 0, 'y': 0}
+
     def close(self):
         w = self._get_window()
         try:
