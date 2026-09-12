@@ -4928,15 +4928,207 @@ function todayStr() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+// ===== 存储抽象层（后端 JSON / 前端 IndexedDB 双适配） =====
+// 桌面版（pywebview 内嵌服务器）→ 后端模式，走 JSON 文件；
+// 纯 WebView / 浏览器直开 → 前端模式，走 IndexedDB 本地持久化。
+const Storage = (() => {
+  const IDB_NAME = 'oneday';
+  const IDB_STORE = 'kv';
+  let idbPromise = null;
+  let _backend = null;
+
+  function openIdb() {
+    if (idbPromise) return idbPromise;
+    idbPromise = new Promise((resolve, reject) => {
+      if (!window.indexedDB) { reject(new Error('当前环境不支持 IndexedDB')); return; }
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return idbPromise;
+  }
+  async function idbPut(key, value) {
+    const db = await openIdb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(value, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function idbGet(key) {
+    const db = await openIdb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function hasBackend() {
+    if (_backend !== null) return _backend;
+    try {
+      const res = await fetch(API_BASE + '/health', { method: 'GET' });
+      _backend = res.ok;
+    } catch (e) {
+      _backend = false;
+    }
+    if (!_backend) console.log('[Storage] 纯前端模式（IndexedDB 持久化）');
+    return _backend;
+  }
+
+  function genId(prefix) {
+    const p = prefix || 'id';
+    return `${p}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function defaultWorkData() {
+    return {
+      projects: [], todos: [], inspirations: [], exercises: [],
+      friends: [], relationships: [], chats: [], inputs: [],
+      settings: {
+        morningTime: '07:30', eveningTime: '22:00', exerciseReminderTime: '20:00',
+        aiStyle: 'encouraging', apiKey: '', apiProvider: 'deepseek',
+        wallpaperMode: 'static', notificationsEnabled: true, userName: '',
+        imageApiKey: '', imageApiProvider: 'free', imageModel: 'flux',
+        imageSize: '1792x1024', autoGenerateWallpaper: true
+      },
+      wallpaper: null,
+      meta: { version: '3.0', name: 'OneDay', updatedAt: new Date().toISOString() }
+    };
+  }
+
+  return {
+    hasBackend,
+    genId,
+    defaultWorkData,
+
+    async loadWorkData() {
+      if (await hasBackend()) {
+        const res = await fetch(API_BASE + '/work-data');
+        return res.json();
+      }
+      const data = await idbGet('work-data');
+      return data || null;
+    },
+    async saveWorkData(data) {
+      if (await hasBackend()) {
+        await fetch(API_BASE + '/work-data', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+        return;
+      }
+      await idbPut('work-data', data);
+    },
+
+    async loadCards() {
+      if (await hasBackend()) {
+        const res = await fetch('/api/cards');
+        return res.json();
+      }
+      return (await idbGet('cards')) || [];
+    },
+    async saveCards(cards) {
+      if (await hasBackend()) {
+        await fetch('/api/cards', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cards)
+        });
+        return;
+      }
+      await idbPut('cards', cards);
+    },
+
+    async loadSettings() {
+      if (await hasBackend()) {
+        const res = await fetch(API_BASE + '/settings');
+        return res.json();
+      }
+      const s = await idbGet('settings');
+      if (s) return s;
+      // 回退到 work-data 里的 settings
+      const wd = await idbGet('work-data');
+      return (wd && wd.settings) || null;
+    },
+    async saveSettings(settings) {
+      if (await hasBackend()) {
+        await fetch(API_BASE + '/settings', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings)
+        });
+        return;
+      }
+      // 同时写入独立 settings 与 work-data（_data.settings 同步）
+      if (_data) _data.settings = { ...(_data.settings || {}), ...settings };
+      await idbPut('settings', settings);
+      if (_data) await idbPut('work-data', _data);
+    },
+
+    // 模块 CRUD：后端模式走服务端；前端模式操作内存 _data 并落 IndexedDB
+    async apiPost(module, item) {
+      if (await hasBackend()) {
+        const res = await fetch(`${API_BASE}/${module}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item)
+        });
+        return res.json();
+      }
+      const list = _data[module] || (_data[module] = []);
+      const now = new Date().toISOString();
+      const obj = { ...item, id: item.id || genId(module), createdAt: now, updatedAt: now };
+      list.unshift(obj);
+      await Storage.saveWorkData(_data);
+      return obj;
+    },
+    async apiPut(module, id, patch) {
+      if (await hasBackend()) {
+        const res = await fetch(`${API_BASE}/${module}/${id}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch)
+        });
+        return res.json();
+      }
+      const list = _data[module] || [];
+      const i = list.findIndex(x => x.id === id || x._id === id);
+      if (i >= 0) {
+        list[i] = { ...list[i], ...patch, id, updatedAt: new Date().toISOString() };
+      }
+      await Storage.saveWorkData(_data);
+      return list[i];
+    },
+    async apiDelete(module, id) {
+      if (await hasBackend()) {
+        await fetch(`${API_BASE}/${module}/${id}`, { method: 'DELETE' });
+        return;
+      }
+      const list = _data[module] || [];
+      const i = list.findIndex(x => x.id === id || x._id === id);
+      if (i >= 0) list.splice(i, 1);
+      await Storage.saveWorkData(_data);
+    }
+  };
+})();
+
 // ===== 数据管理 =====
 async function loadData() {
   try {
-    const res = await fetch(API_BASE + '/work-data');
-    _data = await res.json();
+    let data = await Storage.loadWorkData();
+    if (!data) {
+      // 纯前端首次使用：初始化默认结构并落库
+      data = Storage.defaultWorkData ? Storage.defaultWorkData() : {
+        projects: [], todos: [], inspirations: [], exercises: [],
+        friends: [], relationships: [], chats: [], inputs: [],
+        settings: {}, wallpaper: null, meta: { version: '3.0', name: 'OneDay' }
+      };
+      _data = data;
+      await Storage.saveWorkData(data);
+    }
+    _data = data;
     return _data;
   } catch (e) {
     console.error('加载数据失败', e);
-    showToast('连接后端失败');
+    showToast('加载数据失败');
     return null;
   }
 }
@@ -4944,36 +5136,22 @@ async function loadData() {
 async function saveData() {
   if (!_data) return;
   try {
-    await fetch(API_BASE + '/work-data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(_data)
-    });
+    await Storage.saveWorkData(_data);
   } catch (e) {
     console.error('保存失败', e);
   }
 }
 
 async function apiPost(module, data) {
-  const res = await fetch(`${API_BASE}/${module}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  return res.json();
+  return Storage.apiPost(module, data);
 }
 
 async function apiPut(module, id, data) {
-  const res = await fetch(`${API_BASE}/${module}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  return res.json();
+  return Storage.apiPut(module, id, data);
 }
 
 async function apiDelete(module, id) {
-  await fetch(`${API_BASE}/${module}/${id}`, { method: 'DELETE' });
+  return Storage.apiDelete(module, id);
 }
 
 // ===== 路由 =====
@@ -6208,7 +6386,29 @@ async function confirmMerge() {
   const idA = _mergeNodeA.id;
   const idB = _mergeNodeB.id;
   
-  // 调用后端合并接口
+  // 纯前端模式：本地合并
+  if (!(await Storage.hasBackend())) {
+    const friends = _data.friends || [];
+    const friendA = friends.find(f => f.id === idA);
+    const friendB = friends.find(f => f.id === idB);
+    if (!friendA || !friendB) { showToast('合并失败: 找不到要合并的朋友'); return; }
+    const primary = (friendA.mention_count || 0) >= (friendB.mention_count || 0) ? friendA : friendB;
+    const secondary = primary === friendA ? friendB : friendA;
+    primary.mention_count = (primary.mention_count || 0) + (secondary.mention_count || 0);
+    if (!primary.identity && secondary.identity) primary.identity = secondary.identity;
+    if (!primary.relationship && secondary.relationship) primary.relationship = secondary.relationship;
+    if (secondary.notes) primary.notes = primary.notes ? primary.notes + '\n' + secondary.notes : secondary.notes;
+    if (!primary.contact && secondary.contact) primary.contact = secondary.contact;
+    primary.status = 'confirmed';
+    _data.friends = friends.filter(f => f.id !== secondary.id);
+    await Storage.saveWorkData(_data);
+    closeMergeConfirm();
+    renderFriends();
+    showToast(`已合并「${_mergeNodeA.name}」和「${_mergeNodeB.name}」`);
+    return;
+  }
+  
+  // 后端模式：调用后端合并接口
   try {
     const res = await fetch(API_BASE + '/friends/merge', {
       method: 'POST',
@@ -7450,6 +7650,22 @@ async function sendVoiceMessage(message) {
   
   try {
     console.log('[AI对话] 发送消息:', message);
+
+    // 纯前端模式（无后端）：直连用户配置的 LLM API
+    if (!(await Storage.hasBackend())) {
+      const reply = await chatDirect(message);
+      showVoiceReply(reply, 'OneDay');
+      playAiReplySound();
+      // 保存聊天记录
+      const now = new Date().toISOString();
+      _data.chats = _data.chats || [];
+      _data.chats.unshift({ id: Storage.genId('chat'), role: 'assistant', content: reply, timestamp: now });
+      _data.chats.unshift({ id: Storage.genId('chat'), role: 'user', content: message, timestamp: now });
+      await Storage.saveWorkData(_data);
+      setVoiceStatus('', '待机中');
+      return;
+    }
+
     const res = await fetch(API_BASE + '/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -7491,6 +7707,47 @@ async function sendVoiceMessage(message) {
   setVoiceStatus('', '待机中');
 }
 
+// 纯前端模式：直连用户配置的 LLM API（OpenAI 兼容）
+async function chatDirect(message) {
+  const s = _data?.settings || {};
+  const key = (s.apiKey || '').trim();
+  const provider = s.apiProvider || 'deepseek';
+  if (!key) return '请先在设置页配置 API Key，再跟我聊天吧。';
+  let baseUrl, model;
+  if (provider === 'doubao') {
+    baseUrl = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+    model = 'doubao-1-5-pro-32k-250115';
+  } else {
+    baseUrl = 'https://api.deepseek.com/v1/chat/completions';
+    model = 'deepseek-chat';
+  }
+  const systemPrompt = `你是 OneDay（一日）的 AI 生活助手。用户每天通过语音和你闲聊 5-10 分钟。请用自然、温暖、简洁的中文回应，像朋友一样。你可以帮助用户梳理待办、重要事件、灵感、人际关系和运动计划。回复控制在 100 字以内，重点突出。`;
+  try {
+    const history = (_data?.chats || []).slice(0, 10).map(c => ({
+      role: c.role === 'user' ? 'user' : 'assistant',
+      content: typeof c.content === 'string' ? c.content : JSON.stringify(c.content)
+    }));
+    const res = await fetch(baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'system', content: systemPrompt }, ...history.reverse(), { role: 'user', content: message }],
+        max_tokens: 600
+      })
+    });
+    if (!res.ok) {
+      let msg = `API 返回 ${res.status}`;
+      try { const j = await res.json(); msg = j.error?.message || msg; } catch (e) {}
+      return '连接 AI 出错了：' + msg + '（可去设置页检查 API Key）';
+    }
+    const j = await res.json();
+    return j.choices?.[0]?.message?.content?.trim() || '（AI 没有返回内容，请重试）';
+  } catch (e) {
+    return '连接 AI 失败了：' + e.message;
+  }
+}
+
 // ===== 聊天记录回看 =====
 let chatHistoryLoaded = false;
 
@@ -7526,9 +7783,8 @@ async function loadChatHistory() {
   list.innerHTML = '<div class="chat-history-empty">加载中...</div>';
   
   try {
-    const res = await fetch('/api/work-data');
-    const data = await res.json();
-    const chats = data.chats || [];
+    const data = await Storage.loadWorkData();
+    const chats = data?.chats || [];
     
     if (chats.length === 0) {
       list.innerHTML = '<div class="chat-history-empty">暂无聊天记录<br><br>点击下方按钮开始跟 OneDay 聊聊吧</div>';
@@ -7719,11 +7975,7 @@ async function saveSettings() {
     imageModel: document.getElementById('set-imageModel').value,
   };
   _data.settings = settings;
-  await fetch(API_BASE + '/settings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings)
-  });
+  await Storage.saveSettings(settings);
   showToast('设置已保存');
   // 保存设置后自动检查 API 状态
   if (settings.apiKey && settings.apiProvider !== 'mock') {
@@ -7813,8 +8065,14 @@ async function checkApiStatus() {
   }
   
   try {
-    const res = await fetch(API_BASE + '/check-api');
-    const result = await res.json();
+    // 纯前端模式：直接探测用户配置的 API
+    let result;
+    if (!(await Storage.hasBackend())) {
+      result = await checkApiDirect();
+    } else {
+      const res = await fetch(API_BASE + '/check-api');
+      result = await res.json();
+    }
     
     if (result.valid) {
       // API 有效
@@ -7873,6 +8131,37 @@ async function checkApiStatus() {
       btn.textContent = '重新检查';
       btn.disabled = false;
     }
+  }
+}
+
+// 纯前端模式：直接探测用户配置的 LLM API（OpenAI 兼容）
+async function checkApiDirect() {
+  const s = _data?.settings || {};
+  const key = (s.apiKey || '').trim();
+  const provider = s.apiProvider || 'deepseek';
+  if (!key) return { valid: false, message: '未配置 API Key', provider };
+  let baseUrl, model;
+  if (provider === 'doubao') {
+    baseUrl = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+    model = 'doubao-1-5-pro-32k-250115';
+  } else {
+    baseUrl = 'https://api.deepseek.com/v1/chat/completions';
+    model = 'deepseek-chat';
+  }
+  try {
+    const res = await fetch(baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({ model, messages: [{ role: 'user', content: 'ping' }], max_tokens: 1 })
+    });
+    if (res.ok) {
+      return { valid: true, message: 'API Key 有效', provider };
+    }
+    let msg = `API 返回 ${res.status}`;
+    try { const j = await res.json(); msg = j.error?.message || msg; } catch (e) {}
+    return { valid: false, message: msg, provider };
+  } catch (e) {
+    return { valid: false, message: e.message, provider };
   }
 }
 
@@ -8001,8 +8290,7 @@ function fallbackCardWallpaper(imgElement, dateStr) {
 
 async function loadCards() {
   try {
-    const res = await fetch('/api/cards');
-    cardsData = await res.json();
+    cardsData = await Storage.loadCards();
     renderCardsCalendar();
     updateCardsStats();
   } catch (e) {
@@ -8012,10 +8300,25 @@ async function loadCards() {
 
 async function updateCardsStats() {
   try {
-    const res = await fetch('/api/cards/stats');
-    const stats = await res.json();
-    document.getElementById('cards-total').textContent = stats.total;
-    document.getElementById('cards-streak').textContent = stats.streak;
+    let total = cardsData.length;
+    let streak = 0;
+    if (await Storage.hasBackend()) {
+      const res = await fetch('/api/cards/stats');
+      const stats = await res.json();
+      total = stats.total;
+      streak = stats.streak;
+    } else {
+      // 纯前端模式：本地计算连续天数（从今天往前，有卡+1）
+      const dateSet = new Set((cardsData || []).map(c => (c.date || '').slice(0, 10)).filter(Boolean));
+      const d = new Date();
+      while (true) {
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (dateSet.has(key)) { streak++; d.setDate(d.getDate() - 1); }
+        else break;
+      }
+    }
+    document.getElementById('cards-total').textContent = total;
+    document.getElementById('cards-streak').textContent = streak;
   } catch (e) {
     console.error('加载卡片统计失败:', e);
   }
