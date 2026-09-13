@@ -7197,7 +7197,10 @@ function resetMicButton() {
 
 // ===== 桌面版（?desktop=1）：无边框窗口 + 原生语音桥接 =====
 const IS_DESKTOP = new URLSearchParams(location.search).get('desktop') === '1';
-const HAS_NATIVE_SPEECH = IS_DESKTOP && window.pywebview && window.pywebview.api;
+// 动态判断：pywebview 的注入可能晚于页面脚本执行，不能作为启动常量
+function nativeSpeechReady() {
+  return IS_DESKTOP && !!(window.pywebview && window.pywebview.api && window.pywebview.api.start_listening);
+}
 
 // 初始化桌面模式
 (function initDesktopMode() {
@@ -7487,7 +7490,7 @@ async function stopAndroidVoice() {
 function startVoiceRecording() {
   if (_voiceRecording) return;
   // 桌面版走原生语音识别桥接
-  if (HAS_NATIVE_SPEECH) {
+  if (nativeSpeechReady()) {
     startDesktopVoice();
     return;
   }
@@ -7699,7 +7702,7 @@ function startVoiceRecording() {
 function stopVoiceRecording() {
   if (!_voiceRecording) return;
   // 桌面版走原生语音识别桥接
-  if (HAS_NATIVE_SPEECH) {
+  if (nativeSpeechReady()) {
     stopDesktopVoice();
     return;
   }
@@ -8349,6 +8352,35 @@ function closeDrawer() {
   document.getElementById('drawer').classList.remove('show');
 }
 
+// ===== 每日一图 · 自动生成 =====
+// 开屏加载时若今日尚无 AI 开屏图，自动触发一次生成；
+// 失败则静默（不打扰），用户可点「开启新一天」手动兜底。
+let _autoWallpaperChecked = false;
+async function autoEnsureTodayWallpaper() {
+  if (_autoWallpaperChecked) return; // 每次会话只尝试一次
+  _autoWallpaperChecked = true;
+  try {
+    const settings = _data?.settings || {};
+    // 未配置 API Key 或用户关闭自动生成 → 不发起（避免无效请求）
+    if (!settings.apiKey || String(settings.apiKey).trim() === '') return;
+    if (settings.autoGenerateWallpaper === false) return;
+    // 今日已有 AI 图 → 无需生成
+    if (_data.wallpaper && _data.wallpaper.type === 'image') return;
+    console.log('[每日一图] 今日暂无 AI 开屏图，自动生成中…');
+    const res = await fetch(API_BASE + '/wallpaper/generate', { method: 'POST' });
+    const result = await res.json();
+    if (result.success) {
+      await loadData();
+      if (_currentView === 'splash') renderSplash();
+      console.log('[每日一图] 自动生成完成');
+    } else {
+      console.log('[每日一图] 自动生成未完成（可手动点击开启新一天）:', result.error);
+    }
+  } catch (e) {
+    console.warn('[每日一图] 自动生成异常（可手动点击开启新一天）:', e.message);
+  }
+}
+
 // ===== 初始化 =====
 async function init() {
   initTheme();
@@ -8372,6 +8404,8 @@ async function init() {
     } else {
       renderSplash();
     }
+    // 每日一图：今日无图时自动生成（静默失败，按钮兜底）
+    setTimeout(() => autoEnsureTodayWallpaper(), 800);
     // 每 30 秒刷新数据
     setInterval(async () => {
       await loadData();
