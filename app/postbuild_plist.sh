@@ -20,4 +20,9 @@ add_or_set "NSSpeechRecognitionUsageDescription" "string 'OneDay 需要语音识
 add_or_set "NSAppleEventsUsageDescription" "string 'OneDay 需要访问系统事件以提供窗口控制。'"
 add_or_set "LSApplicationCategoryType" "string 'public.app-category.productivity'"
 
+# 关键：修改 Info.plist 会使既有签名失效（TCC 拒绝未绑定 plist 的 app 的权限请求），
+# 必须重新 ad-hoc 签名，把 plist 绑回签名。
+codesign --force --deep --sign - "$APP" && \
+codesign --verify --deep --strict "$APP" && \
+echo "✅ 已重新签名（Info.plist 已绑定）" && \
 echo "✅ Info.plist 权限声明已注入: $PLIST"
