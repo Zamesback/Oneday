@@ -136,6 +136,29 @@ class SpeechBridge:
         print(f'[语音] 权限结果: mic={mic_ok[0]} speech={speech_ok[0]}')
         return mic_ok[0] and speech_ok[0]
 
+    def _emit_partial(self, text):
+        """把识别中间结果推送到前端。
+
+        pywebview 的 evaluate_js 必须在主线程调用（内部可能 dispatch_sync 主线程），
+        SFSpeechRecognizer 的回调在后台队列 → 直接调用会与主线程互相等待导致死锁。
+        """
+        if self._window is None:
+            return
+        try:
+            from Cocoa import dispatch_async, dispatch_get_main_queue
+            safe = text.replace('\\', '\\\\').replace("'", "\\'").replace('\n', ' ')
+            js = f"window.__onedayPartialResult && window.__onedayPartialResult('{safe}')"
+            dispatch_async(dispatch_get_main_queue(), lambda: self._safe_eval(js))
+        except Exception as e:
+            print('[语音] 调度推送失败:', e)
+
+    def _safe_eval(self, js):
+        try:
+            if self._window is not None:
+                self._window.evaluate_js(js)
+        except Exception as e:
+            print('[语音] 推送部分结果失败:', e)
+
     def start(self):
         """开始实时识别，返回是否成功启动"""
         import AVFoundation
@@ -161,15 +184,8 @@ class SpeechBridge:
                     text = result.bestTranscription().formattedString()
                     if text:
                         self._final_text = text
-                        # 推送部分结果到前端
-                        try:
-                            if self._window is not None:
-                                safe = text.replace('\\', '\\\\').replace("'", "\\'").replace('\n', ' ')
-                                self._window.evaluate_js(
-                                    f"window.__onedayPartialResult && window.__onedayPartialResult('{safe}')"
-                                )
-                        except Exception as e:
-                            print('[语音] 推送部分结果失败:', e)
+                        # 推送部分结果到前端（切主线程异步执行，避免死锁）
+                        self._emit_partial(text)
                     if result.isFinal():
                         self._stop_engine()
 
