@@ -111,17 +111,18 @@ class SpeechBridge:
         def mic_handler(granted):
             mic_ok[0] = bool(granted)
 
-        # macOS 14+ 用 AVAudioApplication；旧版用 AVCaptureDevice
+        # macOS 14+ 用 AVAudioApplication；旧版用 AVCaptureDevice（AVMediaTypeAudio='soun'）
         if hasattr(AVFoundation, 'AVAudioApplication'):
             AVFoundation.AVAudioApplication.requestRecordPermissionWithCompletionHandler_(mic_handler)
         else:
             AVFoundation.AVCaptureDevice.requestAccessForMediaType_completionHandler_(
-                'audi', mic_handler
+                'soun', mic_handler
             )
 
-        # 语音识别权限
+        # 语音识别权限：SFSpeechRecognizerAuthorizationStatus
+        # 0=NotDetermined 1=Denied 2=Restricted 3=Authorized（此前误写 ==1 导致永远判定未授权）
         def speech_handler(status):
-            speech_ok[0] = (int(status) == 1)  # SFSpeechRecognizerAuthorizationStatusAuthorized
+            speech_ok[0] = (int(status) == 3)
 
         Speech.SFSpeechRecognizer.requestAuthorization_(speech_handler)
 
@@ -132,6 +133,7 @@ class SpeechBridge:
                 break
             time.sleep(0.1)
 
+        print(f'[语音] 权限结果: mic={mic_ok[0]} speech={speech_ok[0]}')
         return mic_ok[0] and speech_ok[0]
 
     def start(self):
