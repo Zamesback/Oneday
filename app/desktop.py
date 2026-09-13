@@ -175,7 +175,18 @@ class SpeechBridge:
             self._final_text = ''
             self._listening = True
 
-            fmt = input_node.outputFormatForBus_(0)
+            # SFSpeech 需要 Int16 PCM；麦克风 inputNode 通常是 Float32，
+            # 必须做格式转换，否则 appendAudioPCMBuffer 失败 → 无实时识别结果
+            fmt32 = input_node.outputFormatForBus_(0)
+            self._fmt16 = AVFoundation.AVAudioFormat.alloc().initWithCommonFormat_sampleRate_channels_interleaved_(
+                AVFoundation.AVAudioFormat.PCMFormatInt16,
+                fmt32.sampleRate(),
+                fmt32.channelCount(),
+                False,
+            )
+            self._converter = AVFoundation.AVAudioConverter.alloc().initFromFormat_toFormat_(fmt32, self._fmt16)
+            self._pcm16 = AVFoundation.AVAudioPCMBuffer.alloc().initWithPCMFormat_frameCapacity_(self._fmt16, 16384)
+            self._format_warned = [False]
 
             def result_handler(result, error):
                 if error is not None:
@@ -194,13 +205,19 @@ class SpeechBridge:
             )
 
             def tap_handler(buffer, when):
-                if self._request is not None and self._listening:
-                    try:
-                        self._request.appendAudioPCMBuffer_(buffer)
-                    except Exception:
-                        pass
+                if self._request is None or not self._listening:
+                    return
+                try:
+                    # Float32 → Int16 转换后喂给识别器
+                    ok = self._converter.convertToBuffer_error_(self._pcm16, None)
+                    if ok and self._pcm16.frameLength() > 0:
+                        self._request.appendAudioPCMBuffer_(self._pcm16)
+                except Exception as e:
+                    if not self._format_warned[0]:
+                        self._format_warned[0] = True
+                        print('[语音] 音频格式转换失败（将无实时识别）:', e)
 
-            input_node.installTapOnBus_bufferSize_format_block_(0, 1024, fmt, tap_handler)
+            input_node.installTapOnBus_bufferSize_format_block_(0, 1024, fmt32, tap_handler)
             self._engine.prepare()
             success = self._engine.startAndReturnError_(None)
             if not success:
@@ -382,6 +399,23 @@ def wait_for_server(timeout=15):
 # ===== 主入口 =====
 def main():
     import webview
+
+    # ===== 日志落盘（打包版无控制台，print 会丢失，便于排查）=====
+    log_dir = os.path.join(os.path.expanduser('~'), 'Library', 'Logs', 'OneDay')
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, 'oneday.log')
+    try:
+        # windowed 打包下 sys.stdout 是 None；直接替换对象最可靠
+        _log_f = open(log_path, 'a', buffering=1)
+        sys.stdout = _log_f
+        sys.stderr = _log_f
+        print(f'===== OneDay 启动 {time.strftime("%Y-%m-%d %H:%M:%S")} =====')
+        print(f'[启动] 日志文件: {log_path}')
+    except Exception as e:
+        try:
+            print(f'[启动] 日志落盘失败: {e}')
+        except Exception:
+            pass
 
     migrate_data_if_needed()
 
