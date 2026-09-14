@@ -178,11 +178,10 @@ class SpeechBridge:
             # SFSpeech 需要 Int16 PCM；麦克风 inputNode 通常是 Float32，
             # 必须做格式转换，否则 appendAudioPCMBuffer 失败 → 无实时识别结果
             fmt32 = input_node.outputFormatForBus_(0)
+            # AVAudioCommonFormat.pcmFormatInt16 = 3（PyObjC 无 PCMFormatInt16 常量名，
+            # 直接用枚举值，Float32=1 Float64=2 Int16=3 Int32=4）
             self._fmt16 = AVFoundation.AVAudioFormat.alloc().initWithCommonFormat_sampleRate_channels_interleaved_(
-                AVFoundation.AVAudioFormat.PCMFormatInt16,
-                fmt32.sampleRate(),
-                fmt32.channelCount(),
-                False,
+                3, fmt32.sampleRate(), fmt32.channelCount(), False,
             )
             self._converter = AVFoundation.AVAudioConverter.alloc().initFromFormat_toFormat_(fmt32, self._fmt16)
             self._pcm16 = AVFoundation.AVAudioPCMBuffer.alloc().initWithPCMFormat_frameCapacity_(self._fmt16, 16384)
@@ -209,7 +208,8 @@ class SpeechBridge:
                     return
                 try:
                     # Float32 → Int16 转换后喂给识别器
-                    ok = self._converter.convertToBuffer_error_(self._pcm16, None)
+                    res = self._converter.convertToBuffer_fromBuffer_error_(self._pcm16, buffer, None)
+                    ok = res[0] if isinstance(res, tuple) else res
                     if ok and self._pcm16.frameLength() > 0:
                         self._request.appendAudioPCMBuffer_(self._pcm16)
                 except Exception as e:
