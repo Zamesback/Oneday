@@ -498,6 +498,7 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
 }
 
 ## 待办日期识别规则（非常重要）
+- **due_date 必须输出 YYYY-MM-DD 格式（如 2026-09-25）！绝对禁止输出"明天""9月25号""下周四"等中文或带年月日的非标准格式！** 用户说中文日期时，你要自己换算成具体日期再输出
 - 用户说"明天做XX"，due_date 就是明天的日期（格式 YYYY-MM-DD）
 - 用户说"后天做XX"，due_date 就是后天的日期
 - 用户说"下周一/下周X做XX"，due_date 就是对应的日期
@@ -508,6 +509,7 @@ AI_AGENT_SYSTEM_PROMPT = """你是 OneDay，用户的 AI 生活伙伴。
 - 用户没有明确说时间，due_date 就是今天的日期
 - priority 根据用户语气判断：紧急/重要=high，普通=medium，随便/low
 - 今天的日期是：{{TODAY}}
+- 如果一条话里提到多个不同日期的事，必须分别拆成多条待办，各自对应正确的日期，绝不允许都放在今天！
 
 ## 待办时间识别规则（非常重要）
 - due_time 格式为 HH:MM（24小时制），比如 "09:30"、"14:00"、"20:30"
@@ -856,7 +858,41 @@ def parse_due_date(date_str):
         return date_str
     except:
         pass
-    
+
+    # YYYY年M月D日 / YYYY年M月D号
+    m = re.match(r'^(\d{4})年(\d{1,2})月(\d{1,2})[日号]$', date_str)
+    if m:
+        try:
+            d = datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            return d.isoformat()
+        except ValueError:
+            return today.isoformat()
+
+    # M月D日 / M月D号（如 9月25号）：今年，已过期则明年
+    m = re.match(r'^(\d{1,2})月(\d{1,2})[日号]$', date_str)
+    if m:
+        try:
+            d = datetime.date(today.year, int(m.group(1)), int(m.group(2)))
+            if d < today:
+                d = datetime.date(today.year + 1, int(m.group(1)), int(m.group(2)))
+            return d.isoformat()
+        except ValueError:
+            return today.isoformat()
+
+    # D日 / D号（如 25号）：本月，已过期则下月
+    m = re.match(r'^(\d{1,2})[日号]$', date_str)
+    if m:
+        try:
+            d = datetime.date(today.year, today.month, int(m.group(1)))
+            if d < today:
+                if today.month == 12:
+                    d = datetime.date(today.year + 1, 1, int(m.group(1)))
+                else:
+                    d = datetime.date(today.year, today.month + 1, int(m.group(1)))
+            return d.isoformat()
+        except ValueError:
+            return today.isoformat()
+
     # 相对时间解析
     if date_str in ['今天', '今日', 'today', 'today']:
         return today.isoformat()
@@ -1155,6 +1191,11 @@ def save_extracted_info(extracted):
             elif isinstance(todo_item, dict):
                 title = todo_item.get('title', '')
                 due_date = parse_due_date(todo_item.get('due_date', ''))
+                # 模型漏填日期但标题里含日期词（如"9月25号评审"）→ 用标题解析兜底
+                if due_date == datetime.date.today().isoformat():
+                    title_date = extract_date_from_text(title)
+                    if title_date and title_date != datetime.date.today().isoformat():
+                        due_date = title_date
                 due_time = parse_due_time(todo_item.get('due_time', ''))
                 priority = todo_item.get('priority', 'medium')
             else:
