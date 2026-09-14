@@ -139,23 +139,16 @@ class SpeechBridge:
     def _emit_partial(self, text):
         """把识别中间结果推送到前端。
 
-        pywebview 的 evaluate_js 必须在主线程调用（内部可能 dispatch_sync 主线程），
-        SFSpeechRecognizer 的回调在后台队列 → 直接调用会与主线程互相等待导致死锁。
+        pywebview 的 evaluate_js 线程安全（内部自行调度主线程），
+        SFSpeechRecognizer 回调在后台队列，直接调用即可；
+        注意不要在 js_api（主线程）调用链里 evaluate_js，那会与主线程互相等待。
         """
         if self._window is None:
             return
         try:
-            from Cocoa import dispatch_async, dispatch_get_main_queue
             safe = text.replace('\\', '\\\\').replace("'", "\\'").replace('\n', ' ')
             js = f"window.__onedayPartialResult && window.__onedayPartialResult('{safe}')"
-            dispatch_async(dispatch_get_main_queue(), lambda: self._safe_eval(js))
-        except Exception as e:
-            print('[语音] 调度推送失败:', e)
-
-    def _safe_eval(self, js):
-        try:
-            if self._window is not None:
-                self._window.evaluate_js(js)
+            self._window.evaluate_js(js)
         except Exception as e:
             print('[语音] 推送部分结果失败:', e)
 
