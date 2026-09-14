@@ -281,9 +281,40 @@ class Api:
     def __init__(self, window_holder):
         self._window_holder = window_holder  # 字典引用，窗口创建后填充
         self._speech = None
+        self._sound = None  # AI 语音回复播放器
 
     def _get_window(self):
         return self._window_holder.get('window')
+
+    def play_tts(self, url):
+        """原生播放 AI 语音回复（NSSound，绕过 WKWebView 自动播放限制）
+        url 形如 /tts/tts-xxx.mp3 → 映射到本地 TTS 目录
+        """
+        try:
+            import os as _os
+            from AppKit import NSSound
+            # 从 URL/相对路径解析文件名，映射到本地数据目录（防路径穿越）
+            fname = _os.path.basename((url or '').split('?')[0])
+            fpath = _os.path.join(DATA_ROOT, 'data', 'tts', fname)
+            if not _os.path.exists(fpath):
+                print('[语音回复] 文件不存在:', fpath)
+                return False
+            from Foundation import NSURL
+            if self._sound is not None:
+                self._sound.stop()
+                self._sound = None
+            snd = NSSound.alloc().initWithContentsOfURL_byReference_(
+                NSURL.fileURLWithPath_(fpath), True)
+            if snd is not None:
+                self._sound = snd
+                snd.play()
+                print(f'[语音回复] 原生播放: {fpath}')
+                return True
+            print('[语音回复] NSSound 加载失败:', fpath)
+            return False
+        except Exception as e:
+            print('[语音回复] 原生播放失败:', e)
+            return False
 
     # ---- 窗口控制（红绿灯按钮）----
     def minimize(self):

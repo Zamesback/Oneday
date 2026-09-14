@@ -7795,10 +7795,16 @@ async function speakText(text) {
     });
     const r = await res.json();
     if (r && r.url) {
-      if (_aiAudio) { _aiAudio.pause(); _aiAudio = null; }
-      _aiAudio = new Audio(API_BASE + r.url);
-      _aiAudio.volume = 1.0;
-      _aiAudio.play().catch(e => console.warn('[语音回复] 播放失败:', e));
+      const fullUrl = new URL(r.url, window.location.href).href;
+      // 桌面版：原生播放（绕过 WKWebView 自动播放限制）；网页/安卓：HTMLAudio 兜底
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.play_tts) {
+        window.pywebview.api.play_tts(fullUrl);
+      } else {
+        if (_aiAudio) { _aiAudio.pause(); _aiAudio = null; }
+        _aiAudio = new Audio(fullUrl);
+        _aiAudio.volume = 1.0;
+        _aiAudio.play().catch(e => console.warn('[语音回复] 播放失败:', e));
+      }
     }
   } catch (e) {
     console.warn('[语音回复] TTS 失败（不影响文字回复）:', e.message);
