@@ -80,7 +80,25 @@ class SpeechBridge:
         self._task = None
         self._listening = False
         self._final_text = ''
+        # 推送队列：SFSpeechRecognizer 的 result_handler 在主线程回调，
+        # 而 pywebview evaluate_js 内部会 dispatch_sync 到主线程 → 主线程直接调用必死锁。
+        # 所有推送丢给常驻后台线程执行。
+        import queue
+        self._push_queue = queue.Queue()
+        self._push_worker = threading.Thread(target=self._push_loop, daemon=True)
+        self._push_worker.start()
         self._init_recognizer()
+
+    def _push_loop(self):
+        while True:
+            js = self._push_queue.get()
+            if js is None:
+                break
+            try:
+                if self._window is not None:
+                    self._window.evaluate_js(js)
+            except Exception as e:
+                print('[语音] 推送部分结果失败:', e)
 
     def _init_recognizer(self):
         try:
@@ -139,18 +157,18 @@ class SpeechBridge:
     def _emit_partial(self, text):
         """把识别中间结果推送到前端。
 
-        pywebview 的 evaluate_js 线程安全（内部自行调度主线程），
-        SFSpeechRecognizer 回调在后台队列，直接调用即可；
-        注意不要在 js_api（主线程）调用链里 evaluate_js，那会与主线程互相等待。
+        result_handler 在主线程回调，pywebview evaluate_js 内部会
+        dispatch_sync 到主线程 → 直接调用会死锁（整个 app 卡死）。
+        这里只入队，由常驻后台线程（_push_loop）执行 evaluate_js。
         """
         if self._window is None:
             return
         try:
             safe = text.replace('\\', '\\\\').replace("'", "\\'").replace('\n', ' ')
             js = f"window.__onedayPartialResult && window.__onedayPartialResult('{safe}')"
-            self._window.evaluate_js(js)
+            self._push_queue.put(js)
         except Exception as e:
-            print('[语音] 推送部分结果失败:', e)
+            print('[语音] 入队失败:', e)
 
     def start(self):
         """开始实时识别，返回是否成功启动"""
