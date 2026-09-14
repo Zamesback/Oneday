@@ -286,6 +286,17 @@ class Api:
     def _get_window(self):
         return self._window_holder.get('window')
 
+    def stop_tts(self):
+        """停止正在播放的 AI 语音回复（用户开始说话时打断）"""
+        try:
+            if self._sound is not None:
+                self._sound.stop()
+                self._sound = None
+                return True
+        except Exception as e:
+            print('[语音回复] 停止失败:', e)
+        return False
+
     def play_tts(self, url):
         """原生播放 AI 语音回复（NSSound，绕过 WKWebView 自动播放限制）
         url 形如 /tts/tts-xxx.mp3 → 映射到本地 TTS 目录

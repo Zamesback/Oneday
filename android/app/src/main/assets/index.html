@@ -7340,16 +7340,22 @@ async function startDesktopVoice() {
       _voiceRecording = false;
       return;
     }
-    // 桌面模式看门狗：90 秒没有任何识别结果才自动停止
-    // （SFSpeechRecognizer 的中间结果可能按句延迟输出，30 秒误杀长讲话）
+    // 桌面模式看门狗：
+    // - 已有识别结果后停顿 5 秒无新结果 → 自动停止，自动交给 AI 回复
+    //   （识别中间结果在用户说话时持续更新，停顿 5 秒即视为说完了）
+    // - 从未有任何结果：90 秒兜底自动停止
     if (_voiceWatchdogTimer) clearInterval(_voiceWatchdogTimer);
     _voiceWatchdogTimer = setInterval(() => {
       if (!_voiceRecording) { clearInterval(_voiceWatchdogTimer); return; }
-      if (Date.now() - _voiceLastResultTime > 90000) {
+      const sinceLast = Date.now() - _voiceLastResultTime;
+      if (_voiceFinalTranscript && sinceLast > 5000) {
+        console.log('[桌面录音] 停顿 ' + Math.round(sinceLast/1000) + ' 秒，自动停止并回复');
+        stopVoiceRecording();
+      } else if (!_voiceFinalTranscript && sinceLast > 90000) {
         console.log('[桌面录音] 看门狗：无识别结果 90 秒，自动停止');
         stopVoiceRecording();
       }
-    }, 5000);
+    }, 1000);
   } catch (e) {
     console.error('[桌面录音] 启动失败:', e);
     showVoiceReply('无法启动语音识别：' + e.message, 'OneDay');
@@ -7490,6 +7496,8 @@ async function stopAndroidVoice() {
 
 function startVoiceRecording() {
   if (_voiceRecording) return;
+  // 打断正在播放的 AI 语音回复（用户开口即打断）
+  stopAiSpeaking();
   // 桌面版走原生语音识别桥接
   if (nativeSpeechReady()) {
     startDesktopVoice();
@@ -7780,6 +7788,17 @@ function stopVoiceRecording() {
 }
 
 let _aiAudio = null;
+// 停止 AI 语音回复播放（用户开始说话时打断）
+function stopAiSpeaking() {
+  try {
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.stop_tts) {
+      window.pywebview.api.stop_tts();
+    }
+  } catch (e) { console.warn('[语音回复] 原生打断失败:', e); }
+  if (_aiAudio) {
+    try { _aiAudio.pause(); _aiAudio = null; } catch (e) {}
+  }
+}
 // AI 回复转语音并播放（后端模式；失败静默不影响文字回复）
 async function speakText(text) {
   try {
