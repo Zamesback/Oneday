@@ -7779,6 +7779,32 @@ function stopVoiceRecording() {
   }
 }
 
+let _aiAudio = null;
+// AI 回复转语音并播放（后端模式；失败静默不影响文字回复）
+async function speakText(text) {
+  try {
+    if (!text || !text.trim()) return;
+    if (!(await Storage.hasBackend())) return; // 纯前端直连模式无 TTS 服务
+    // 去掉 markdown 符号，限制长度，避免念出特殊字符
+    const clean = text.replace(/[#*`>_~|[\]()《》「」【】]/g, '').replace(/\s+/g, ' ').trim().slice(0, 400);
+    if (!clean) return;
+    const res = await fetch(API_BASE + '/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: clean })
+    });
+    const r = await res.json();
+    if (r && r.url) {
+      if (_aiAudio) { _aiAudio.pause(); _aiAudio = null; }
+      _aiAudio = new Audio(API_BASE + r.url);
+      _aiAudio.volume = 1.0;
+      _aiAudio.play().catch(e => console.warn('[语音回复] 播放失败:', e));
+    }
+  } catch (e) {
+    console.warn('[语音回复] TTS 失败（不影响文字回复）:', e.message);
+  }
+}
+
 async function sendVoiceMessage(message) {
   if (!message || !message.trim()) {
     setVoiceStatus('', '待机中');
@@ -7795,6 +7821,7 @@ async function sendVoiceMessage(message) {
       const reply = await chatDirect(message);
       showVoiceReply(reply, 'OneDay');
       playAiReplySound();
+      speakText(reply); // 有后端时才会真正播放，直连模式内部跳过
       // 保存聊天记录
       const now = new Date().toISOString();
       _data.chats = _data.chats || [];
@@ -7824,6 +7851,7 @@ async function sendVoiceMessage(message) {
       console.log('[AI对话] 显示回复:', result.reply);
       showVoiceReply(result.reply, 'OneDay');
       playAiReplySound();
+      speakText(result.reply); // AI 语音回复
     } else {
       console.warn('[AI对话] result.reply 为空！');
       showVoiceReply('（AI 没有返回回复内容，请检查 API 配置）', 'OneDay');

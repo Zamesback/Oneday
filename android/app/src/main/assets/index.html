@@ -7340,12 +7340,13 @@ async function startDesktopVoice() {
       _voiceRecording = false;
       return;
     }
-    // 桌面模式看门狗：如果 30 秒没有任何识别结果，自动停止
+    // 桌面模式看门狗：90 秒没有任何识别结果才自动停止
+    // （SFSpeechRecognizer 的中间结果可能按句延迟输出，30 秒误杀长讲话）
     if (_voiceWatchdogTimer) clearInterval(_voiceWatchdogTimer);
     _voiceWatchdogTimer = setInterval(() => {
       if (!_voiceRecording) { clearInterval(_voiceWatchdogTimer); return; }
-      if (Date.now() - _voiceLastResultTime > 30000) {
-        console.log('[桌面录音] 看门狗：无识别结果 30 秒，自动停止');
+      if (Date.now() - _voiceLastResultTime > 90000) {
+        console.log('[桌面录音] 看门狗：无识别结果 90 秒，自动停止');
         stopVoiceRecording();
       }
     }, 5000);
@@ -7778,6 +7779,32 @@ function stopVoiceRecording() {
   }
 }
 
+let _aiAudio = null;
+// AI 回复转语音并播放（后端模式；失败静默不影响文字回复）
+async function speakText(text) {
+  try {
+    if (!text || !text.trim()) return;
+    if (!(await Storage.hasBackend())) return; // 纯前端直连模式无 TTS 服务
+    // 去掉 markdown 符号，限制长度，避免念出特殊字符
+    const clean = text.replace(/[#*`>_~|[\]()《》「」【】]/g, '').replace(/\s+/g, ' ').trim().slice(0, 400);
+    if (!clean) return;
+    const res = await fetch(API_BASE + '/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: clean })
+    });
+    const r = await res.json();
+    if (r && r.url) {
+      if (_aiAudio) { _aiAudio.pause(); _aiAudio = null; }
+      _aiAudio = new Audio(API_BASE + r.url);
+      _aiAudio.volume = 1.0;
+      _aiAudio.play().catch(e => console.warn('[语音回复] 播放失败:', e));
+    }
+  } catch (e) {
+    console.warn('[语音回复] TTS 失败（不影响文字回复）:', e.message);
+  }
+}
+
 async function sendVoiceMessage(message) {
   if (!message || !message.trim()) {
     setVoiceStatus('', '待机中');
@@ -7794,6 +7821,7 @@ async function sendVoiceMessage(message) {
       const reply = await chatDirect(message);
       showVoiceReply(reply, 'OneDay');
       playAiReplySound();
+      speakText(reply); // 有后端时才会真正播放，直连模式内部跳过
       // 保存聊天记录
       const now = new Date().toISOString();
       _data.chats = _data.chats || [];
@@ -7823,6 +7851,7 @@ async function sendVoiceMessage(message) {
       console.log('[AI对话] 显示回复:', result.reply);
       showVoiceReply(result.reply, 'OneDay');
       playAiReplySound();
+      speakText(result.reply); // AI 语音回复
     } else {
       console.warn('[AI对话] result.reply 为空！');
       showVoiceReply('（AI 没有返回回复内容，请检查 API 配置）', 'OneDay');
@@ -8356,8 +8385,10 @@ function closeDrawer() {
 // 开屏加载时若今日尚无 AI 开屏图，自动触发一次生成；
 // 失败则静默（不打扰），用户可点「开启新一天」手动兜底。
 let _autoWallpaperChecked = false;
+let _autoWallpaperRetries = 0;
+const _AUTO_WALLPAPER_MAX_RETRIES = 3;
 async function autoEnsureTodayWallpaper() {
-  if (_autoWallpaperChecked) return; // 每次会话只尝试一次
+  if (_autoWallpaperChecked) return; // 每次会话只尝试一轮
   _autoWallpaperChecked = true;
   try {
     const settings = _data?.settings || {};
@@ -8375,9 +8406,21 @@ async function autoEnsureTodayWallpaper() {
       console.log('[每日一图] 自动生成完成');
     } else {
       console.log('[每日一图] 自动生成未完成（可手动点击开启新一天）:', result.error);
+      // 失败后延时重试（免费生图源偶发超时），最多 3 轮
+      _autoWallpaperRetries++;
+      if (_autoWallpaperRetries < _AUTO_WALLPAPER_MAX_RETRIES) {
+        _autoWallpaperChecked = false;
+        setTimeout(() => autoEnsureTodayWallpaper(), 60000);
+        console.log(`[每日一图] ${60} 秒后第 ${_autoWallpaperRetries + 1} 次重试`);
+      }
     }
   } catch (e) {
     console.warn('[每日一图] 自动生成异常（可手动点击开启新一天）:', e.message);
+    _autoWallpaperRetries++;
+    if (_autoWallpaperRetries < _AUTO_WALLPAPER_MAX_RETRIES) {
+      _autoWallpaperChecked = false;
+      setTimeout(() => autoEnsureTodayWallpaper(), 60000);
+    }
   }
 }
 

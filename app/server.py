@@ -21,10 +21,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 数据与壁纸目录支持环境变量覆盖（桌面版打包后 _MEIPASS 只读，须指向用户目录）
 JSON_DIR = os.environ.get('ONEDAY_DATA_DIR') or os.path.join(BASE_DIR, 'data')
 WALLPAPER_DIR = os.environ.get('ONEDAY_WALLPAPER_DIR') or os.path.join(BASE_DIR, 'assets', 'generated')
+TTS_DIR = os.path.join(JSON_DIR, 'tts')
 PORT = 8765
 
 os.makedirs(JSON_DIR, exist_ok=True)
 os.makedirs(WALLPAPER_DIR, exist_ok=True)
+os.makedirs(TTS_DIR, exist_ok=True)
 
 # ===== 数据存储层 =====
 
@@ -1801,6 +1803,77 @@ WALLPAPER_GRADIENTS = [
     'linear-gradient(135deg, #f0f2f5 0%, #d9dee3 100%)',
 ]
 
+def get_today_state():
+    """生成今日状态描述（用于生图）：优先 AI 判断，失败用规则兜底"""
+    settings = load_settings()
+    today = datetime.date.today().isoformat()
+
+    # 优先真实 AI：一句话状态（带一点画面感）
+    if settings.get('apiKey') and settings.get('apiProvider') != 'mock':
+        try:
+            todos = load_module('todos')
+            today_todos = [t for t in todos if str(t.get('date', ''))[:10] == today]
+            done = [t for t in today_todos if t.get('status') == 'done']
+            weather = get_weather_text()
+            info = (
+                f"天气：{weather or '未知'}\n"
+                f"今日待办：{', '.join(t.get('title', '') for t in today_todos[:5]) or '无'}\n"
+                f"已完成：{len(done)}/{len(today_todos)}"
+            )
+            r = call_real_ai(
+                '你是一个敏锐的生活观察者。根据用户信息，用一句话（25字以内）具体、有画面感地描述用户今天的状态与情绪，不要敬语、不要鼓励、只陈述。',
+                info,
+            )
+            if r:
+                r = r.strip().strip('"').strip('。')
+                if r and len(r) <= 60:
+                    return r
+        except Exception as e:
+            print(f'[今日状态] AI 判断失败，走规则兜底: {e}')
+
+    # 规则兜底
+    todos = load_module('todos')
+    today_todos = [t for t in todos if str(t.get('date', ''))[:10] == today]
+    done = [t for t in today_todos if t.get('status') == 'done']
+    if not today_todos:
+        return '轻松的一天，可以从容安排'
+    ratio = len(done) / len(today_todos)
+    if ratio >= 0.8:
+        return '充实高效，大部分目标已经完成'
+    if ratio >= 0.4:
+        return '稳步推进中，保持自己的节奏'
+    return '忙碌的一天，待办还有不少'
+
+
+def text_to_speech(text):
+    """AI 回复转语音（edge-tts 免费神经网络中文音色；失败返回 None）"""
+    import hashlib
+    try:
+        text = (text or '').strip()
+        if not text:
+            return None
+        # 同一文本不重复生成（缓存）
+        digest = hashlib.md5(text.encode('utf-8')).hexdigest()[:12]
+        out_path = os.path.join(TTS_DIR, f'tts-{digest}.mp3')
+        if os.path.exists(out_path):
+            return f'/tts/tts-{digest}.mp3'
+
+        import asyncio
+        import edge_tts
+
+        async def _gen():
+            communicate = edge_tts.Communicate(text, 'zh-CN-XiaoxiaoNeural', rate='+0%')
+            await communicate.save(out_path)
+
+        asyncio.run(_gen())
+        if os.path.exists(out_path) and os.path.getsize(out_path) > 100:
+            print(f'[TTS] 已生成: {out_path} ({os.path.getsize(out_path)} bytes)')
+            return f'/tts/tts-{digest}.mp3'
+    except Exception as e:
+        print(f'[TTS] 生成失败: {e}')
+    return None
+
+
 def generate_daily_wallpaper_ai():
     """用 AI 生成每日开屏页壁纸（根据用户状态+待办+天气+节气）"""
     import os
@@ -1830,32 +1903,68 @@ def generate_daily_wallpaper_ai():
     pending = [t for t in todos if t.get('status') != 'done'][-5:]
     projects = load_module('projects')
     active = [p for p in projects if p.get('status') not in ('done', 'cancelled')][-3:]
-    
+
     # 获取天气和节气
     weather_text = get_weather_text()
     date_context = get_date_context()
-    
+
+    # 今日状态：优先 AI 判断（一次短调用），失败用规则兜底
+    today_state = get_today_state()
+
     # 构建节气/节日描述
     term_desc = ''
     if date_context.get('solar_term_is_today'):
         term_desc = f"今天是{date_context['solar_term']}"
     elif date_context.get('next_solar_term'):
         term_desc = f"临近{date_context['next_solar_term']}"
-    
+
     festival_desc = f"今天是{date_context['festival']}" if date_context.get('festival') else ''
-    
-    # 构建生图提示词
+
+    # 风格主题轮换：日期取模，保证隔天图不一样
+    style_themes = [
+        "urban night cityscape with neon reflections on wet streets",
+        "minimalist mountain landscape at dawn with drifting fog",
+        "abstract flowing silk-like forms with soft shadows and geometric cutouts",
+        "retro-futuristic architecture with clean grid patterns and red accents",
+        "calm ocean horizon at dusk with long-exposure glassy water",
+        "industrial brutalist concrete hall with dramatic diagonal light beams",
+        "layered paper-cut collage with offset shadows and subtle noise texture",
+        "wind-swept empty plaza with scattered light particles",
+    ]
+    theme = style_themes[datetime.date.today().toordinal() % len(style_themes)]
+
+    # 天气联动视觉元素
+    weather_visual = ''
+    w = weather_text or ''
+    if '雨' in w:
+        weather_visual = 'rain streaks and wet reflections, moody drizzle'
+    elif '雪' in w:
+        weather_visual = 'falling snow with soft bokeh, cold blue-white atmosphere'
+    elif '风' in w or '大风' in w:
+        weather_visual = 'wind-blown particles and dynamic diagonal motion'
+    elif '晴' in w:
+        weather_visual = 'clear light, crisp shadows, bright airy atmosphere'
+    elif '阴' in w or '云' in w:
+        weather_visual = 'diffused overcast light, soft gradients through clouds'
+
+    # 构建生图提示词（中英混合：英文为主描述画面，中文事实信息也保留）
     context = f"""用户：{name}
 日期：{date_context['date']} {date_context['weekday']}
 {term_desc}
 {festival_desc if festival_desc else ''}
 {weather_text if weather_text else ''}
+今日状态：{today_state}
 今日待办：{', '.join([t.get('title','') for t in pending]) if pending else '轻松的一天'}
 进行中项目：{', '.join([p.get('name','') for p in active]) if active else '无'}"""
-    
-    prompt = f"""Create a beautiful, artistic desktop wallpaper for a personal productivity app called "OneDay".
+
+    prompt = f"""Create a unique, artistic desktop wallpaper for a personal productivity app called "OneDay".
 
 {context}
+
+Scene & mood direction: {theme}
+{('Weather visual: ' + weather_visual) if weather_visual else ''}
+
+The artwork should reflect the user's current life state described above (the mood, the tasks, the weather), but stay abstract and evocative rather than literal.
 
 Style requirements:
 - Modern, young, energetic aesthetic (Nothing × One style)
@@ -1865,7 +1974,8 @@ Style requirements:
 - High quality, 4K resolution, widescreen 16:9 aspect ratio
 - Should evoke emotion and match the user's current life state
 - Minimalist but impactful, with lots of negative space
-- Could include urban elements, nature, weather effects, or abstract shapes
+- Include the seasonal or weather cues naturally (fog, rain, snow, light, wind)
+- Vary composition and perspective from any previous day; make this day feel distinct
 
 IMPORTANT: Do NOT include any text, words, or letters in the image. This is a pure visual wallpaper."""
     
@@ -1877,7 +1987,11 @@ IMPORTANT: Do NOT include any text, words, or letters in the image. This is a pu
         if not api_key:
             # ===== 零配置免费通道：Pollinations.ai（无需 key、无需注册）=====
             import urllib.parse
-            seed = datetime.date.today().toordinal()  # 同一天固定种子，保证当天图一致
+            # 种子动态化：日期 + 当日内容变化 → 图不同（同一天内容不变则保持一致）
+            content_seed = (len(pending) * 131 + len(active) * 17
+                            + (hash(weather_text or '') % 997)
+                            + (hash(today_state) % 991))
+            seed = datetime.date.today().toordinal() * 100 + (content_seed % 100)
             poll_url = (
                 f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}"
                 f"?width=1792&height=1024&model=flux&nologo=true&seed={seed}"
@@ -2230,6 +2344,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404)
             return
 
+        # AI 语音回复（TTS 生成的 mp3）
+        if path.startswith('/tts/'):
+            fname = os.path.basename(path)  # 防路径穿越
+            fpath = os.path.join(TTS_DIR, fname)
+            if os.path.exists(fpath) and fname.endswith(('.mp3', '.m4a', '.aiff')):
+                ext = fname.rsplit('.', 1)[-1].lower()
+                ctype = {'mp3': 'audio/mpeg', 'm4a': 'audio/mp4', 'aiff': 'audio/aiff'}.get(ext, 'application/octet-stream')
+                try:
+                    with open(fpath, 'rb') as f:
+                        body = f.read()
+                    self.send_response(200)
+                    self.send_header('Content-Type', ctype)
+                    self.send_header('Content-Length', str(len(body)))
+                    self.send_header('Cache-Control', 'no-cache')
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
+                except Exception as e:
+                    print(f"[TTS] 读取失败 {fpath}: {e}")
+                    self.send_error(500)
+                    return
+            self.send_error(404)
+            return
+
         if path == '/api/health':
             self.send_json({'status': 'ok', 'version': '3.0', 'name': 'OneDay', 'time': datetime.datetime.now().isoformat()})
             return
@@ -2336,6 +2474,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             text = data.get('text', '')
             result = extract_info_from_text(text)
             self.send_json(result)
+            return
+
+        if path == '/api/tts':
+            text = data.get('text', '')
+            url = text_to_speech(text)
+            if url:
+                self.send_json({'success': True, 'url': url})
+            else:
+                self.send_json({'success': False, 'error': 'TTS 生成失败'})
             return
 
         if path == '/api/chat':
